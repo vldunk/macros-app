@@ -23,7 +23,7 @@ function Button({ className = '', type = 'button', attrs = '', label = '' } = {}
         }
 
         function ProductCard(ing, index, swap) {
-            return '<div class="portion-ingredient"><div><b>' + escapeHTML(ing.products?.name || 'Продукт') + '</b><div class="portion-product-macros"><span>' + Math.round(Number(ing.products?.kcal) || 0) + ' ккал / 100 г</span><span>' + Math.round(Number(ing.products?.protein) || 0) + ' г белка</span></div>' + swap + '</div><label><span class="portion-subtitle">Граммы</span><input type="number" inputmode="decimal" min="0" step="1" value="' + escapeAttr(String(Math.round(Number(ing.weight) || 0))) + '" oninput="setPortionIngredientGrams(' + index + ', this.value)"></label></div>';
+            return '<div class="portion-ingredient"><div><b>' + escapeHTML(ing.products?.name || 'Продукт') + '</b><div class="portion-product-macros"><span>' + Math.round(Number(ing.products?.kcal) || 0) + ' ккал / 100 г</span><span>' + Math.round(Number(ing.products?.protein) || 0) + ' г белка</span></div>' + swap + '</div><label><span class="portion-subtitle">В рецепте, г</span><input type="number" inputmode="decimal" min="0" step="1" value="' + escapeAttr(String(Math.round(Number(ing.weight) || 0))) + '" oninput="setPortionIngredientGrams(' + index + ', this.value)"></label></div>';
         }
 
 function renderRecipeCard(item, favs, compact = false) {
@@ -38,7 +38,8 @@ function renderRecipeCard(item, favs, compact = false) {
                 '<div class="recipe-image" style="' + (img ? 'background-image: url(&quot;' + escapeAttr(img) + '&quot;)' : '') + '" onclick="openRecipeDetails(' + escapeAttr(idArg) + ')">' +
                 '<div class="fav-btn" style="color: ' + (favs.map(String).includes(String(r.id)) ? '#ff3b30' : '#ffffff') + ';" onclick="toggleFavorite(event, ' + escapeAttr(idArg) + ')">' + (favs.map(String).includes(String(r.id)) ? '❤️' : '🤍') + '</div></div>' +
                 '<div class="recipe-content"><div class="recipe-title" onclick="openRecipeDetails(' + escapeAttr(idArg) + ')">' + escapeHTML(r.title) + '</div>' +
-                '<div class="recipe-primary-stats"><span class="recipe-primary-stat">' + Math.round(nutrition.kcal) + ' ккал</span><span class="recipe-primary-stat">' + Math.round(nutrition.protein) + ' г белка</span></div>' +
+                '<div class="recipe-kbju-line">На 100 г: ' + Math.round(nutrition.kcal) + ' ккал · Б ' + Math.round(nutrition.protein) + ' г · Ж ' + Math.round(nutrition.fat) + ' г · У ' + Math.round(nutrition.carbs) + ' г</div>' +
+                '<div class="recipe-time-line">' + getRecipeTime(r) + ' мин</div>' +
                 '<button class="recipe-add-btn" type="button" data-recipe-id="' + encodeData(r.id) + '" data-k="' + encodeData(nutrition.kcal) + '" data-p="' + encodeData(nutrition.protein) + '" data-f="' + encodeData(nutrition.fat) + '" data-c="' + encodeData(nutrition.carbs) + '">Добавить</button></div></div>';
         }
 
@@ -81,4 +82,3 @@ function renderPrepRecipes() {
                 return '<div class="prep-recipe-card" role="button" tabindex="0" onclick="openRecipeDetails(' + idArg + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openRecipeDetails(' + idArg + ')}"><div class="prep-recipe-img" style="' + (img ? 'background-image:url(&quot;' + escapeAttr(img) + '&quot;)' : '') + '"></div><div class="prep-recipe-body"><div class="prep-recipe-title">' + escapeHTML(r.title) + '</div><div class="prep-recipe-primary-stats"><span>' + perServingKcal + ' ккал</span><span>' + perServingProtein + ' г белка</span></div><button class="planner-add-btn" type="button" onclick="event.stopPropagation(); openRecipePortionEditor(\'plan\', ' + idArg + ', { date: mealPrepState.selectedDate, mealType: \'' + (r.category || 'Обед') + '\' })">Добавить в меню</button></div></div>';
             }).join('');
         }
-

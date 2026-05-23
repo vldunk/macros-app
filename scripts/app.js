@@ -1226,9 +1226,19 @@
                                                                         function openRecipePortionEditor(mode, recipeId, context = {}) {
             const recipe = getRecipeById(recipeId);
             if (!recipe) return showToast('Рецепт не найден');
-            recipePortionDraft = { mode, recipeId: String(recipe.id), context, ingredients: hydratePortionIngredients(context.ingredients, recipe) };
-            document.getElementById('portion-title').textContent = recipe.title + ': выбранная порция';
-            document.getElementById('portion-confirm-btn').textContent = mode === 'plan' ? 'Добавить в меню' : mode === 'plan-edit' ? 'Сохранить порцию' : 'Выбрать прием пищи';
+            const hasContextIngredients = Array.isArray(context.ingredients) && context.ingredients.length;
+            const ingredients = hasContextIngredients ? hydratePortionIngredients(context.ingredients, recipe) : getRecipeWorkingIngredients(recipe);
+            const total = getRecipePortionNutrition(recipe, ingredients);
+            recipePortionDraft = {
+                mode,
+                recipeId: String(recipe.id),
+                context,
+                ingredients,
+                eatenGrams: Math.max(1, Math.round(total.grams || 100)),
+                mealType: context.mealType || recipe.category || currentMealFilter || 'Обед'
+            };
+            document.getElementById('portion-title').textContent = recipe.title;
+            document.getElementById('portion-confirm-btn').textContent = mode === 'plan' ? 'Добавить в меню' : mode === 'plan-edit' ? 'Сохранить рецепт' : 'Внести в дневник';
             renderRecipePortionEditor();
             setLockedLayer('portion', document.getElementById('recipe-portion-overlay'), true);
         }
@@ -1241,16 +1251,27 @@
         function renderRecipePortionTotals() {
             if (!recipePortionDraft) return;
             const total = getRecipePortionNutrition(getRecipeById(recipePortionDraft.recipeId), recipePortionDraft.ingredients);
+            const per100Ratio = total.grams > 0 ? 100 / total.grams : 0;
+            const eatenGrams = Math.max(1, Number(recipePortionDraft.eatenGrams) || Math.round(total.grams) || 100);
+            const eatenRatio = total.grams > 0 ? eatenGrams / total.grams : 0;
+            const diaryLine = recipePortionDraft.mode === 'diary'
+                ? '<div class="portion-total-summary"><span>Съедено:</span> ' + Math.round(eatenGrams) + ' г · ' + Math.round(total.kcal * eatenRatio) + ' ккал · Б ' + (total.protein * eatenRatio).toFixed(1) + ' г · Ж ' + (total.fat * eatenRatio).toFixed(1) + ' г · У ' + (total.carbs * eatenRatio).toFixed(1) + ' г</div>'
+                : '';
             document.getElementById('portion-total').innerHTML =
-                '<div><b>' + Math.round(total.kcal) + '</b>Ккал</div>' +
-                '<div><b>' + total.protein.toFixed(1) + ' г</b>Белки</div>' +
-                '<div><b>' + total.fat.toFixed(1) + ' г</b>Жиры</div>' +
-                '<div><b>' + total.carbs.toFixed(1) + ' г</b>Углеводы</div>';
+                '<div class="portion-total-summary"><span>Рецепт:</span> ' + Math.round(total.grams) + ' г · ' + Math.round(total.kcal) + ' ккал · Б ' + total.protein.toFixed(1) + ' г · Ж ' + total.fat.toFixed(1) + ' г · У ' + total.carbs.toFixed(1) + ' г</div>' +
+                '<div class="portion-total-summary"><span>На 100 г:</span> ' + Math.round(total.kcal * per100Ratio) + ' ккал · Б ' + (total.protein * per100Ratio).toFixed(1) + ' г · Ж ' + (total.fat * per100Ratio).toFixed(1) + ' г · У ' + (total.carbs * per100Ratio).toFixed(1) + ' г</div>' +
+                diaryLine;
+            const eatenInput = document.getElementById('portion-eaten-grams');
+            if (eatenInput && document.activeElement !== eatenInput) eatenInput.value = String(Math.round(eatenGrams));
         }
 
         function renderRecipePortionEditor() {
             if (!recipePortionDraft) return;
             const list = document.getElementById('portion-ingredients');
+            const isDiary = recipePortionDraft.mode === 'diary';
+            document.getElementById('portion-eaten-field')?.toggleAttribute('hidden', !isDiary);
+            document.getElementById('portion-meal-section')?.toggleAttribute('hidden', !isDiary);
+            document.querySelectorAll('.portion-meal-option').forEach(btn => btn.classList.toggle('active', btn.textContent.trim() === recipePortionDraft.mealType));
             renderRecipePortionTotals();
             list.innerHTML = recipePortionDraft.ingredients.map((ing, index) => {
                 const category = ing.products?.category || ing.category;
@@ -1271,6 +1292,7 @@
         function setPortionIngredientGrams(index, value) {
             if (!recipePortionDraft?.ingredients[index]) return;
             recipePortionDraft.ingredients[index].weight = Math.max(0, Number(String(value).replace(',', '.')) || 0);
+            saveRecipeIngredientOverride(recipePortionDraft.recipeId, recipePortionDraft.ingredients);
             renderRecipePortionTotals();
         }
 
@@ -1280,7 +1302,32 @@
             if (!next) return;
             const grams = recipePortionDraft.ingredients[index].weight;
             recipePortionDraft.ingredients[index] = clonePortionIngredient({ ...next, weight: grams });
+            saveRecipeIngredientOverride(recipePortionDraft.recipeId, recipePortionDraft.ingredients);
             renderRecipePortionEditor();
+        }
+
+        function setPortionEatenGrams(value) {
+            if (!recipePortionDraft) return;
+            recipePortionDraft.eatenGrams = Math.max(1, Number(String(value).replace(',', '.')) || 1);
+            renderRecipePortionTotals();
+        }
+
+        function setPortionMealType(mealType) {
+            if (!recipePortionDraft) return;
+            recipePortionDraft.mealType = mealType || 'Перекус';
+            renderRecipePortionEditor();
+        }
+
+        function resetRecipePortionDraft() {
+            if (!recipePortionDraft) return;
+            const recipe = getRecipeById(recipePortionDraft.recipeId);
+            recipePortionDraft.ingredients = getRecipeDefaultIngredients(recipe);
+            clearRecipeIngredientOverride(recipePortionDraft.recipeId);
+            const total = getRecipePortionNutrition(recipe, recipePortionDraft.ingredients);
+            recipePortionDraft.eatenGrams = Math.max(1, Math.round(total.grams || 100));
+            renderRecipePortionEditor();
+            renderRecipes(true);
+            renderRecipesScreen();
         }
 
         function confirmRecipePortion() {
@@ -1291,10 +1338,14 @@
             const context = recipePortionDraft.context || {};
             const mode = recipePortionDraft.mode;
             const total = getRecipePortionNutrition(recipe, ingredients);
+            const eatenGrams = Math.max(1, Number(recipePortionDraft.eatenGrams) || total.grams || 100);
+            const mealType = recipePortionDraft.mealType || recipe.category || 'Перекус';
+            const eatenRatio = total.grams > 0 ? eatenGrams / total.grams : 0;
+            saveRecipeIngredientOverride(recipe.id, ingredients);
             closeRecipePortionEditor();
             if (mode === 'plan') return addRecipeToMealPlan(context.date || mealPrepState.selectedDate, context.mealType || recipe.category || 'Обед', recipe.id, 1, ingredients);
             if (mode === 'plan-edit') return updateMealPlanItem(context.itemId, ingredients);
-            openMealModal(recipe.id, total.kcal, total.protein, total.fat, total.carbs, ingredients);
+            return openMealModal(recipe.id, total.kcal * eatenRatio, total.protein * eatenRatio, total.fat * eatenRatio, total.carbs * eatenRatio, scalePortionIngredients(ingredients, eatenRatio), mealType);
         }
 
                                                                 function getPersonalRecipeLabel(meta) {
@@ -1920,18 +1971,15 @@ async function updateHistoryUI() {
             document.getElementById('detail-title').innerText = r.title || '';
             document.getElementById('detail-badges').innerHTML = getRecipeDetailTags({ recipe: r, nutrition, meta, time }).slice(0, 2).map(tag => '<span class="recipe-badge ' + tag.className + '">' + escapeHTML(tag.label) + '</span>').join('');
             let ingHtml = '';
-            r.recipe_ingredients?.forEach(i => {
+            getRecipeWorkingIngredients(r).forEach(i => {
                 if(i.products) {
                     const unitData = normalizeIngredientUnit(Number(i.weight) || 0, i.unit || i.products?.unit || 'g', i.products.name);
                     ingHtml += '<div class="ingredient-item"><span>' + escapeHTML(i.products.name) + '</span><span style="color:var(--text-muted); font-weight:bold;">' + escapeHTML(formatIngredientAmount(unitData.amount, unitData.unit)) + '</span></div>';
                 }
             });
             document.getElementById('detail-macros').innerHTML =
-                '<div class="detail-macro"><b>' + Math.round(nutrition.kcal) + '</b><span>Ккал / 100 г</span></div>' +
-                '<div class="detail-macro"><b>' + Math.round(nutrition.protein) + 'г</b><span>Белок / 100 г</span></div>' +
-                '<div class="detail-macro"><b>' + Math.round(nutrition.fat) + 'г</b><span>Жиры / 100 г</span></div>' +
-                '<div class="detail-macro"><b>' + Math.round(nutrition.carbs) + 'г</b><span>Углеводы / 100 г</span></div>' +
-                '<div class="detail-macro"><b>' + time + '</b><span>Мин</span></div>';
+                '<div class="detail-macro-summary"><span>На 100 г:</span> ' + Math.round(nutrition.kcal) + ' ккал · Б ' + Math.round(nutrition.protein) + ' г · Ж ' + Math.round(nutrition.fat) + ' г · У ' + Math.round(nutrition.carbs) + ' г</div>' +
+                '<div class="detail-time-pill">' + time + ' мин</div>';
             const recommended = getRecommendedRecipes({ recipes: [r], userGoal: userProfile.goal_type, mealType: r.mealType, currentMacros: stats })[0];
             document.getElementById('detail-fit-note').innerText = (recommended?.reason || getRecipeFitNote(meta, nutrition)) + ' Хранение: ' + storage.shelfLife + (storage.canFreeze ? '. Можно замораживать.' : '. Лучше хранить охлажденным.');
             document.getElementById('detail-ingredients').innerHTML = ingHtml || '<p style="color:var(--text-muted);font-size:14px;">Ингредиенты не указаны</p>';
@@ -1941,14 +1989,19 @@ async function updateHistoryUI() {
             document.getElementById('detail-similar').innerHTML = similar.length ? similar.map(item => '<button class="similar-recipe" type="button" onclick="openRecipeDetails(' + escapeAttr(JSON.stringify(String(item.recipe.id))) + ')"><div>' + escapeHTML(item.recipe.title) + '</div><span>' + Math.round(item.nutrition.kcal) + ' ккал</span></button>').join('') : '<div class="detail-note">Похожие рецепты появятся, когда в базе будет больше блюд с похожим КБЖУ.</div>';
             const cta = document.querySelector('.detail-sticky-cta');
             if (cta) {
-                cta.innerHTML = '<button class="detail-add-btn" type="button" onclick="closeRecipeDetails(); openRecipePortionEditor(\'plan\', ' + escapeAttr(JSON.stringify(String(r.id))) + ', { date: mealPrepState.selectedDate, mealType: \'' + escapeAttr(r.category || 'Обед') + '\' })">Добавить в меню</button><button class="detail-add-btn" id="detail-add-btn" type="button">Внести в дневник</button>';
+                cta.innerHTML = '<button class="detail-add-btn" id="detail-add-btn" type="button">Настроить порцию</button>';
             }
             document.getElementById('detail-add-btn').onclick = () => { closeRecipeDetails(); openRecipePortionEditor('diary', r.id); };
             setDisplayedLayer('recipe-details', document.getElementById('recipe-details-modal'), true);
         }
 
         function closeRecipeDetails() { setDisplayedLayer('recipe-details', document.getElementById('recipe-details-modal'), false); }
-        function openMealModal(rid, k, p, f, c, ingredients = []) { console.log('openMealModal', { rid, k, p, f, c }); pendingMeal = { rid, k, p, f, c, ingredients: snapshotPortionIngredients(ingredients) }; setDisplayedLayer('meal', document.getElementById('meal-modal'), true); }
+        function openMealModal(rid, k, p, f, c, ingredients = [], mealType = null) {
+            console.log('openMealModal', { rid, k, p, f, c, mealType });
+            pendingMeal = { rid, k, p, f, c, ingredients: snapshotPortionIngredients(ingredients) };
+            if (mealType) return confirmMealAdd(mealType);
+            setDisplayedLayer('meal', document.getElementById('meal-modal'), true);
+        }
         function closeMealModal() { setDisplayedLayer('meal', document.getElementById('meal-modal'), false); pendingMeal = null; }
 
         async function saveRecipeDiarySnapshot(meal, mealType) {

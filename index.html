@@ -135,17 +135,30 @@
         </div>
     </div>
 
-    <div class="portion-overlay" id="recipe-portion-overlay" onclick="closeRecipePortionEditor()">
-        <div class="portion-sheet" onclick="event.stopPropagation()">
+    <div class="portion-overlay" id="recipe-portion-overlay">
+        <div class="portion-sheet">
             <div class="portion-head">
                 <div>
                     <div class="portion-title" id="portion-title">Выбранная порция</div>
-                    <div class="portion-subtitle">Измени граммы или замени крупу, КБЖУ пересчитаются сразу.</div>
+                    <div class="portion-subtitle">Сначала настрой граммовки рецепта, затем укажи съеденную порцию для дневника.</div>
                 </div>
-                <button class="info-sheet-close" type="button" aria-label="Закрыть" onclick="closeRecipePortionEditor()">×</button>
+                <button class="portion-reset-btn" type="button" title="Сбросить рецепт" aria-label="Сбросить рецепт к стандартным граммовкам" onclick="resetRecipePortionDraft()">↻</button>
             </div>
-            <div class="portion-basis">КБЖУ на выбранную порцию. Расчет по каждому ингредиенту на 100 г.</div>
+            <div class="portion-basis">КБЖУ рецепта пересчитываются по ингредиентам. Для дневника считается только съеденная порция.</div>
             <div class="portion-total" id="portion-total"></div>
+            <label class="portion-eaten-field" id="portion-eaten-field">
+                <span>Сколько грамм блюда ты съел?</span>
+                <input id="portion-eaten-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="setPortionEatenGrams(this.value)">
+            </label>
+            <div class="portion-meal-section" id="portion-meal-section">
+                <div class="portion-subtitle">Прием пищи</div>
+                <div class="portion-meal-options" id="portion-meal-options">
+                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Завтрак')">Завтрак</button>
+                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Обед')">Обед</button>
+                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Ужин')">Ужин</button>
+                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Перекус')">Перекус</button>
+                </div>
+            </div>
             <div id="portion-ingredients"></div>
             <div class="portion-actions">
                 <button class="light-action-btn" type="button" onclick="closeRecipePortionEditor()">Отмена</button>
@@ -203,7 +216,7 @@
                 </div>
             </div>
             <div class="detail-sticky-cta">
-                <button class="detail-add-btn" id="detail-add-btn">Внести в дневник</button>
+                <button class="detail-add-btn" id="detail-add-btn">Настроить порцию</button>
             </div>
         </div>
     </div>

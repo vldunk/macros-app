@@ -19,7 +19,7 @@ function recipeHasIngredientNutrition(recipe) {
         }
 
 function getRecipePortionNutrition(recipe, ingredients) {
-            const selected = ingredients || recipe?.recipe_ingredients || [];
+            const selected = ingredients || getRecipeWorkingIngredients(recipe);
             if (recipeHasIngredientNutrition({ recipe_ingredients: selected })) return calculateIngredientNutrition(selected);
             const grams = selected.reduce((sum, i) => sum + (Number(i.grams ?? i.weight ?? i.default_grams) || 0), 0);
             const ratio = grams > 0 ? grams / 100 : 1;
@@ -33,8 +33,9 @@ function getRecipePortionNutrition(recipe, ingredients) {
         }
 
 function getRecipeNutrition(recipe) {
-            if (recipeHasIngredientNutrition(recipe)) {
-                const total = getRecipePortionNutrition(recipe);
+            const ingredients = getRecipeWorkingIngredients(recipe);
+            if (recipeHasIngredientNutrition({ recipe_ingredients: ingredients })) {
+                const total = getRecipePortionNutrition(recipe, ingredients);
                 const ratio = total.grams > 0 ? 100 / total.grams : 0;
                 return { kcal: total.kcal * ratio, protein: total.protein * ratio, fat: total.fat * ratio, carbs: total.carbs * ratio, grams: 100 };
             }
@@ -42,7 +43,7 @@ function getRecipeNutrition(recipe) {
                 return { kcal: Number(recipe.calories) || 0, protein: Number(recipe.protein) || 0, fat: Number(recipe.fat) || 0, carbs: Number(recipe.carbs) || 0, grams: 100 };
             }
             let kcal = 0, protein = 0, fat = 0, carbs = 0;
-            recipe.recipe_ingredients?.forEach(i => {
+            ingredients?.forEach(i => {
                 const ratio = (Number(i.weight) || 0) / 100;
                 kcal += (Number(i.products?.kcal) || 0) * ratio;
                 protein += (Number(i.products?.protein) || 0) * ratio;
@@ -72,6 +73,10 @@ function clonePortionIngredient(ing) {
             };
         }
 
+function getRecipeDefaultIngredients(recipe) {
+            return (recipe?.recipe_ingredients || []).map(clonePortionIngredient);
+        }
+
 function snapshotPortionIngredients(items) {
             return (items || []).map(ing => {
                 const row = clonePortionIngredient(ing);
@@ -88,8 +93,63 @@ function snapshotPortionIngredients(items) {
             }).filter(ing => ing.grams > 0);
         }
 
+function scalePortionIngredients(items, ratio) {
+            const multiplier = Math.max(0, Number(ratio) || 0);
+            return (items || []).map(ing => {
+                const row = clonePortionIngredient(ing);
+                row.weight = (Number(row.weight) || 0) * multiplier;
+                return row;
+            }).filter(ing => Number(ing.weight) > 0);
+        }
+
+function recipeOverridesStorageKey() {
+            return 'recipe_ingredient_overrides_' + appUserId;
+        }
+
+function loadRecipeIngredientOverrides() {
+            try { return JSON.parse(localStorage.getItem(recipeOverridesStorageKey())) || {}; } catch (e) { return {}; }
+        }
+
+function getRecipeSavedIngredientSnapshot(recipeId) {
+            const overrides = loadRecipeIngredientOverrides();
+            return Array.isArray(overrides[String(recipeId)]) ? overrides[String(recipeId)] : null;
+        }
+
+function saveRecipeIngredientOverride(recipeId, ingredients) {
+            const overrides = loadRecipeIngredientOverrides();
+            overrides[String(recipeId)] = snapshotPortionIngredients(ingredients);
+            localStorage.setItem(recipeOverridesStorageKey(), JSON.stringify(overrides));
+        }
+
+function clearRecipeIngredientOverride(recipeId) {
+            const overrides = loadRecipeIngredientOverrides();
+            delete overrides[String(recipeId)];
+            localStorage.setItem(recipeOverridesStorageKey(), JSON.stringify(overrides));
+        }
+
+function getRecipeWorkingIngredients(recipe) {
+            const saved = getRecipeSavedIngredientSnapshot(recipe?.id);
+            if (Array.isArray(saved) && saved.length) {
+                return saved.map(ing => clonePortionIngredient({
+                    ingredient_id: ing.ingredientId,
+                    weight: ing.grams,
+                    category: ing.category,
+                    products: {
+                        id: ing.ingredientId,
+                        name: ing.name,
+                        category: ing.category,
+                        kcal: ing.kcalPer100,
+                        protein: ing.proteinPer100,
+                        fat: ing.fatPer100,
+                        carbs: ing.carbsPer100
+                    }
+                }));
+            }
+            return getRecipeDefaultIngredients(recipe);
+        }
+
 function hydratePortionIngredients(snapshot, recipe) {
-            if (!Array.isArray(snapshot) || !snapshot.length) return (recipe?.recipe_ingredients || []).map(clonePortionIngredient);
+            if (!Array.isArray(snapshot) || !snapshot.length) return getRecipeWorkingIngredients(recipe);
             return snapshot.map(ing => clonePortionIngredient({
                 ingredient_id: ing.ingredientId,
                 weight: ing.grams,
@@ -203,4 +263,3 @@ function calculateKbjuRecommendation(input = getProfileFormValues()) {
                 warnings
             };
         }
-
