@@ -1255,12 +1255,14 @@
             const eatenGrams = Math.max(1, Number(recipePortionDraft.eatenGrams) || Math.round(total.grams) || 100);
             const eatenRatio = total.grams > 0 ? eatenGrams / total.grams : 0;
             const diaryLine = recipePortionDraft.mode === 'diary'
-                ? '<div class="portion-total-summary"><span>Съедено:</span> ' + Math.round(eatenGrams) + ' г · ' + Math.round(total.kcal * eatenRatio) + ' ккал · Б ' + (total.protein * eatenRatio).toFixed(1) + ' г · Ж ' + (total.fat * eatenRatio).toFixed(1) + ' г · У ' + (total.carbs * eatenRatio).toFixed(1) + ' г</div>'
+                ? '<div class="portion-kbju-row portion-kbju-row-accent"><span>Съедено</span><b>' + Math.round(eatenGrams) + ' г · ' + Math.round(total.kcal * eatenRatio) + ' ккал · Б ' + (total.protein * eatenRatio).toFixed(1) + ' · Ж ' + (total.fat * eatenRatio).toFixed(1) + ' · У ' + (total.carbs * eatenRatio).toFixed(1) + '</b></div>'
                 : '';
             document.getElementById('portion-total').innerHTML =
-                '<div class="portion-total-summary"><span>Рецепт:</span> ' + Math.round(total.grams) + ' г · ' + Math.round(total.kcal) + ' ккал · Б ' + total.protein.toFixed(1) + ' г · Ж ' + total.fat.toFixed(1) + ' г · У ' + total.carbs.toFixed(1) + ' г</div>' +
-                '<div class="portion-total-summary"><span>На 100 г:</span> ' + Math.round(total.kcal * per100Ratio) + ' ккал · Б ' + (total.protein * per100Ratio).toFixed(1) + ' г · Ж ' + (total.fat * per100Ratio).toFixed(1) + ' г · У ' + (total.carbs * per100Ratio).toFixed(1) + ' г</div>' +
-                diaryLine;
+                '<div class="portion-kbju-card"><div class="portion-kbju-title">Расчёт КБЖУ</div>' +
+                '<div class="portion-kbju-row"><span>Рецепт</span><b>' + Math.round(total.grams) + ' г · ' + Math.round(total.kcal) + ' ккал · Б ' + total.protein.toFixed(1) + ' · Ж ' + total.fat.toFixed(1) + ' · У ' + total.carbs.toFixed(1) + '</b></div>' +
+                '<div class="portion-kbju-row"><span>На 100 г</span><b>' + Math.round(total.kcal * per100Ratio) + ' ккал · Б ' + (total.protein * per100Ratio).toFixed(1) + ' · Ж ' + (total.fat * per100Ratio).toFixed(1) + ' · У ' + (total.carbs * per100Ratio).toFixed(1) + '</b></div>' +
+                diaryLine +
+                '</div>';
             const eatenInput = document.getElementById('portion-eaten-grams');
             if (eatenInput && document.activeElement !== eatenInput) eatenInput.value = String(Math.round(eatenGrams));
         }

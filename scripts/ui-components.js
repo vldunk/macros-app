@@ -23,7 +23,7 @@ function Button({ className = '', type = 'button', attrs = '', label = '' } = {}
         }
 
         function ProductCard(ing, index, swap) {
-            return '<div class="portion-ingredient"><div><b>' + escapeHTML(ing.products?.name || 'Продукт') + '</b><div class="portion-product-macros"><span>' + Math.round(Number(ing.products?.kcal) || 0) + ' ккал / 100 г</span><span>' + Math.round(Number(ing.products?.protein) || 0) + ' г белка</span></div>' + swap + '</div><label><span class="portion-subtitle">В рецепте, г</span><input type="number" inputmode="decimal" min="0" step="1" value="' + escapeAttr(String(Math.round(Number(ing.weight) || 0))) + '" oninput="setPortionIngredientGrams(' + index + ', this.value)"></label></div>';
+            return '<div class="portion-ingredient"><div class="portion-ingredient-main"><b>' + escapeHTML(ing.products?.name || 'Продукт') + '</b><div class="portion-product-macros"><span>' + Math.round(Number(ing.products?.kcal) || 0) + ' ккал / 100 г</span><span>Б ' + Math.round(Number(ing.products?.protein) || 0) + ' г</span></div>' + swap + '</div><label class="portion-grams-field"><span class="portion-subtitle">В рецепте, г</span><input type="number" inputmode="decimal" min="0" step="1" value="' + escapeAttr(String(Math.round(Number(ing.weight) || 0))) + '" oninput="setPortionIngredientGrams(' + index + ', this.value)"></label></div>';
         }
 
 function renderRecipeCard(item, favs, compact = false) {

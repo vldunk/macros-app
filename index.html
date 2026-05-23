@@ -140,14 +140,13 @@
             <div class="portion-head">
                 <div>
                     <div class="portion-title" id="portion-title">Выбранная порция</div>
-                    <div class="portion-subtitle">Сначала настрой граммовки рецепта, затем укажи съеденную порцию для дневника.</div>
+                    <div class="portion-subtitle">Настрой рецепт и укажи съеденную порцию для дневника.</div>
                 </div>
                 <button class="portion-reset-btn" type="button" title="Сбросить рецепт" aria-label="Сбросить рецепт к стандартным граммовкам" onclick="resetRecipePortionDraft()">↻</button>
             </div>
-            <div class="portion-basis">КБЖУ рецепта пересчитываются по ингредиентам. Для дневника считается только съеденная порция.</div>
             <div class="portion-total" id="portion-total"></div>
             <label class="portion-eaten-field" id="portion-eaten-field">
-                <span>Сколько грамм блюда ты съел?</span>
+                <span>Съеденная порция, г</span>
                 <input id="portion-eaten-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="setPortionEatenGrams(this.value)">
             </label>
             <div class="portion-meal-section" id="portion-meal-section">
