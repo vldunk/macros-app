@@ -1,0 +1,581 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Blueprint Nutrition</title>
+    
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="./styles/app.css">
+</head>
+<body>
+
+    <div id="loading-screen" aria-live="polite">
+        <div class="loading-bg-grid"></div>
+        <div class="loading-card">
+            <div class="loading-logo">
+                <div class="loading-ring"></div>
+                <span>BN</span>
+            </div>
+            <div class="loading-title">Blueprint Nutrition</div>
+            <div class="loading-subtitle">Подготавливаем твой рацион...</div>
+            <div class="loading-status" id="loading-status">Запускаем Telegram Mini App...</div>
+            <div class="loading-progress"><div id="loading-progress-fill"></div></div>
+            <div class="loading-error" id="loading-error">Не удалось загрузить данные. Проверь подключение и попробуй снова.</div>
+            <button class="loading-retry-btn" id="loading-retry-btn" type="button" onclick="retryAppInit()">Повторить</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="chart-modal-overlay" onclick="closeChartModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <button class="close-icon-btn" type="button" aria-label="Закрыть аналитику" onclick="closeChartModal()">×</button>
+            <h3 style="font-size: 20px; font-weight: bold; margin-bottom: 5px;">Аналитика</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 15px;">Прогресс КБЖУ и воды за 7 дней</p>
+            
+            <div class="chart-modal-body">
+                <div class="chart-scroll-container">
+                    <canvas id="blueprintChart"></canvas>
+                </div>
+            </div>
+
+            <div class="legend-container">
+                <div class="legend-item"><div class="legend-dot" style="background: var(--fat-color)"></div> Недобор</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--success)"></div> Норма</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--danger)"></div> Перебор</div>
+                <div class="legend-item"><div class="legend-dot" style="background: var(--water-color)"></div> Вода</div>
+                <div class="legend-item"><div class="legend-dot" style="height: 2px; border-radius: 0; width: 15px; background: rgba(255,255,255,0.7)"></div> Цель</div>
+            </div>
+            
+            <button class="close-modal-btn" onclick="closeChartModal()">Закрыть</button>
+        </div>
+    </div>
+
+
+
+
+
+    <div class="recipes-screen-overlay" id="recipes-screen-overlay">
+        <div class="recipes-screen">
+            <div class="recipes-screen-head">
+                <div class="recipes-screen-title-row">
+                    <div class="recipes-screen-title">Все рецепты</div>
+                    <button class="info-sheet-close" type="button" aria-label="Закрыть рецепты" onclick="closeRecipesScreen()">×</button>
+                </div>
+                <div class="recipe-search-row">
+                    <input class="recipe-search-input" id="recipe-search-input" type="search" placeholder="Поиск: курица, творог, high protein" oninput="setRecipeSearch(this.value)">
+                    <select class="recipe-sort-select" id="recipe-sort-select" onchange="setRecipeSort(this.value)">
+                        <option value="recommended">Рекоменд.</option>
+                        <option value="kcal-asc">Калории ↑</option>
+                        <option value="protein-desc">Белок ↓</option>
+                        <option value="popular">Популярное</option>
+                        <option value="time-asc">Быстрые</option>
+                    </select>
+                    <div class="view-toggle">
+                        <button type="button" id="view-grid-btn" class="active" onclick="setRecipeView('grid')">▦</button>
+                        <button type="button" id="view-list-btn" onclick="setRecipeView('list')">☰</button>
+                    </div>
+                </div>
+                <div class="recipe-filter-label">Прием пищи</div>
+                <div class="tabs-container" id="screen-meal-tabs">
+                    <button class="tab active" onclick="setScreenMealFilter('Все', this)">Все</button>
+                    <button class="tab" onclick="setScreenMealFilter('Завтрак', this)">Завтрак</button>
+                    <button class="tab" onclick="setScreenMealFilter('Обед', this)">Обед</button>
+                    <button class="tab" onclick="setScreenMealFilter('Ужин', this)">Ужин</button>
+                    <button class="tab" onclick="setScreenMealFilter('Перекус', this)">Перекус</button>
+                </div>
+                <div class="recipe-filter-label">Цель</div>
+                <div class="tabs-container" id="screen-diet-tabs">
+                    <button class="tab active" onclick="setScreenDietFilter('Все', this)">Все</button>
+                    <button class="tab" onclick="setScreenDietFilter('Для меня', this)">Для меня</button>
+                    <button class="tab" onclick="setScreenDietFilter('Сушка', this)">Сушка</button>
+                    <button class="tab" onclick="setScreenDietFilter('Похудение', this)">Похудение</button>
+                    <button class="tab" onclick="setScreenDietFilter('Поддержание', this)">Поддержание</button>
+                    <button class="tab" onclick="setScreenDietFilter('Набор', this)">Набор</button>
+                    <button class="tab" onclick="setScreenDietFilter('Рост мышц', this)">Рост мышц</button>
+                    <button class="tab" onclick="setScreenDietFilter('Высокий белок', this)">High Protein</button>
+                </div>
+            </div>
+            <div class="recipes-screen-body">
+                <div class="recipe-results-meta" id="recipe-results-meta">0 рецептов</div>
+                <div class="recipes-results-grid" id="recipes-results-grid"></div>
+            </div>
+        </div>
+    </div>
+    <div class="info-sheet-overlay" id="info-sheet-overlay" onclick="closeInfoSheet()" >
+        <div class="info-sheet" id="info-sheet" data-topic="calories" onclick="event.stopPropagation()">
+            <div class="info-sheet-handle" ontouchstart="handleInfoSheetTouchStart(event)" ontouchend="handleInfoSheetTouchEnd(event)"></div>
+            <div class="info-sheet-head">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <div class="info-sheet-icon" id="info-sheet-icon">↗</div>
+                    <div>
+                        <h3 class="info-sheet-title" id="info-sheet-title">Калории</h3>
+                        <div class="info-sheet-subtitle" id="info-sheet-subtitle">Короткое объяснение прогресса.</div>
+                    </div>
+                </div>
+                <button class="info-sheet-close" type="button" aria-label="Закрыть подсказку" onclick="closeInfoSheet()">×</button>
+            </div>
+            <div class="info-progress"><div class="info-progress-fill" id="info-progress-fill"></div></div>
+            <div class="info-copy" id="info-sheet-copy"></div>
+            <div class="info-mini-grid" id="info-sheet-chips"></div>
+            <div class="info-tip-card" id="info-sheet-tip"></div>
+        </div>
+    </div>
+
+    <div id="meal-modal">
+        <div class="bottom-modal">
+            <h3 style="margin-top:0; margin-bottom:20px; font-size: 20px;">Куда добавить?</h3>
+            <button class="modal-btn" type="button" onclick="confirmMealAdd('Завтрак')">🍳 Завтрак</button>
+            <button class="modal-btn" type="button" onclick="confirmMealAdd('Обед')">🍲 Обед</button>
+            <button class="modal-btn" type="button" onclick="confirmMealAdd('Ужин')">🥗 Ужин</button>
+            <button class="modal-btn" type="button" onclick="confirmMealAdd('Перекус')">🍎 Перекус</button>
+            <button class="modal-btn" style="background:none; border:none; color:var(--text-muted); text-align:center; margin-top:10px;" onclick="closeMealModal()">Отмена</button>
+        </div>
+    </div>
+
+    <div class="portion-overlay" id="recipe-portion-overlay" onclick="closeRecipePortionEditor()">
+        <div class="portion-sheet" onclick="event.stopPropagation()">
+            <div class="portion-head">
+                <div>
+                    <div class="portion-title" id="portion-title">Выбранная порция</div>
+                    <div class="portion-subtitle">Измени граммы или замени крупу, КБЖУ пересчитаются сразу.</div>
+                </div>
+                <button class="info-sheet-close" type="button" aria-label="Закрыть" onclick="closeRecipePortionEditor()">×</button>
+            </div>
+            <div class="portion-basis">КБЖУ на выбранную порцию. Расчет по каждому ингредиенту на 100 г.</div>
+            <div class="portion-total" id="portion-total"></div>
+            <div id="portion-ingredients"></div>
+            <div class="portion-actions">
+                <button class="light-action-btn" type="button" onclick="closeRecipePortionEditor()">Отмена</button>
+                <button class="detail-add-btn" id="portion-confirm-btn" type="button" onclick="confirmRecipePortion()">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="full-calendar-modal">
+        <div class="full-cal-content">
+            <div class="full-cal-nav">
+                <button onclick="navigateMonth(-1)">‹</button>
+                <div class="full-cal-month-label" id="full-cal-label">Май 2026</div>
+                <button onclick="navigateMonth(1)">›</button>
+            </div>
+            <div class="full-cal-grid" id="full-cal-grid"></div>
+            <button class="full-cal-close-btn" onclick="closeFullCalendar()">Закрыть календарь</button>
+        </div>
+    </div>
+
+    <div id="recipe-details-modal">
+        <div class="recipe-details-content">
+            <div class="detail-hero">
+                <img id="detail-img" class="detail-hero-img" alt="">
+                <div class="detail-topbar">
+                    <button class="recipes-open-btn" type="button" onclick="closeRecipeDetails()">Назад</button>
+                    <button class="close-details-btn" type="button" aria-label="Закрыть рецепт" onclick="closeRecipeDetails()">×</button>
+                </div>
+                <div class="detail-hero-text">
+                    <h2 id="detail-title" class="detail-title">Название</h2>
+                    <div id="detail-badges" class="detail-badges"></div>
+                </div>
+            </div>
+            <div class="detail-body">
+                <div id="detail-macros" class="detail-macro-grid"></div>
+                <div class="detail-section">
+                    <h3>Почему подходит тебе</h3>
+                    <div id="detail-fit-note" class="detail-note"></div>
+                </div>
+                <div class="detail-section">
+                    <h3>Состав блюда</h3>
+                    <div id="detail-ingredients"></div>
+                </div>
+                <div class="detail-section">
+                    <h3>Инструкция приготовления</h3>
+                    <div id="detail-instructions" class="instructions-text"></div>
+                </div>
+                <div class="detail-section">
+                    <h3>Можно заменить</h3>
+                    <div id="detail-swaps" class="detail-swap-list"></div>
+                </div>
+                <div class="detail-section">
+                    <h3>Похожие рецепты</h3>
+                    <div id="detail-similar" class="similar-recipes"></div>
+                </div>
+            </div>
+            <div class="detail-sticky-cta">
+                <button class="detail-add-btn" id="detail-add-btn">Внести в дневник</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="meal-prep-overlay" id="meal-prep-overlay">
+        <div class="meal-prep-screen">
+            <div class="meal-prep-head">
+                <div class="meal-prep-title-row">
+                    <div>
+                        <div class="meal-prep-kicker">Meal Prep</div>
+                        <div class="meal-prep-screen-title">Заготовки</div>
+                    </div>
+                    <button class="info-sheet-close" type="button" aria-label="Закрыть заготовки" onclick="closeMealPrep()">×</button>
+                </div>
+                <div class="meal-prep-tabs">
+                    <button class="meal-prep-tab active" type="button" onclick="setMealPrepTab('plan', this)">План меню</button>
+                    <button class="meal-prep-tab" type="button" onclick="setMealPrepTab('prep', this)">Заготовки</button>
+                    <button class="meal-prep-tab" type="button" onclick="setMealPrepTab('shopping', this)">Покупки</button>
+                </div>
+            </div>
+
+            <section class="prep-panel active" id="prep-panel-plan">
+                <div class="planner-toolbar">
+                    <select class="planner-select" id="meal-plan-period" onchange="setMealPlanPeriod(this.value)">
+                        <option value="7">7 дней</option>
+                        <option value="14">14 дней</option>
+                        <option value="30">30 дней</option>
+                    </select>
+                    <input class="planner-input" id="meal-plan-start" type="date" onchange="setMealPlanStart(this.value)">
+                </div>
+                <div class="planner-action-row">
+                    <button class="ai-menu-btn" type="button" onclick="autoBuildMealPlan()">Собрать меню</button>
+                    <button class="light-action-btn" type="button" onclick="clearMealPlanDay()">Очистить день</button>
+                </div>
+                <div class="planner-days" id="planner-days"></div>
+                <div id="planner-day-view"></div>
+            </section>
+
+            <section class="prep-panel" id="prep-panel-prep">
+                <div class="meal-prep-note" style="margin-bottom:12px;">Блюда, которые удобно готовить заранее, порционировать и повторять в меню.</div>
+                <div class="prep-recipes-grid" id="prep-recipes-grid"></div>
+            </section>
+
+            <section class="prep-panel" id="prep-panel-shopping">
+                <div class="shopping-action-row">
+                    <button class="ai-menu-btn" type="button" onclick="copyShoppingList()">Скопировать список</button>
+                    <button class="light-action-btn" type="button" onclick="sendShoppingListToTelegram()">В Telegram</button>
+                    <button class="shopping-clear-btn" type="button" onclick="clearShoppingList()" aria-label="Очистить список">×</button>
+                </div>
+                <div class="custom-shopping-row">
+                    <input class="planner-input" id="custom-shopping-name" type="text" placeholder="Свой продукт">
+                    <input class="planner-input" id="custom-shopping-amount" type="number" min="0" step="0.1" placeholder="250">
+                    <select class="unit-select" id="custom-shopping-unit" aria-label="Единица"><option value="г">г</option><option value="мл">мл</option><option value="шт">шт</option></select>
+                    <button class="planner-add-btn" type="button" onclick="addCustomShoppingItem()">Добавить</button>
+                </div>
+                <div id="shopping-list-view"></div>
+            </section>
+        </div>
+    </div>
+
+
+    <div class="meal-picker-overlay" id="meal-picker-overlay" onclick="closeMealPicker()">
+        <div class="meal-picker-sheet" onclick="event.stopPropagation()">
+            <div class="meal-picker-head">
+                <div class="meal-picker-title" id="meal-picker-title">Выбрать блюдо</div>
+                <div class="meal-picker-subtitle" id="meal-picker-subtitle">Показываю блюда под текущую цель.</div>
+            </div>
+            <input class="meal-picker-search" id="meal-picker-search" type="search" placeholder="Поиск блюда" oninput="setMealPickerSearch(this.value)">
+            <div class="meal-picker-list" id="meal-picker-list"></div>
+        </div>
+    </div>
+    <div class="confirm-overlay" id="confirm-overlay" onclick="resolveConfirm(false)">
+        <div class="confirm-sheet" onclick="event.stopPropagation()">
+            <div class="confirm-head">
+                <div class="confirm-title" id="confirm-title">Подтвердить действие</div>
+                <div class="confirm-text" id="confirm-text">Продолжить?</div>
+            </div>
+            <div class="confirm-actions">
+                <button class="confirm-cancel" type="button" onclick="resolveConfirm(false)">Отмена</button>
+                <button class="confirm-danger" id="confirm-ok-btn" type="button" onclick="resolveConfirm(true)">Удалить</button>
+            </div>
+        </div>
+    </div>
+    <div class="app-toast" id="app-toast" role="status" aria-live="polite"></div>
+
+
+    <div id="app-content" style="display: none;">
+        
+        <div class="top-nav">
+            <button class="date-selector" onclick="openFullCalendar()">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span id="cal-date-label">Сегодня</span>
+                <span style="font-size:10px;">▼</span>
+            </button>
+            <div class="nav-actions">
+                <button class="nav-btn" onclick="toggleEdit(true)">✏️</button>
+            </div>
+        </div>
+
+
+        <section class="coach-hero" aria-live="polite">
+            <div class="coach-hero-main">
+                <div class="coach-kicker">AI Nutrition Coach</div>
+                <h1 class="coach-title" id="coach-greeting-title">Добро пожаловать</h1>
+                <div class="coach-subtitle" id="coach-greeting-subtitle">Собираю персональный план на сегодня.</div>
+            </div>
+            <div class="coach-avatar-wrap" aria-label="Профиль пользователя">
+                <div class="coach-avatar" id="coach-avatar">BN</div>
+                <div class="coach-avatar-status"></div>
+            </div>
+            <div class="coach-meta-row">
+                <div class="goal-status-badge" id="goal-status-badge" data-goal="maintain">⚖️ Поддержание</div>
+                <div class="streak-badge" id="streak-badge">🔥 0 дней режима</div>
+            </div>
+        </section>
+
+        <section class="coach-feedback-grid" aria-live="polite">
+            <div class="coach-feedback-card" data-info-topic="calories" onclick="openInfoSheet('calories')">
+                <div class="coach-card-label"><span>Калории</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('calories')">?</button></div>
+                <div class="coach-card-value" id="coach-kcal-feedback">0 ккал</div>
+                <div class="coach-card-note" id="coach-kcal-note">План обновится после дневника.</div>
+            </div>
+            <div class="coach-feedback-card" data-info-topic="protein" onclick="openInfoSheet('protein')">
+                <div class="coach-card-label"><span>Белок</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('protein')">?</button></div>
+                <div class="coach-card-value" id="coach-protein-feedback">0 г</div>
+                <div class="coach-card-note" id="coach-protein-note">Подскажу, что добрать.</div>
+            </div>
+            <div class="coach-feedback-card" data-info-topic="water" onclick="openInfoSheet('water')">
+                <div class="coach-card-label"><span>Вода</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('water')">?</button></div>
+                <div class="coach-card-value" id="coach-water-feedback">0%</div>
+                <div class="coach-card-note" id="coach-water-note">Следим за гидратацией.</div>
+            </div>
+            <div class="coach-feedback-card" data-info-topic="streak" onclick="openInfoSheet('streak')">
+                <div class="coach-card-label"><span>Streak</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('streak')">?</button></div>
+                <div class="coach-card-value" id="coach-streak-feedback">0 дней</div>
+                <div class="coach-card-note" id="coach-streak-note">Каждый день в дневнике считается.</div>
+            </div>
+            <div class="coach-feedback-card smart">
+                <div class="coach-card-label"><span>Умная подсказка</span><span>Coach</span></div>
+                <div class="coach-card-value" id="coach-smart-feedback">Добавьте первый прием пищи, и я покажу точный фокус дня.</div>
+            </div>
+        </section>
+
+        <section class="nutrition-coach-card" id="nutrition-coach-card" aria-live="polite">
+            <div class="nutrition-coach-head">
+                <div class="nutrition-coach-title">AI-рекомендация на сегодня</div>
+                <div class="nutrition-coach-meta" id="nutrition-coach-meta">Rule-based coach</div>
+            </div>
+            <div class="nutrition-coach-list">
+                <div class="nutrition-coach-row">
+                    <div class="nutrition-coach-label">Фокус</div>
+                    <div class="nutrition-coach-copy" id="nutrition-coach-tip">Добавь первый прием пищи, и я уточню фокус дня.</div>
+                </div>
+                <div class="nutrition-coach-row risk">
+                    <div class="nutrition-coach-label">Риск</div>
+                    <div class="nutrition-coach-copy" id="nutrition-coach-risk">Пока нет записей, поэтому ориентир общий.</div>
+                </div>
+                <div class="nutrition-coach-row upgrade">
+                    <div class="nutrition-coach-label">Улучшить</div>
+                    <div class="nutrition-coach-copy" id="nutrition-coach-upgrade">Начни с блюда с белком и понятной порцией.</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="intake-card" id="profile-display" onclick="openChartModal()">
+            <div class="intake-header">
+                <div class="intake-header-title">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    Ежедневная норма
+                </div>
+                <span style="color:var(--text-muted); font-size:16px;">›</span>
+            </div>
+            
+            <div class="intake-content">
+                <div class="intake-pct" id="intake-pct">0%</div>
+                
+                <div class="intake-gauge-container">
+                    <svg viewBox="0 0 100 55" class="gauge-svg">
+                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--progress-bg)" stroke-width="12" stroke-linecap="round"/>
+                        <path id="gauge-path" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--success)" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="125.66" style="transition: stroke-dashoffset 1s ease;" />
+                    </svg>
+                    <div class="gauge-center">
+                        <div class="g-cur" id="gauge-cur">0</div>
+                        <div class="g-div"></div>
+                        <div class="g-max" id="gauge-max">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nutritions-card" id="nutritions-display">
+            <div class="nut-header">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                    Макронутриенты
+                </div>
+                <button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="openInfoSheet('macros')">?</button>
+            </div>
+
+            <div class="nut-grid">
+                <div class="nut-item" role="button" tabindex="0" aria-label="Подробнее про углеводы" onclick="openInfoSheet('carbsMacro')" onkeydown="handleCardKey(event, 'carbsMacro')">
+                    <div class="nut-ring" id="bar-c" style="--ring-color: var(--carbs-color); --pct:0"><span class="nut-pct" id="pct-c">0%</span></div>
+                    <div class="nut-info"><div class="nut-label-row"><span class="nut-name">Углеводы</span><button class="macro-info-btn" type="button" aria-label="Подробнее про углеводы" onclick="event.stopPropagation(); openInfoSheet('carbsMacro')">?</button></div><span class="nut-val" id="val-c">0 / 0 г</span></div>
+                </div>
+                <div class="nut-item" role="button" tabindex="0" aria-label="Подробнее про жиры" onclick="openInfoSheet('fatMacro')" onkeydown="handleCardKey(event, 'fatMacro')">
+                    <div class="nut-ring" id="bar-f" style="--ring-color: var(--fat-color); --pct:0"><span class="nut-pct" id="pct-f">0%</span></div>
+                    <div class="nut-info"><div class="nut-label-row"><span class="nut-name">Жиры</span><button class="macro-info-btn" type="button" aria-label="Подробнее про жиры" onclick="event.stopPropagation(); openInfoSheet('fatMacro')">?</button></div><span class="nut-val" id="val-f">0 / 0 г</span></div>
+                </div>
+                <div class="nut-item" role="button" tabindex="0" aria-label="Подробнее про белки" onclick="openInfoSheet('proteinMacro')" onkeydown="handleCardKey(event, 'proteinMacro')">
+                    <div class="nut-ring" id="bar-p" style="--ring-color: var(--protein-color); --pct:0"><span class="nut-pct" id="pct-p">0%</span></div>
+                    <div class="nut-info"><div class="nut-label-row"><span class="nut-name">Белки</span><button class="macro-info-btn" type="button" aria-label="Подробнее про белки" onclick="event.stopPropagation(); openInfoSheet('proteinMacro')">?</button></div><span class="nut-val" id="val-p">0 / 0 г</span></div>
+                </div>
+            </div>
+
+            <div class="nut-item water-section">
+                <div class="nut-info">
+                    <span class="nut-name">💧 Вода</span>
+                    <span class="nut-val"><span id="water-current">0</span> / <span id="water-target-ui">2000</span> мл</span>
+                </div>
+                <div class="nut-bar-container">
+                    <span class="nut-pct" id="pct-w">0%</span>
+                    <div class="n-bar-bg" style="height:10px;"><div class="n-bar-fill" id="water-bar" style="background:var(--water-color); width:0%"></div></div>
+                </div>
+                <div class="water-controls">
+                    <button class="water-btn" onclick="addWater(250, event)">+ 250 мл</button>
+                    <button class="water-btn small" onclick="addWater(-250, event)">-</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="edit-form">
+            <div class="settings-card">
+                <div class="settings-title">Настройки профиля</div>
+                <div class="gender-switch"><div class="gender-btn active" id="gender-m" onclick="setGender('M')">Мужчина</div><div class="gender-btn" id="gender-f" onclick="setGender('F')">Женщина</div></div>
+                <div class="input-group"><label>Ваше имя</label><input type="text" id="inp-name" placeholder="Введите имя"></div>
+                <div class="settings-grid-3">
+                    <div class="input-group"><label>Возраст</label><input type="number" id="inp-age" min="12" max="90" placeholder="30"></div>
+                    <div class="input-group"><label>Рост (см)</label><input type="number" id="inp-height" min="120" max="230" placeholder="180"></div>
+                    <div class="input-group"><label>Вес (кг)</label><input type="number" id="inp-weight" min="30" max="250" placeholder="0"></div>
+                </div>
+                <div class="settings-grid-2">
+                    <div class="input-group"><label>Активность</label><select id="inp-activity"><option value="sedentary">Мало движения</option><option value="light">Легкая активность</option><option value="moderate">Средняя активность</option><option value="high">Высокая активность</option><option value="athlete">Очень высокая</option></select></div>
+                    <div class="input-group"><label>Тренировок / нед.</label><input type="number" id="inp-workouts" min="0" max="14" placeholder="3"></div>
+                </div>
+                <div class="settings-grid-2">
+                    <div class="input-group"><label>Цель</label><select id="inp-goal"><option value="cut">Сушка</option><option value="maintain">Поддержание</option><option value="bulk">Набор веса</option><option value="muscle">Рост мышечной массы</option></select></div>
+                    <div class="input-group"><label>Вода (мл)</label><input type="number" id="inp-water" placeholder="2000"></div>
+                </div>
+                <div class="input-group"><label>Предпочтения в питании</label><textarea id="inp-food-preferences" placeholder="Например: люблю курицу, творог, рис, простые блюда"></textarea></div>
+                <div class="input-group"><label>Ограничения и исключения</label><textarea id="inp-food-exclusions" placeholder="Например: без свинины, без лактозы, не люблю рыбу"></textarea></div>
+
+                <div class="kbju-recommend-card" id="kbju-recommend-card">
+                    <div class="kbju-recommend-head">
+                        <div>
+                            <div class="kbju-recommend-title">Рекомендация КБЖУ</div>
+                            <div class="kbju-recommend-subtitle" id="kbju-recommend-subtitle">Заполни возраст, рост и вес — расчет появится автоматически.</div>
+                        </div>
+                        <div class="kbju-pill" id="kbju-goal-pill">Расчет</div>
+                    </div>
+                    <div class="kbju-stat-grid">
+                        <div class="kbju-stat"><div class="kbju-stat-label">Поддержание</div><div class="kbju-stat-value" id="rec-maintenance">—</div></div>
+                        <div class="kbju-stat"><div class="kbju-stat-label">Рекомендация</div><div class="kbju-stat-value" id="rec-target">—</div></div>
+                    </div>
+                    <div class="kbju-macro-row">
+                        <div class="kbju-macro"><b id="rec-protein">—</b><span>Белки</span></div>
+                        <div class="kbju-macro"><b id="rec-fat">—</b><span>Жиры</span></div>
+                        <div class="kbju-macro"><b id="rec-carbs">—</b><span>Углеводы</span></div>
+                    </div>
+                    <p class="kbju-explain" id="rec-explain">AI объяснит расчет простым языком после заполнения параметров. Базовую математику считает приложение.</p>
+                    <div class="kbju-menu" id="rec-menu">Меню-ориентир появится после расчета.</div>
+                    <div class="kbju-warning" id="rec-warning"></div>
+                    <button class="btn-apply-kbju" type="button" onclick="applyRecommendedKbju()">Применить в профиль</button>
+                </div>
+
+                <div class="input-group"><label>Ежедневная норма калорий</label><input type="number" id="inp-kcal" placeholder="2000"></div>
+                <div class="settings-grid-3"><div class="input-group"><label>Белки (г)</label><input type="number" id="inp-protein"></div><div class="input-group"><label>Жиры (г)</label><input type="number" id="inp-fat"></div><div class="input-group"><label>Углеводы</label><input type="number" id="inp-carbs"></div></div>
+                <button class="btn-primary" onclick="updateProfileData()">Сохранить изменения</button>
+                <button class="btn-secondary" onclick="toggleEdit(false)">Отмена</button>
+            </div>
+        </div>
+
+        <div class="recipes-open-row">
+            <h3 class="section-title" style="margin-bottom: 0;">Рацион</h3>
+            <button class="recipes-open-btn" type="button" onclick="openRecipesScreen()">Все рецепты</button>
+        </div>
+        <div class="recipe-coach-card recipe-section-control" id="recipe-coach-card">
+            <div class="recipe-coach-top">
+                <div class="recipe-coach-icon">AI</div>
+                <div><div class="recipe-coach-title">AI подбирает</div><div class="recipe-coach-caption">Под твою цель и текущий день</div></div>
+            </div>
+            <div id="recipe-coach-text">Подберу блюда под твою цель после загрузки рецептов.</div>
+            <div class="recipe-coach-chips" id="recipe-coach-chips"></div>
+        </div>
+        <div class="recipe-filter-panel recipe-section-control">
+            <div class="recipe-filter-label">Прием пищи</div>
+            <div class="meal-segmented" id="meal-tabs">
+                <button class="meal-segment active" type="button" onclick="setMealFilter('Завтрак', this)">Завтрак</button>
+                <button class="meal-segment" type="button" onclick="setMealFilter('Обед', this)">Обед</button>
+                <button class="meal-segment" type="button" onclick="setMealFilter('Ужин', this)">Ужин</button>
+                <button class="meal-segment" type="button" onclick="setMealFilter('Перекус', this)">Перекус</button>
+            </div>
+            <div class="recipe-filter-label">Цель и диета</div>
+            <div class="tabs-container diet-tabs" id="diet-tabs">
+                <button class="tab active" onclick="setDietFilter('Все', this)">Все</button>
+                <button class="tab" onclick="setDietFilter('Для меня', this)">Для меня</button>
+                <button class="tab" onclick="setDietFilter('Сушка', this)">Сушка</button>
+                <button class="tab" onclick="setDietFilter('Похудение', this)">Похудение</button>
+                <button class="tab" onclick="setDietFilter('Поддержание', this)">Поддержание</button>
+                <button class="tab" onclick="setDietFilter('Набор', this)">Набор</button>
+                <button class="tab" onclick="setDietFilter('Рост мышц', this)">Рост мышц</button>
+                <button class="tab" onclick="setDietFilter('Высокий белок', this)">Высокий белок</button>
+            </div>
+        </div>
+        <div id="recipe-list"></div>
+
+        <section class="meal-prep-preview" hidden aria-hidden="true">
+            <div class="meal-prep-preview-head">
+                <div>
+                    <div class="meal-prep-kicker">План меню</div>
+                    <div class="meal-prep-title">Заготовки и покупки</div>
+                    <div class="meal-prep-note">Собери меню на неделю, а Blueprint посчитает продукты для закупки.</div>
+                </div>
+                <button class="meal-prep-open-btn" type="button" onclick="openMealPrep()">Открыть</button>
+            </div>
+            <div class="meal-prep-summary-row">
+                <div class="meal-prep-mini-stat"><b id="prep-summary-days">7</b><span>дней</span></div>
+                <div class="meal-prep-mini-stat"><b id="prep-summary-meals">0</b><span>блюд</span></div>
+                <div class="meal-prep-mini-stat"><b id="prep-summary-items">0</b><span>продуктов</span></div>
+            </div>
+        </section>
+
+        <div class="history-header">
+            <h3 class="section-title" style="margin: 0;" id="diary-header-text">Дневник сегодня</h3>
+            <button class="clear-day-btn" onclick="clearSelectedDay()">Очистить день</button>
+        </div>
+        <div id="history-list"></div>
+    </div>
+    <script src="./scripts/starter-recipes.js"></script>
+    <script src="./scripts/ui-components.js"></script>
+    <script src="./scripts/format-utils.js"></script>
+    <script src="./scripts/nutrition-utils.js"></script>
+    <script src="./scripts/recipe-utils.js"></script>
+    <script src="./scripts/recommendation-utils.js"></script>
+    <script src="./scripts/app.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
