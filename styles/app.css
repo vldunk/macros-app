@@ -727,6 +727,7 @@
             box-shadow: var(--shadowDefault), inset 0 1px 0 rgba(255,255,255,.78);
             scroll-snap-align: start;
             transition: transform .18s var(--ease-soft), box-shadow .18s ease;
+            cursor: pointer;
         }
         .recipe-card:active { transform: scale(.985); }
         .recipe-image { width: 100%; height: 150px; aspect-ratio: 4 / 3; background-size: cover; background-position: center; background-color: #f0ece3; filter: saturate(.82) contrast(.94) brightness(1.08); cursor: pointer; position: relative; }
@@ -1296,8 +1297,10 @@
         .detail-badges { display: flex; flex-wrap: wrap; gap: 7px; }
         .detail-body { padding: 20px; }
         .detail-macro-grid { display: grid; gap: 8px; margin-bottom: 18px; }
-        .detail-macro-summary { padding: 11px 13px; border-radius: 18px; background: rgba(250,248,242,.72); border: 1px solid rgba(82,73,58,.08); color: var(--text-main); font-size: 13px; line-height: 1.45; font-weight: 820; }
-        .detail-macro-summary span { color: var(--text-muted); font-weight: 760; }
+        .detail-macro-summary { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 13px; border-radius: 18px; background: rgba(250,248,242,.72); border: 1px solid rgba(82,73,58,.08); color: var(--text-main); font-size: 13px; line-height: 1.45; font-weight: 820; }
+        .detail-macro-summary span { display: block; margin-bottom: 3px; color: var(--text-main); font-size: 12px; font-weight: 900; }
+        .detail-macro-summary b { display: block; min-width: 0; color: var(--text-soft); font-size: 12px; line-height: 1.35; font-weight: 720; overflow-wrap: anywhere; }
+        .detail-edit-recipe-btn { min-height: 36px; padding: 0 13px; border-radius: 14px; border: 1px solid rgba(82,73,58,.08); background: rgba(255,255,255,.74); color: var(--text-main); font-size: 12px; font-weight: 760; box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.72); white-space: nowrap; }
         .detail-time-pill { width: fit-content; padding: 6px 10px; border-radius: 999px; background: rgba(95,143,122,.09); color: #557d6c; font-size: 12px; font-weight: 820; }
         .detail-section { margin-top: 18px; padding: 16px; border-radius: 22px; background: rgba(255,255,255,.68); border: 1px solid rgba(82,73,58,.08); box-shadow: 0 10px 24px rgba(77,68,54,.05); }
         .detail-section h3 { margin: 0 0 12px; color: var(--text-main); font-size: 17px; font-weight: 950; }
@@ -1593,40 +1596,45 @@
             }
         }
 
-        .portion-overlay { position: fixed; inset: 0; z-index: 12000; display: none; align-items: flex-end; justify-content: center; padding: 14px; background: rgba(35,31,27,.34); }
+        .portion-overlay { position: fixed; inset: 0; z-index: 12000; display: none; align-items: center; justify-content: center; padding: 14px; background: rgba(35,31,27,.34); }
         .portion-overlay.active { display: flex; }
-        .portion-sheet { width: min(560px, 100%); max-height: min(86vh, 760px); overflow: auto; border-radius: 24px 24px 18px 18px; padding: 14px 14px 0; background: var(--surface, #fff); box-shadow: 0 22px 70px rgba(40,35,28,.24); }
-        .portion-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 9px; }
-        .portion-title { color: var(--text-main); font-size: 18px; line-height: 1.18; font-weight: 820; }
-        .portion-subtitle, .portion-basis { color: var(--text-muted); font-size: 11.5px; line-height: 1.35; font-weight: 560; }
-        .portion-reset-btn { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #6c8175; background: rgba(95,143,122,.07); border: 1px solid rgba(95,143,122,.10); box-shadow: none; font-size: 15px; font-weight: 780; }
-        .portion-total { margin: 10px 0; }
-        .portion-kbju-card { display: grid; gap: 5px; padding: 10px 11px; border-radius: 16px; background: rgba(250,248,242,.66); border: 1px solid rgba(82,73,58,.075); }
-        .portion-kbju-title { color: var(--text-main); font-size: 12px; font-weight: 820; }
+        .portion-sheet { width: min(560px, 100%); max-height: min(92vh, 760px); overflow: auto; border-radius: 30px; padding: 22px 20px 0; background: rgba(255,255,255,.94); box-shadow: 0 22px 70px rgba(40,35,28,.20), inset 0 1px 0 rgba(255,255,255,.78); }
+        .portion-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+        .portion-title { color: var(--text-main); font-size: 24px; line-height: 1.08; font-weight: 950; letter-spacing: 0; }
+        .portion-subtitle, .portion-basis { color: var(--text-muted); font-size: 12px; line-height: 1.42; font-weight: 560; }
+        .portion-reset-btn { flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: #557d6c; background: rgba(95,143,122,.08); border: 1px solid rgba(95,143,122,.10); box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.72); font-size: 18px; font-weight: 780; }
+        .portion-total { margin: 0 0 14px; }
+        .portion-kbju-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 16px 17px; border-radius: 20px; background: rgba(250,248,242,.66); border: 1px solid rgba(82,73,58,.075); }
+        .portion-kbju-title { color: var(--text-main); font-size: 12px; line-height: 1.2; font-weight: 900; }
+        .portion-kbju-line { margin-top: 5px; color: var(--text-soft); font-size: 12px; line-height: 1.35; font-weight: 650; overflow-wrap: anywhere; }
+        .portion-auto-badge { justify-self: end; padding: 7px 10px; border-radius: 999px; background: rgba(95,143,122,.09); color: #557d6c; font-size: 11px; line-height: 1; font-weight: 780; white-space: nowrap; }
         .portion-kbju-row { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 8px; align-items: baseline; color: var(--text-muted); font-size: 11.5px; line-height: 1.28; font-weight: 600; }
         .portion-kbju-row span { color: var(--text-muted); font-weight: 650; }
         .portion-kbju-row b { min-width: 0; color: var(--text-soft); font-weight: 650; overflow-wrap: anywhere; }
         .portion-kbju-row-accent { margin-top: 2px; padding-top: 6px; border-top: 1px solid rgba(82,73,58,.07); }
         .portion-kbju-row-accent span, .portion-kbju-row-accent b { color: #557d6c; font-weight: 860; }
         .portion-eaten-field { display: grid; grid-template-columns: minmax(0,1fr) 94px; gap: 8px; align-items: center; margin: 8px 0 10px; padding: 8px 10px; border-radius: 14px; background: rgba(255,255,255,.62); border: 1px solid rgba(82,73,58,.07); color: var(--text-main); font-size: 12.5px; font-weight: 720; }
+        .portion-eaten-field[hidden], .portion-meal-section[hidden] { display: none !important; }
         .portion-eaten-field input { width: 100%; min-height: 34px; border: 1px solid rgba(82,73,58,.09); border-radius: 12px; background: rgba(255,255,255,.82); color: var(--text-main); padding: 0 9px; font: inherit; font-size: 13px; text-align: right; }
         .portion-meal-section { margin: 0 0 8px; }
         .portion-meal-options { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 5px; margin-top: 6px; }
         .portion-meal-option { min-height: 32px; border-radius: 11px; background: rgba(250,248,242,.62); color: var(--text-muted); border: 1px solid rgba(82,73,58,.07); font-size: 11.5px; font-weight: 690; box-shadow: none; }
         .portion-meal-option.active { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); border-color: rgba(95,143,122,.18); }
-        #portion-ingredients { padding-bottom: 78px; }
-        .portion-ingredient { display: grid; grid-template-columns: minmax(0,1fr) 82px; gap: 8px; align-items: end; padding: 8px 0; border-top: 1px solid rgba(82,73,58,.055); }
-        .portion-ingredient-main b { display: block; color: var(--text-main); font-size: 13px; line-height: 1.25; font-weight: 720; }
-        .portion-ingredient select, .portion-ingredient input { width: 100%; min-height: 34px; border: 1px solid rgba(82,73,58,.085); border-radius: 12px; background: rgba(255,255,255,.72); color: var(--text-main); padding: 0 9px; font: inherit; font-size: 12.5px; }
+        #portion-ingredients { padding-bottom: 86px; }
+        .portion-ingredient { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 14px; align-items: end; padding: 15px 0; border-top: 1px solid rgba(82,73,58,.075); }
+        .portion-ingredient-main b { display: block; color: var(--text-main); font-size: 13px; line-height: 1.25; font-weight: 860; }
+        .portion-ingredient select, .portion-ingredient input { width: 100%; min-height: 40px; border: 1px solid rgba(82,73,58,.085); border-radius: 12px; background: rgba(255,255,255,.78); color: var(--text-main); padding: 0 10px; font: inherit; font-size: 13px; text-align: right; }
         .portion-ingredient select { margin-top: 5px; }
-        .portion-grams-field { display: grid; gap: 3px; }
-        .portion-product-macros { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 3px; color: var(--text-muted); font-size: 10.5px; font-weight: 560; }
-        .portion-product-macros span { white-space: nowrap; }
-        .portion-actions { display: grid; grid-template-columns: .72fr 1fr; gap: 8px; position: sticky; bottom: 0; margin: 0 -14px; padding: 9px 14px max(10px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.94) 24%, rgba(255,255,255,.98)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        .portion-actions button { min-height: 40px; border-radius: 13px; font-size: 13px; font-weight: 790; }
+        .portion-grams-field { display: grid; gap: 8px; }
+        .portion-grams-field .portion-subtitle { text-align: left; }
+        .portion-product-macros { margin-top: 6px; color: var(--text-muted); font-size: 11px; line-height: 1.35; font-weight: 560; }
+        .portion-actions { display: grid; grid-template-columns: .78fr 1fr; gap: 12px; position: sticky; bottom: 0; margin: 0 -20px; padding: 12px 20px max(20px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(255,255,255,0), rgba(255,255,255,.94) 24%, rgba(255,255,255,.98)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .portion-actions button { min-height: 52px; border-radius: 18px; font-size: 14px; font-weight: 790; }
         @media (max-width: 380px) {
             .portion-meal-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
             .portion-eaten-field { grid-template-columns: 1fr; }
+            .detail-macro-summary, .portion-kbju-card, .portion-ingredient { grid-template-columns: 1fr; }
+            .detail-edit-recipe-btn, .portion-auto-badge { justify-self: start; }
         }
 
         /* Design system stage 1: shared cards, controls, tags, and sheets. */
@@ -1858,7 +1866,7 @@
         .modal-content { padding: 22px; }
         .bottom-modal { padding: 22px 18px max(18px, env(safe-area-inset-bottom)); }
         .info-sheet { padding: 12px 18px 18px; }
-        .portion-sheet { padding: 14px 14px 0; }
+        .portion-sheet { padding: 22px 20px 0; }
         .meal-picker-head,
         .confirm-head { padding: 16px 18px 12px; }
         .confirm-actions { padding-inline: 18px; }
