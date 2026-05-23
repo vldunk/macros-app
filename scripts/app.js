@@ -82,12 +82,14 @@
         enableTelegramUXStability();
 
         const telegramUser = tg?.initDataUnsafe?.user || null;
-        const appUserId = String(telegramUser?.id || getLocalUserId());
+        const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
+        const appUserId = String(isTelegramMiniApp && telegramUser?.id ? telegramUser.id : getLocalUserId());
         const supabaseUrl = 'https://urdqibwfuieahyvdrhey.supabase.co';
         const serverApiUrl = supabaseUrl + '/functions/v1/telegram-api';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyZHFpYndmdWllYWh5dmRyaGV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDcyMTEsImV4cCI6MjA5NDUyMzIxMX0.Q4LXjEys7GnszUsFNy8yl__7dszO7AAHkDkpDJty6TA';
         let supabaseClient, chartInstance = null;
         let profileUsesUserId = true, mealsUseUserId = true, profileSupportsTargetWater = true;
+        const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
         let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, recipePortionDraft = null, isAddingMeal = false;
@@ -391,7 +393,71 @@
             }
         }
 
+        function demoMealsStorageKey() {
+            return 'demo_meals_' + appUserId;
+        }
+
+        function loadDemoMeals() {
+            try { return JSON.parse(localStorage.getItem(demoMealsStorageKey())) || []; } catch (e) { return []; }
+        }
+
+        function saveDemoMeals(meals) {
+            localStorage.setItem(demoMealsStorageKey(), JSON.stringify(Array.isArray(meals) ? meals : []));
+        }
+
+        function getDemoMealsInRange(payload = {}) {
+            const start = payload.startDate ? new Date(payload.startDate).getTime() : -Infinity;
+            const end = payload.endDate ? new Date(payload.endDate).getTime() : Infinity;
+            return loadDemoMeals().filter(meal => {
+                const time = new Date(meal.created_at).getTime();
+                return time >= start && time <= end;
+            });
+        }
+
+        function addDemoMeal(payload = {}) {
+            const recipe = getRecipeById(payload.recipe_id);
+            const meal = {
+                id: Date.now(),
+                recipe_id: payload.recipe_id,
+                recipes: { title: recipe?.title || 'Прием пищи' },
+                kcal: Number(payload.kcal) || 0,
+                protein: Number(payload.protein) || 0,
+                fat: Number(payload.fat) || 0,
+                carbs: Number(payload.carbs) || 0,
+                meal_type: payload.meal_type || 'Перекус',
+                created_at: payload.created_at || selectedDateTimeISO(),
+                ingredients: Array.isArray(payload.ingredients) ? payload.ingredients : []
+            };
+            const meals = loadDemoMeals();
+            meals.push(meal);
+            saveDemoMeals(meals);
+            return meal;
+        }
+
+        function clearDemoMeals(payload = {}) {
+            const remove = new Set(getDemoMealsInRange(payload).map(meal => meal.id));
+            saveDemoMeals(loadDemoMeals().filter(meal => !remove.has(meal.id)));
+            return true;
+        }
+
+        function deleteDemoMeal(id) {
+            saveDemoMeals(loadDemoMeals().filter(meal => String(meal.id) !== String(id)));
+            return true;
+        }
+
         async function callServer(action, payload = {}) {
+            if (!isTelegramMiniApp) {
+                if (action === 'getProfile') return { ...DEMO_PROFILE, ...loadProfileExtras() };
+                if (action === 'updateProfile') {
+                    saveProfileExtras(payload);
+                    return { ...DEMO_PROFILE, ...loadProfileExtras(), ...payload };
+                }
+                if (action === 'getMeals') return getDemoMealsInRange(payload);
+                if (action === 'addMeal') return addDemoMeal(payload);
+                if (action === 'clearDay') return clearDemoMeals(payload);
+                if (action === 'deleteMeal') return deleteDemoMeal(payload.id);
+                return null;
+            }
             if (!tg?.initData) throw new Error('Откройте приложение внутри Telegram, чтобы подтвердить пользователя.');
             const controller = new AbortController();
             const timeout = setTimeout(() => controller.abort(), 6000);
@@ -522,7 +588,7 @@
             }, LOADING_TIMEOUT_MS);
 
             try {
-                setLoadingStep('Запускаем Telegram Mini App...', 10);
+                setLoadingStep(isTelegramMiniApp ? 'Запускаем Telegram Mini App...' : 'Запускаем Browser / Dev mode...', 10);
                 try {
                     tg?.ready?.();
                     tg?.expand?.();
@@ -530,9 +596,13 @@
                     console.warn('Telegram WebApp API недоступен:', e);
                 }
 
-                setLoadingStep('Подключаем базу...', 18);
-                if (typeof window.supabase === 'undefined') throw new Error('Supabase не загружен');
-                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                setLoadingStep(isTelegramMiniApp ? 'Подключаем базу...' : 'Готовим локальные данные...', 18);
+                if (isTelegramMiniApp) {
+                    if (typeof window.supabase === 'undefined') throw new Error('Supabase не загружен');
+                    if (!supabaseClient) {
+                        supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+                    }
+                }
 
                 setLoadingStep('Загружаем настройки...', 28);
                 currentGender = localStorage.getItem('user_gender') || currentGender || 'M';
@@ -545,9 +615,13 @@
 
                 setLoadingStep('Подбираем рецепты...', 58);
                 try {
-                    const supabaseRecipes = await loadRecipesFromSupabase();
-                    recipesData = supabaseRecipes.length ? supabaseRecipes : prepareRecipeData(STARTER_RECIPES);
-                    if (!supabaseRecipes.length) console.warn('Supabase recipes table is empty. Using local starter recipes.');
+                    if (isTelegramMiniApp) {
+                        const supabaseRecipes = await loadRecipesFromSupabase();
+                        recipesData = supabaseRecipes.length ? supabaseRecipes : prepareRecipeData(STARTER_RECIPES);
+                        if (!supabaseRecipes.length) console.warn('Supabase recipes table is empty. Using local starter recipes.');
+                    } else {
+                        recipesData = prepareRecipeData(STARTER_RECIPES);
+                    }
                 } catch (recipesError) {
                     console.warn('Не удалось загрузить рецепты из Supabase, использую локальную стартовую базу:', recipesError);
                     recipesData = prepareRecipeData(STARTER_RECIPES);
@@ -588,6 +662,20 @@
             } catch (e) {
                 if (runId !== appInitRunId) return;
                 console.error('Ошибка инициализации:', e);
+                if (!isTelegramMiniApp) {
+                    recipesData = prepareRecipeData(STARTER_RECIPES);
+                    userProfile = { ...DEMO_PROFILE, ...loadProfileExtras() };
+                    stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
+                    activeDaysSet.clear();
+                    renderRecipes();
+                    loadWaterData();
+                    updateTopDate();
+                    refreshUI();
+                    await updateHistoryUI().catch(error => console.warn('Demo diary fallback failed:', error));
+                    await showMainAppWhenReady(runId);
+                    showToast('Запущен demo mode');
+                    return;
+                }
                 showLoadingError('Не удалось загрузить данные. Проверь подключение и попробуй снова.');
                 showToast('Ошибка запуска: ' + (e.message || 'неизвестная ошибка'));
             }
