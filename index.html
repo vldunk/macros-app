@@ -378,12 +378,13 @@
             </div>
             
             <div class="intake-content">
+                <div class="intake-pct" id="intake-pct">0%</div>
+                
                 <div class="intake-gauge-container">
                     <svg viewBox="0 0 100 55" class="gauge-svg">
                         <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--progress-bg)" stroke-width="12" stroke-linecap="round"/>
                         <path id="gauge-path" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--success)" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="125.66" style="transition: stroke-dashoffset 1s ease;" />
                     </svg>
-                    <div class="intake-pct" id="intake-pct">0%</div>
                     <div class="gauge-center">
                         <div class="g-cur" id="gauge-cur">0</div>
                         <div class="g-div"></div>
@@ -392,7 +393,7 @@
                 </div>
                 <div class="daily-norm-summary">
                     <div class="daily-mini-row">
-                        <span>Осталось</span>
+                        <span>Ккал</span>
                         <b id="daily-kcal-summary">0 / 0</b>
                     </div>
                     <div class="daily-mini-row">
@@ -605,7 +606,6 @@
     <script src="./scripts/app.js"></script>
 </body>
 </html>
-
 
 
 

@@ -2448,19 +2448,18 @@
             .nutrition-coach-label { justify-content: flex-start; width: fit-content; }
         }
 
-        /* Nexus premium bento home layer */
+        /* Compact Nexus bento tuning. Home-only visual layer. */
         :root {
             --nexus-ink: #242229;
             --nexus-muted: #706b75;
-            --nexus-cream: #fbf6ec;
             --nexus-pearl: #fffdf8;
-            --nexus-sand: #efe4d4;
+            --nexus-cream: #fbf6ec;
             --nexus-gold: #d29a48;
             --nexus-gold-soft: #f4cc7b;
             --nexus-lavender: #9b7be9;
             --nexus-lavender-soft: #eee6ff;
-            --nexus-shadow: 0 24px 58px rgba(52,45,36,.10);
             --nexus-border: rgba(94,76,49,.12);
+            --nexus-shadow: 0 18px 42px rgba(52,45,36,.085);
             --text-main: var(--nexus-ink);
             --text-muted: var(--nexus-muted);
             --success: var(--nexus-gold);
@@ -2475,22 +2474,13 @@
         body {
             background:
                 radial-gradient(circle at 12% 0%, rgba(255,255,255,.96), transparent 34%),
-                radial-gradient(circle at 86% 4%, rgba(238,230,255,.54), transparent 28%),
-                radial-gradient(circle at 48% 22%, rgba(244,204,123,.22), transparent 34%),
+                radial-gradient(circle at 86% 4%, rgba(238,230,255,.50), transparent 28%),
+                radial-gradient(circle at 50% 20%, rgba(244,204,123,.20), transparent 34%),
                 linear-gradient(180deg, #fffdf8 0%, #f4ecdf 100%);
             padding-bottom: max(102px, calc(82px + env(safe-area-inset-bottom)));
         }
 
-        body::before {
-            background:
-                linear-gradient(180deg, rgba(255,255,255,.68), rgba(255,255,255,0) 42%),
-                radial-gradient(circle at 50% 0%, rgba(255,250,239,.86), transparent 48%);
-        }
-
-        .top-nav {
-            margin-bottom: 12px;
-        }
-
+        .top-nav { margin-bottom: 12px; }
         .date-selector,
         .nav-btn {
             color: var(--nexus-ink);
@@ -2512,10 +2502,14 @@
 
         .coach-hero {
             isolation: isolate;
-            grid-template-columns: minmax(0, 1fr) minmax(148px, 40%);
-            min-height: 286px;
-            padding: 30px 28px;
-            border-radius: 34px;
+            grid-template-columns: minmax(0, 1fr) minmax(172px, 44%);
+            min-height: 214px;
+            gap: 8px;
+            align-items: center;
+            margin: 4px 0 14px;
+            padding: 22px 24px;
+            overflow: hidden;
+            border-radius: 32px;
             background:
                 radial-gradient(circle at 78% 32%, rgba(244,204,123,.28), transparent 34%),
                 radial-gradient(circle at 88% 18%, rgba(238,230,255,.56), transparent 28%),
@@ -2525,26 +2519,37 @@
         .coach-hero::before {
             content: "";
             position: absolute;
-            inset: 18% -10% -34% 44%;
+            inset: 8% -14% -22% 36%;
             z-index: 0;
             pointer-events: none;
             background:
-                radial-gradient(ellipse at center, rgba(210,154,72,.18), transparent 58%),
-                radial-gradient(ellipse at 66% 22%, rgba(155,123,233,.20), transparent 38%);
+                radial-gradient(ellipse at center, rgba(210,154,72,.20), transparent 56%),
+                radial-gradient(ellipse at 68% 26%, rgba(155,123,233,.22), transparent 40%);
         }
 
         .coach-hero::after { content: none; }
-        .coach-hero-main,
-        .home-hero-visual { position: relative; z-index: 1; }
+        .coach-hero-main {
+            position: relative;
+            z-index: 1;
+            align-self: center;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-block: 2px;
+        }
 
         .coach-kicker {
-            min-height: 42px;
-            margin-bottom: 24px;
-            padding: 0 18px;
+            width: fit-content;
+            min-height: 34px;
+            margin-bottom: 14px;
+            padding: 0 14px;
             color: #9b6728;
             background: rgba(255,250,241,.74);
             border-color: rgba(210,154,72,.26);
             box-shadow: inset 0 1px 0 rgba(255,255,255,.86);
+            font-size: 10px;
+            letter-spacing: .06em;
         }
 
         .coach-kicker::before {
@@ -2553,60 +2558,111 @@
         }
 
         .coach-title {
-            max-width: 360px;
+            max-width: 320px;
             color: var(--nexus-ink);
-            font-size: clamp(38px, 8.6vw, 58px);
-            line-height: 1;
+            font-size: clamp(34px, 7.3vw, 48px);
+            line-height: .98;
             font-weight: 950;
         }
 
         .coach-subtitle {
-            max-width: 340px;
+            max-width: 310px;
+            margin-top: 12px;
             color: #39343f;
-            font-size: 18px;
-            line-height: 1.45;
+            font-size: 15px;
+            line-height: 1.36;
+            font-weight: 520;
         }
 
-        .coach-meta-row { margin-top: 26px; }
+        .coach-meta-row {
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 8px;
+            grid-column: auto;
+            margin-top: 16px;
+            max-width: 100%;
+        }
+
         .goal-status-badge,
         .streak-badge {
-            gap: 8px;
-            min-height: 54px;
-            padding: 11px 18px;
+            flex: 0 1 auto;
+            min-height: 36px;
+            padding: 7px 11px;
+            border-radius: 16px;
             color: #9b6728;
             background: rgba(255,255,255,.72);
             border-color: rgba(210,154,72,.16);
-            box-shadow: 0 14px 28px rgba(52,45,36,.075), inset 0 1px 0 rgba(255,255,255,.86);
+            box-shadow: 0 10px 20px rgba(52,45,36,.07), inset 0 1px 0 rgba(255,255,255,.86);
+            font-size: 12px;
+            line-height: 1;
+            white-space: nowrap;
         }
 
         .goal-status-badge { color: var(--nexus-lavender); }
+
         .home-hero-visual {
-            min-height: 232px;
-            overflow: visible;
+            position: relative;
+            z-index: 1;
+            align-self: center;
+            justify-self: end;
+            width: 118%;
+            min-height: 208px;
+            height: auto;
+            margin: -14px -22px -20px -28px;
+            padding: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+            pointer-events: none;
         }
 
         .home-hero-mascot {
-            max-height: 336px;
-            filter: drop-shadow(0 24px 32px rgba(83,62,33,.18)) drop-shadow(0 0 28px rgba(155,123,233,.20));
+            width: 100%;
+            height: 100%;
+            max-height: 268px;
+            object-fit: contain;
+            object-position: center bottom;
+            display: block;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            filter: drop-shadow(0 20px 26px rgba(83,62,33,.18)) drop-shadow(0 0 24px rgba(155,123,233,.18));
         }
 
+        .hero-mascot-slot .coach-avatar,
+        .hero-mascot-slot.is-placeholder .coach-avatar { display: none; }
+        .home-image-slot.is-placeholder { display: none; }
+
         .coach-feedback-grid {
-            grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-            gap: 14px;
-            margin-bottom: 14px;
+            grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
+            grid-auto-flow: dense;
+            gap: 12px;
+            margin: 0 0 12px;
         }
 
         .coach-feedback-card {
+            position: relative;
+            overflow: hidden;
             color: var(--nexus-ink);
+            border-radius: 26px;
             background: rgba(255,255,255,.74);
-            border-radius: 30px;
+            cursor: pointer;
         }
 
         .coach-feedback-card.calories-card {
-            min-height: 240px;
+            grid-row: span 2;
+            min-height: 196px;
+            padding: 20px;
             background:
                 radial-gradient(circle at 84% 18%, rgba(155,123,233,.20), transparent 28%),
                 linear-gradient(145deg, rgba(255,255,255,.86), rgba(250,244,234,.74));
+        }
+
+        .compact-metric-card {
+            min-height: 116px;
+            padding: 16px;
         }
 
         .protein-card {
@@ -2628,11 +2684,11 @@
 
         .home-card-icon {
             position: absolute;
-            left: 20px;
-            top: 18px;
+            left: 16px;
+            top: 15px;
             z-index: 2;
-            width: 40px;
-            height: 40px;
+            width: 34px;
+            height: 34px;
             display: grid;
             place-items: center;
             border-radius: 50%;
@@ -2640,86 +2696,231 @@
             background: rgba(255,255,255,.70);
             border: 1px solid rgba(94,76,49,.10);
             box-shadow: 0 10px 22px rgba(52,45,36,.07), inset 0 1px 0 rgba(255,255,255,.84);
-            font-size: 20px;
+            font-size: 17px;
             font-weight: 900;
         }
 
         .protein-card .home-card-icon,
         .streak-card .home-card-icon { color: #c47b1e; }
 
+        .coach-card-label,
+        .coach-card-value,
+        .coach-card-note,
+        .home-calories-footer {
+            position: relative;
+            z-index: 2;
+        }
+
         .coach-card-label {
-            margin-left: 54px;
+            margin-left: 44px;
+            max-width: 66%;
             color: var(--nexus-ink);
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.15;
             text-transform: none;
             letter-spacing: 0;
-            max-width: 62%;
         }
 
         .coach-card-value {
+            margin-top: 13px;
+            max-width: 58%;
             color: var(--nexus-ink);
-            margin-top: 18px;
-            font-size: 42px;
+            font-size: 36px;
             line-height: .98;
-            max-width: 62%;
         }
 
         .compact-metric-card .coach-card-value {
+            margin-top: 12px;
             color: #b97925;
-            font-size: 31px;
+            font-size: 27px;
         }
 
         .water-card .coach-card-value { color: #7377df; }
+
         .coach-card-note {
+            margin-top: 7px;
+            max-width: 58%;
             color: var(--nexus-muted);
-            font-size: 14px;
-            max-width: 64%;
+            font-size: 12px;
+            line-height: 1.25;
+        }
+
+        .coach-info-btn { display: none; }
+
+        .home-calories-visual-wrap {
+            position: absolute;
+            right: -4px;
+            bottom: 28px;
+            z-index: 1;
+            width: min(238px, 58%);
+            height: 142px;
+            margin: 0;
+            border-radius: 0;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
+            opacity: .98;
+            pointer-events: none;
         }
 
         .home-calories-footer {
             position: absolute;
-            left: 24px;
-            right: 24px;
-            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             color: var(--nexus-muted);
+            font-size: 12px;
+            line-height: 1.25;
+            font-weight: 850;
         }
 
         .home-calories-footer span {
-            padding-top: 10px;
+            padding-top: 8px;
             border-top: 1px solid rgba(94,76,49,.10);
         }
 
-        .home-calories-visual-wrap {
-            right: 16px;
-            bottom: 50px;
-            width: min(190px, 50%);
-            height: 142px;
-        }
-
         .home-metric-visual {
-            right: 12px;
-            bottom: 10px;
-            width: min(146px, 52%);
-            height: 104px;
-        }
-
-        .home-image-slot,
-        .home-image-slot img {
+            position: absolute;
+            right: -4px;
+            bottom: -4px;
+            z-index: 1;
+            width: min(130px, 50%);
+            height: 92px;
             background: transparent;
             border: 0;
             box-shadow: none;
+            opacity: .98;
+            pointer-events: none;
         }
 
-        .home-image-slot.is-placeholder { display: none; }
+        .protein-card .home-metric-visual {
+            right: -8px;
+            bottom: -8px;
+            width: min(148px, 56%);
+            height: 104px;
+        }
+
+        .water-card .home-metric-visual {
+            right: -10px;
+            bottom: -8px;
+            width: min(126px, 52%);
+            height: 98px;
+        }
+
+        .streak-card .home-metric-visual {
+            right: 0;
+            bottom: -7px;
+            width: min(118px, 48%);
+            height: 94px;
+        }
+
+        .home-image-slot,
+        .home-image-slot img,
+        .home-calories-visual,
+        .home-protein-visual,
+        .home-water-visual,
+        .home-streak-visual,
+        .home-smart-tip-visual {
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            pointer-events: none;
+        }
+
+        .home-calories-visual,
+        .home-protein-visual,
+        .home-water-visual,
+        .home-streak-visual,
+        .home-smart-tip-visual {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        .home-progress-card,
+        .home-smart-card,
+        .nutrition-coach-card {
+            margin-bottom: 12px;
+        }
 
         .home-progress-card {
-            margin: 0 0 14px;
-            padding: 26px;
-            border-radius: 30px;
+            padding: 22px;
+            border-radius: 28px;
             background:
                 radial-gradient(circle at 12% 20%, rgba(238,230,255,.56), transparent 26%),
                 linear-gradient(145deg, rgba(255,255,255,.82), rgba(250,244,234,.70));
+        }
+
+        .home-progress-card::before {
+            background: linear-gradient(145deg, rgba(155,123,233,.10), rgba(244,204,123,.12));
+        }
+
+        .home-progress-card .intake-content {
+            display: grid;
+            grid-template-columns: minmax(132px, .54fr) minmax(0, 1fr);
+            gap: 18px;
+            align-items: center;
+        }
+
+        .home-progress-card .intake-gauge-container {
+            width: 164px;
+            min-height: 112px;
+            margin: 0;
+        }
+
+        .home-progress-card .intake-pct {
+            position: absolute;
+            left: 49px;
+            top: 64px;
+            bottom: auto;
+            color: var(--nexus-ink);
+            font-size: 40px;
+            line-height: 1;
+        }
+
+        .home-progress-card .gauge-center {
+            display: none;
+        }
+
+        .home-progress-card .daily-norm-summary {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid rgba(94,76,49,.10);
+            background: rgba(255,255,255,.48);
+        }
+
+        .home-progress-card .daily-mini-row {
+            min-height: 46px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 0;
+            border-bottom: 1px solid rgba(94,76,49,.10);
+            background: transparent;
+        }
+
+        .home-progress-card .daily-mini-row:last-child {
+            border-bottom: 0;
+        }
+
+        .home-progress-card .daily-mini-row span {
+            color: var(--nexus-muted);
+            font-size: 13px;
+        }
+
+        .home-progress-card .daily-mini-row b {
+            margin: 0;
+            color: var(--nexus-ink);
+            font-size: 15px;
         }
 
         .intake-header-title {
@@ -2734,68 +2935,14 @@
             font-size: 14px;
         }
 
-        .intake-content {
-            grid-template-columns: minmax(154px, .58fr) minmax(0, 1fr);
-            align-items: center;
-        }
-
-        .intake-gauge-container {
-            width: 184px;
-            min-height: 138px;
-            display: grid;
-            place-items: center;
-        }
-
-        .intake-pct {
-            position: absolute;
-            inset: auto auto 24px 47px;
-            color: var(--nexus-ink);
-            font-size: 42px;
-        }
-
-        #gauge-path { stroke: url(#unused); stroke: var(--nexus-gold); }
-        .gauge-center { display: none; }
-
-        .daily-norm-summary {
-            grid-template-columns: 1fr;
-            gap: 0;
-            overflow: hidden;
-            border-radius: 22px;
-            border: 1px solid rgba(94,76,49,.10);
-            background: rgba(255,255,255,.50);
-        }
-
-        .daily-mini-row {
-            min-height: 50px;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 16px;
-            border-radius: 0;
-            border-bottom: 1px solid rgba(94,76,49,.10);
-            background: transparent;
-        }
-
-        .daily-mini-row:last-child { border-bottom: 0; }
-        .daily-mini-row span {
-            color: var(--nexus-muted);
-            font-size: 14px;
-        }
-        .daily-mini-row b {
-            margin: 0;
-            color: var(--nexus-ink);
-            font-size: 16px;
-        }
-
         .home-smart-card {
-            min-height: 120px;
+            min-height: 106px;
             display: grid;
-            grid-template-columns: 76px minmax(0, 1fr) minmax(94px, 22%);
+            grid-template-columns: 62px minmax(0, 1fr) minmax(86px, 20%);
             align-items: center;
-            gap: 18px;
-            margin-bottom: 14px;
-            padding: 18px 22px;
+            gap: 14px;
+            padding: 16px 20px;
+            border-radius: 28px;
             cursor: default;
             background:
                 radial-gradient(circle at 78% 44%, rgba(244,204,123,.18), transparent 28%),
@@ -2803,9 +2950,11 @@
         }
 
         .home-smart-icon {
-            width: 62px;
-            height: 62px;
-            border-radius: 22px;
+            width: 54px;
+            height: 54px;
+            display: grid;
+            place-items: center;
+            border-radius: 19px;
             color: #fff;
             background: linear-gradient(145deg, #f4cc7b, #c78631);
             box-shadow: 0 16px 28px rgba(210,154,72,.22), inset 0 1px 0 rgba(255,255,255,.42);
@@ -2822,24 +2971,20 @@
         .home-smart-copy .coach-card-value {
             max-width: 460px;
             color: var(--nexus-ink);
-            font-size: 21px;
+            font-size: 19px;
+            line-height: 1.22;
         }
 
         .home-smart-visual {
-            width: min(136px, 100%);
-            height: 92px;
             justify-self: end;
+            width: min(122px, 100%);
+            height: 82px;
         }
 
         .nutrition-coach-card {
-            margin-bottom: 14px;
             padding: 22px;
-            border-radius: 30px;
+            border-radius: 28px;
             background: rgba(255,255,255,.74);
-        }
-
-        .nutrition-coach-head {
-            align-items: baseline;
         }
 
         .nutrition-coach-title {
@@ -2852,22 +2997,6 @@
         .nutrition-coach-meta {
             display: block;
             color: var(--nexus-muted);
-        }
-
-        .nutrition-coach-list {
-            border-radius: 22px;
-            border-color: rgba(94,76,49,.10);
-            background: rgba(255,255,255,.46);
-        }
-
-        .nutrition-coach-row {
-            grid-template-columns: 112px minmax(0, 1fr) 18px;
-            border-bottom-color: rgba(94,76,49,.10);
-        }
-
-        .nutrition-coach-row::after {
-            content: "›";
-            color: rgba(36,34,41,.40);
         }
 
         .nutrition-coach-label {
@@ -2884,8 +3013,6 @@
             color: #b97925;
             background: rgba(246,221,178,.72);
         }
-
-        .nutrition-coach-copy { color: #514c56; }
 
         .home-primary-cta {
             width: 100%;
@@ -2954,76 +3081,142 @@
 
         @media (max-width: 520px) {
             body { padding-inline: 12px; }
+
             .coach-hero {
-                grid-template-columns: minmax(0, 1fr) minmax(116px, 34%);
-                min-height: 248px;
-                padding: 24px 18px;
+                grid-template-columns: minmax(0, 1fr) minmax(132px, 39%);
+                min-height: 202px;
+                padding: 20px 16px;
+                gap: 4px;
                 border-radius: 30px;
             }
+
             .coach-kicker {
-                min-height: 36px;
-                margin-bottom: 18px;
-                padding: 0 13px;
-                font-size: 10px;
+                min-height: 32px;
+                margin-bottom: 12px;
+                padding: 0 12px;
+                font-size: 9px;
             }
-            .coach-title { font-size: clamp(34px, 11vw, 45px); }
+
+            .coach-title {
+                max-width: 250px;
+                font-size: clamp(31px, 9.5vw, 39px);
+            }
+
             .coach-subtitle {
-                max-width: 230px;
-                margin-top: 14px;
-                font-size: 15px;
+                max-width: 220px;
+                margin-top: 10px;
+                font-size: 13.5px;
+                line-height: 1.32;
             }
-            .coach-meta-row { margin-top: 18px; gap: 8px; }
+
+            .coach-meta-row {
+                gap: 6px;
+                margin-top: 13px;
+            }
+
             .goal-status-badge,
             .streak-badge {
-                min-height: 40px;
-                padding: 8px 10px;
-                border-radius: 16px;
-                font-size: 12px;
+                min-height: 34px;
+                padding: 7px 9px;
+                border-radius: 14px;
+                font-size: 11px;
             }
-            .home-hero-visual { min-height: 176px; }
-            .home-hero-mascot { max-height: 230px; }
+
+            .home-hero-visual {
+                min-height: 188px;
+                width: 130%;
+                margin: -16px -28px -22px -34px;
+            }
+
+            .home-hero-mascot { max-height: 238px; }
+
             .coach-feedback-grid {
                 grid-template-columns: 1fr 1fr;
-                gap: 12px;
+                gap: 10px;
             }
+
             .coach-feedback-card.calories-card {
                 grid-column: 1 / -1;
-                min-height: 224px;
-                padding: 20px;
-            }
-            .compact-metric-card {
-                min-height: 150px;
+                grid-row: auto;
+                min-height: 184px;
                 padding: 18px;
             }
-            .streak-card { grid-column: 1 / -1; }
-            .coach-card-label { margin-left: 48px; max-width: 70%; font-size: 14px; }
-            .coach-card-value { font-size: 34px; max-width: 66%; }
-            .compact-metric-card .coach-card-value { font-size: 26px; }
-            .coach-card-note { max-width: 68%; font-size: 12px; }
-            .home-card-icon { left: 16px; top: 16px; width: 36px; height: 36px; font-size: 18px; }
-            .home-calories-visual-wrap { width: min(172px, 50%); height: 118px; }
-            .home-metric-visual { width: min(118px, 52%); height: 90px; }
-            .intake-content { grid-template-columns: 1fr; }
-            .intake-gauge-container { width: min(190px, 100%); justify-self: center; }
-            .intake-pct { left: 50%; bottom: 24px; transform: translateX(-50%); }
+
+            .compact-metric-card {
+                min-height: 128px;
+                padding: 15px;
+            }
+
+            .streak-card {
+                grid-column: 1 / -1;
+                min-height: 104px;
+            }
+
+            .coach-card-label {
+                margin-left: 40px;
+                max-width: 72%;
+                font-size: 13px;
+            }
+
+            .coach-card-value {
+                max-width: 60%;
+                font-size: 31px;
+            }
+
+            .compact-metric-card .coach-card-value { font-size: 24px; }
+            .coach-card-note {
+                max-width: 60%;
+                font-size: 11.5px;
+            }
+
+            .home-card-icon {
+                left: 14px;
+                top: 14px;
+                width: 32px;
+                height: 32px;
+            }
+
+            .home-progress-card .intake-content {
+                grid-template-columns: 1fr;
+            }
+
+            .home-progress-card .intake-gauge-container {
+                justify-self: center;
+            }
+
+            .home-progress-card .intake-pct {
+                left: 50%;
+                top: 62px;
+                transform: translateX(-50%);
+            }
+
+            .home-calories-visual-wrap {
+                right: -10px;
+                bottom: 24px;
+                width: min(218px, 58%);
+                height: 126px;
+            }
+
+            .home-metric-visual {
+                right: -8px;
+                bottom: -8px;
+                width: min(116px, 52%);
+                height: 88px;
+            }
+
             .home-smart-card {
                 grid-template-columns: 58px minmax(0, 1fr);
                 padding: 16px;
             }
-            .home-smart-icon { width: 52px; height: 52px; border-radius: 18px; }
+
             .home-smart-visual { display: none; }
             .home-smart-copy .coach-card-value { font-size: 17px; }
-            .nutrition-coach-row {
-                grid-template-columns: 92px minmax(0, 1fr) 12px;
-                gap: 10px;
-                padding: 13px 12px;
-            }
-            .nutrition-coach-label { min-width: 0; padding-inline: 10px; font-size: 11px; }
-            .nutrition-coach-copy { font-size: 13px; }
+
             .home-bottom-nav {
                 margin-inline: -4px;
                 padding: 8px;
             }
+
             .home-bottom-nav button {
                 min-height: 48px;
                 font-size: 10px;
@@ -3031,15 +3224,42 @@
         }
 
         @media (max-width: 380px) {
-            .coach-hero { grid-template-columns: 1fr; }
-            .home-hero-visual {
-                justify-self: center;
-                min-height: 130px;
-                width: min(210px, 72%);
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) 112px;
+                min-height: 190px;
             }
-            .home-hero-mascot { max-height: 160px; }
+
+            .coach-kicker {
+                max-width: 184px;
+                min-height: 32px;
+                margin-bottom: 12px;
+                font-size: 9px;
+            }
+
+            .coach-title {
+                max-width: 210px;
+                font-size: clamp(28px, 9.4vw, 34px);
+            }
+
+            .coach-subtitle {
+                max-width: 190px;
+                font-size: 12.5px;
+            }
+
+            .goal-status-badge,
+            .streak-badge {
+                font-size: 10px;
+                padding-inline: 7px;
+            }
+
+            .home-hero-visual {
+                width: 140%;
+                min-height: 166px;
+                margin-right: -26px;
+            }
+
+            .home-hero-mascot { max-height: 206px; }
             .coach-feedback-grid { grid-template-columns: 1fr; }
-            .home-metric-visual { width: min(132px, 42%); }
-            .nutrition-coach-row { grid-template-columns: 1fr 14px; }
-            .nutrition-coach-label { justify-content: flex-start; width: fit-content; }
+            .compact-metric-card,
+            .streak-card { min-height: 112px; }
         }
