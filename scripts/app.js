@@ -1215,14 +1215,17 @@
             }
 
             setText('streak-badge', '🔥 ' + streak + ' ' + pluralDays(streak) + ' режима');
-            setText('coach-kcal-feedback', kcalLeft > 0 ? ('Отличный темп. Осталось ' + Math.round(kcalLeft) + ' ккал') : 'Цель по ккал мягко закрыта');
-            setText('coach-kcal-note', kcalPct >= 95 ? 'Очень ровное попадание в план.' : kcalPct >= 65 ? ('Уже ' + kcalPct + '% — день идет спокойно.') : 'Есть запас для комфортного приема пищи.');
-            setText('coach-protein-feedback', proteinLeft > 0 ? ('Белок проседает — добрать ' + Math.round(proteinLeft) + ' г') : 'Белок сегодня идет отлично');
-            setText('coach-protein-note', proteinPct >= 90 ? 'Хорошая база для восстановления.' : 'Добавь спокойный белковый прием пищи.');
-            setText('coach-water-feedback', waterPct >= 75 ? 'Вода почти в норме' : (waterPct + '% воды'));
-            setText('coach-water-note', waterPct >= 90 ? 'Гидратация выглядит ровно.' : waterPct >= 55 ? 'Осталось немного дожать.' : 'Мягкий фокус: добавь стакан воды.');
-            setText('coach-streak-feedback', streak > 0 ? (streak + ' ' + pluralDays(streak) + ' подряд') : 'Начни streak сегодня');
-            setText('coach-streak-note', best > streak ? ('Лучший streak — ' + best + ' ' + pluralDays(best) + '.') : 'Это твой лучший текущий ритм.');
+            setText('coach-kcal-feedback', Math.round(targetKcal || stats.kcal || 0) + ' ккал');
+            setText('coach-kcal-note', 'Цель на день');
+            setText('home-kcal-left', 'Осталось ' + Math.round(kcalLeft) + ' ккал');
+            setText('home-kcal-consumed', 'Потреблено ' + Math.round(Number(stats.kcal) || 0) + ' ккал');
+            setText('coach-protein-feedback', Math.round(Number(stats.protein) || 0) + ' / ' + Math.round(targetProtein || 0) + ' г');
+            setText('coach-protein-note', proteinPct >= 90 ? 'Цель почти закрыта' : 'Цель');
+            setText('coach-water-feedback', waterPct + '%');
+            setText('coach-water-note', Math.round((Number(dailyWater) || 0) / 1000 * 10) / 10 + ' / ' + Math.round((targetWater || 2000) / 1000 * 10) / 10 + ' л');
+            setText('coach-streak-feedback', streak + ' ' + pluralDays(streak) + ' подряд');
+            setText('coach-streak-note', best > streak ? ('Лучший — ' + best + ' ' + pluralDays(best)) : 'В режиме');
+            setText('daily-goal-caption', 'Цель: ' + goal.label.toLowerCase() + ' · старт дня');
 
             let smart = 'Добавьте первый прием пищи, и я покажу точный фокус дня.';
             if ((Number(stats.kcal) || 0) > 0) {
@@ -1256,6 +1259,9 @@
             document.getElementById('gauge-cur').innerText = Math.round(stats.kcal);
             document.getElementById('gauge-max').innerText = userProfile.target_kcal;
             document.getElementById('gauge-path').style.strokeDashoffset = 125.66 - (kcalPct / 100) * 125.66;
+            setText('daily-kcal-summary', Math.round(stats.kcal) + ' / ' + (Number(userProfile.target_kcal) || 0));
+            setText('daily-protein-summary', Math.round(stats.protein) + ' / ' + (Number(userProfile.target_protein) || 0) + ' г');
+            setText('daily-water-summary', (Math.round((Number(dailyWater) || 0) / 100) / 10) + ' / ' + (Math.round((Number(userProfile.target_water) || 2000) / 100) / 10) + ' л');
             let cPct = getPct(stats.carbs, userProfile.target_carbs); document.getElementById('val-c').innerText = `${Math.round(stats.carbs)} / ${userProfile.target_carbs} г`; document.getElementById('pct-c').innerText = Math.round(cPct) + '%'; setRingProgress('bar-c', cPct);
             let fPct = getPct(stats.fat, userProfile.target_fat); document.getElementById('val-f').innerText = `${Math.round(stats.fat)} / ${userProfile.target_fat} г`; document.getElementById('pct-f').innerText = Math.round(fPct) + '%'; setRingProgress('bar-f', fPct);
             let pPct = getPct(stats.protein, userProfile.target_protein); document.getElementById('val-p').innerText = `${Math.round(stats.protein)} / ${userProfile.target_protein} г`; document.getElementById('pct-p').innerText = Math.round(pPct) + '%'; setRingProgress('bar-p', pPct);
@@ -2232,7 +2238,7 @@ async function updateHistoryUI() {
 
         function toggleEdit(show) {
             document.getElementById('edit-form').style.display = show ? 'block' : 'none';
-            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .intake-card, .nutritions-card, .recipe-section-control, .recipes-open-row, #recipe-list, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : (el.classList.contains('coach-feedback-grid')) ? 'grid' : (el.id === 'menu-tabs' || el.id === 'recipe-list') ? 'flex' : 'block'; });
+            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .home-smart-card, .nutrition-coach-card, .intake-card, .home-primary-cta, .home-bottom-nav, .nutritions-card, .recipe-section-control, .recipes-open-row, #recipe-list, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : ''; });
             if(!show) document.querySelector('.top-nav').style.display = 'flex';
             if (show) {
                 setGender(currentGender);

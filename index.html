@@ -314,41 +314,107 @@
                 <div class="coach-kicker">AI Nutrition Coach</div>
                 <h1 class="coach-title" id="coach-greeting-title">Добро пожаловать</h1>
                 <div class="coach-subtitle" id="coach-greeting-subtitle">Собираю персональный план на сегодня.</div>
+                <div class="coach-meta-row">
+                    <div class="goal-status-badge" id="goal-status-badge" data-goal="maintain">⚖️ Поддержание</div>
+                    <div class="streak-badge" id="streak-badge">🔥 0 дней режима</div>
+                </div>
             </div>
-            <div class="coach-avatar-wrap" aria-label="Профиль пользователя">
-                <div class="coach-avatar" id="coach-avatar">BN</div>
-                <div class="coach-avatar-status"></div>
-            </div>
-            <div class="coach-meta-row">
-                <div class="goal-status-badge" id="goal-status-badge" data-goal="maintain">⚖️ Поддержание</div>
-                <div class="streak-badge" id="streak-badge">🔥 0 дней режима</div>
+            <div class="home-hero-visual home-image-slot hero-mascot-slot" aria-hidden="true">
+                <img class="home-hero-mascot" src="assets/images/home/hero-mascot.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
+                <div class="coach-avatar" id="coach-avatar" aria-hidden="true">BN</div>
             </div>
         </section>
 
         <section class="coach-feedback-grid" aria-live="polite">
-            <div class="coach-feedback-card" data-info-topic="calories" onclick="openInfoSheet('calories')">
+            <div class="coach-feedback-card calories-card" data-info-topic="calories" onclick="openInfoSheet('calories')">
+                <div class="home-card-icon" aria-hidden="true">⌁</div>
                 <div class="coach-card-label"><span>Калории</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('calories')">?</button></div>
                 <div class="coach-card-value" id="coach-kcal-feedback">0 ккал</div>
                 <div class="coach-card-note" id="coach-kcal-note">План обновится после дневника.</div>
+                <div class="home-calories-visual-wrap home-image-slot calories-visual-slot" aria-hidden="true">
+                    <img class="home-calories-visual" src="assets/images/home/calories-visual.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
+                </div>
+                <div class="home-calories-footer">
+                    <span id="home-kcal-left">Осталось 0 ккал</span>
+                    <span id="home-kcal-consumed">Потреблено 0 ккал</span>
+                </div>
             </div>
-            <div class="coach-feedback-card" data-info-topic="protein" onclick="openInfoSheet('protein')">
+            <div class="coach-feedback-card compact-metric-card protein-card" data-info-topic="protein" onclick="openInfoSheet('protein')">
+                <div class="home-card-icon" aria-hidden="true">⌬</div>
                 <div class="coach-card-label"><span>Белок</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('protein')">?</button></div>
                 <div class="coach-card-value" id="coach-protein-feedback">0 г</div>
                 <div class="coach-card-note" id="coach-protein-note">Подскажу, что добрать.</div>
+                <div class="home-metric-visual home-image-slot protein-food-slot" aria-hidden="true">
+                    <img class="home-protein-visual" src="assets/images/home/protein-food.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
+                </div>
             </div>
-            <div class="coach-feedback-card" data-info-topic="water" onclick="openInfoSheet('water')">
+            <div class="coach-feedback-card compact-metric-card water-card" data-info-topic="water" onclick="openInfoSheet('water')">
+                <div class="home-card-icon" aria-hidden="true">◌</div>
                 <div class="coach-card-label"><span>Вода</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('water')">?</button></div>
                 <div class="coach-card-value" id="coach-water-feedback">0%</div>
                 <div class="coach-card-note" id="coach-water-note">Следим за гидратацией.</div>
+                <div class="home-metric-visual home-image-slot water-glass-slot" aria-hidden="true">
+                    <img class="home-water-visual" src="assets/images/home/water-glass.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
+                </div>
             </div>
-            <div class="coach-feedback-card" data-info-topic="streak" onclick="openInfoSheet('streak')">
+            <div class="coach-feedback-card compact-metric-card streak-card" data-info-topic="streak" onclick="openInfoSheet('streak')">
+                <div class="home-card-icon" aria-hidden="true">✦</div>
                 <div class="coach-card-label"><span>Streak</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('streak')">?</button></div>
                 <div class="coach-card-value" id="coach-streak-feedback">0 дней</div>
                 <div class="coach-card-note" id="coach-streak-note">Каждый день в дневнике считается.</div>
+                <div class="home-metric-visual home-image-slot streak-fire-slot" aria-hidden="true">
+                    <img class="home-streak-visual" src="assets/images/home/streak-fire.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
+                </div>
             </div>
-            <div class="coach-feedback-card smart">
-                <div class="coach-card-label"><span>Умная подсказка</span><span>Coach</span></div>
+        </section>
+
+        <div class="intake-card home-progress-card" id="profile-display" onclick="openChartModal()">
+            <div class="intake-header">
+                <div class="intake-header-title">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    Прогресс за день
+                </div>
+                <span class="daily-goal-caption" id="daily-goal-caption">Цель: баланс</span>
+            </div>
+            
+            <div class="intake-content">
+                <div class="intake-gauge-container">
+                    <svg viewBox="0 0 100 55" class="gauge-svg">
+                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--progress-bg)" stroke-width="12" stroke-linecap="round"/>
+                        <path id="gauge-path" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--success)" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="125.66" style="transition: stroke-dashoffset 1s ease;" />
+                    </svg>
+                    <div class="intake-pct" id="intake-pct">0%</div>
+                    <div class="gauge-center">
+                        <div class="g-cur" id="gauge-cur">0</div>
+                        <div class="g-div"></div>
+                        <div class="g-max" id="gauge-max">0</div>
+                    </div>
+                </div>
+                <div class="daily-norm-summary">
+                    <div class="daily-mini-row">
+                        <span>Осталось</span>
+                        <b id="daily-kcal-summary">0 / 0</b>
+                    </div>
+                    <div class="daily-mini-row">
+                        <span>Белок</span>
+                        <b id="daily-protein-summary">0 / 0 г</b>
+                    </div>
+                    <div class="daily-mini-row">
+                        <span>Вода</span>
+                        <b id="daily-water-summary">0 / 0 л</b>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="coach-feedback-card smart home-smart-card">
+            <div class="home-smart-icon" aria-hidden="true">✦</div>
+            <div class="home-smart-copy">
+                <div class="coach-card-label"><span>Умная подсказка</span><span>Nexus</span></div>
                 <div class="coach-card-value" id="coach-smart-feedback">Добавьте первый прием пищи, и я покажу точный фокус дня.</div>
+            </div>
+            <div class="home-smart-visual home-image-slot smart-tip-bowl-slot" aria-hidden="true">
+                <img class="home-smart-tip-visual" src="assets/images/home/smart-tip-bowl.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
             </div>
         </section>
 
@@ -373,31 +439,15 @@
             </div>
         </section>
 
-        <div class="intake-card" id="profile-display" onclick="openChartModal()">
-            <div class="intake-header">
-                <div class="intake-header-title">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    Ежедневная норма
-                </div>
-                <span style="color:var(--text-muted); font-size:16px;">›</span>
-            </div>
-            
-            <div class="intake-content">
-                <div class="intake-pct" id="intake-pct">0%</div>
-                
-                <div class="intake-gauge-container">
-                    <svg viewBox="0 0 100 55" class="gauge-svg">
-                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--progress-bg)" stroke-width="12" stroke-linecap="round"/>
-                        <path id="gauge-path" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--success)" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="125.66" style="transition: stroke-dashoffset 1s ease;" />
-                    </svg>
-                    <div class="gauge-center">
-                        <div class="g-cur" id="gauge-cur">0</div>
-                        <div class="g-div"></div>
-                        <div class="g-max" id="gauge-max">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="event.stopPropagation(); document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"><span>+</span>Добавить приём пищи</button>
+
+        <nav class="home-bottom-nav" aria-label="Основная навигация">
+            <button class="active" type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"><span>⌂</span>Главная</button>
+            <button type="button" onclick="document.getElementById('history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"><span>□</span>Дневник</button>
+            <button type="button" onclick="openChartModal()"><span>▥</span>Аналитика</button>
+            <button type="button" onclick="openMealPrep()"><span>☷</span>План</button>
+            <button type="button" onclick="toggleEdit(true)"><span>○</span>Профиль</button>
+        </nav>
 
         <div class="nutritions-card" id="nutritions-display">
             <div class="nut-header">
