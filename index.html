@@ -439,20 +439,11 @@
             <div class="coach-feedback-card compact-metric-card water-card" data-info-topic="water" onclick="openInfoSheet('water')">
                 <div class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.8 4.4 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.2-6.1 6-10.5Z"></path></svg></div>
                 <div class="coach-card-label"><span>Вода</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('water')">?</button></div>
-                <div class="coach-card-value" id="coach-water-feedback">0%</div>
+                <div class="coach-card-value" id="coach-water-feedback">0 л</div>
                 <div class="coach-card-note" id="coach-water-note">Следим за гидратацией.</div>
                 <div class="home-card-progress water-progress" aria-hidden="true"><span></span></div>
                 <div class="home-metric-visual water-card-visual home-image-slot water-glass-slot" aria-hidden="true">
                     <img class="home-water-visual" src="assets/images/home/water-glass.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
-                </div>
-            </div>
-            <div class="coach-feedback-card compact-metric-card streak-card" data-info-topic="streak" onclick="openInfoSheet('streak')">
-                <div class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h10v4.5a5 5 0 0 1-10 0V4Z"></path><path d="M9 20h6"></path><path d="M12 13v7"></path><path d="M17 6h2.5a2.5 2.5 0 0 1-2.5 2.5"></path><path d="M7 6H4.5A2.5 2.5 0 0 0 7 8.5"></path></svg></div>
-                <div class="coach-card-label"><span>Серия</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('streak')">?</button></div>
-                <div class="coach-card-value" id="coach-streak-feedback">0 дней</div>
-                <div class="coach-card-note" id="coach-streak-note">Каждый день в дневнике считается.</div>
-                <div class="home-metric-visual streak-card-visual home-image-slot streak-fire-slot" aria-hidden="true">
-                    <img class="home-streak-visual" src="assets/images/home/streak-fire.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
                 </div>
             </div>
         </section>
@@ -782,8 +773,6 @@
     <script src="./scripts/app.js"></script>
 </body>
 </html>
-
-
 
 
 

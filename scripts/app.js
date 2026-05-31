@@ -1219,10 +1219,10 @@
             setText('coach-kcal-note', 'Цель на день');
             setText('home-kcal-left', 'Осталось ' + Math.round(kcalLeft) + ' ккал');
             setText('home-kcal-consumed', 'Потреблено ' + Math.round(Number(stats.kcal) || 0) + ' ккал');
-            setText('coach-protein-feedback', Math.round(Number(stats.protein) || 0) + ' / ' + Math.round(targetProtein || 0) + ' г');
-            setText('coach-protein-note', proteinPct >= 90 ? 'Цель почти закрыта' : 'Цель');
-            setText('coach-water-feedback', waterPct + '%');
-            setText('coach-water-note', Math.round((Number(dailyWater) || 0) / 1000 * 10) / 10 + ' / ' + Math.round((targetWater || 2000) / 1000 * 10) / 10 + ' л');
+            setText('coach-protein-feedback', Math.round(Number(stats.protein) || 0) + ' г');
+            setText('coach-protein-note', 'из ' + Math.round(targetProtein || 0) + ' г');
+            setText('coach-water-feedback', (Math.round((Number(dailyWater) || 0) / 100) / 10) + ' л');
+            setText('coach-water-note', 'из ' + (Math.round((targetWater || 2000) / 100) / 10) + ' л');
             setText('coach-streak-feedback', streak + ' ' + pluralDays(streak) + ' подряд');
             setText('coach-streak-note', best > streak ? ('Лучший — ' + best + ' ' + pluralDays(best)) : 'В режиме');
             setText('daily-goal-caption', 'Цель: ' + goal.label.toLowerCase() + ' · старт дня');

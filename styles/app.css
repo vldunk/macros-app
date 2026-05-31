@@ -5195,3 +5195,201 @@
             height: var(--app-viewport-height) !important;
             overflow: hidden !important;
         }
+
+        /* Final home metric layout: calories + two wide 50/50 cards, no duplicate streak card. */
+        .coach-feedback-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: clamp(12px, 3.2vw, 16px) !important;
+            margin-bottom: 16px !important;
+        }
+
+        .coach-feedback-card.calories-card {
+            grid-column: 1 / -1 !important;
+            min-height: clamp(228px, 58vw, 320px) !important;
+            padding: clamp(20px, 5vw, 28px) !important;
+            overflow: hidden !important;
+        }
+
+        .calories-card .coach-card-value {
+            max-width: min(58%, 380px) !important;
+            font-size: clamp(54px, 17vw, 92px) !important;
+            line-height: .86 !important;
+        }
+
+        .calories-card .coach-card-note {
+            max-width: 54% !important;
+        }
+
+        .calories-card .home-calories-visual-wrap {
+            right: clamp(8px, 3vw, 24px) !important;
+            bottom: clamp(68px, 16vw, 86px) !important;
+            width: min(48%, 360px) !important;
+            height: clamp(104px, 25vw, 154px) !important;
+        }
+
+        .calories-card .calories-progress {
+            width: min(74%, 440px) !important;
+        }
+
+        .streak-card {
+            display: none !important;
+        }
+
+        .compact-metric-card.protein-card,
+        .compact-metric-card.water-card {
+            position: relative !important;
+            min-height: clamp(152px, 38vw, 184px) !important;
+            padding: clamp(18px, 4.5vw, 24px) clamp(14px, 4vw, 22px) !important;
+            border-radius: clamp(22px, 6vw, 30px) !important;
+            overflow: hidden !important;
+            background:
+                radial-gradient(circle at 86% 22%, rgba(238,230,255,.42), transparent 34%),
+                rgba(255,255,255,.76) !important;
+            border: 1px solid rgba(82,66,49,.08) !important;
+            box-shadow: 0 14px 34px rgba(72,55,36,.075), inset 0 1px 0 rgba(255,255,255,.92) !important;
+        }
+
+        .compact-metric-card.water-card {
+            background:
+                radial-gradient(circle at 86% 22%, rgba(196,229,246,.46), transparent 34%),
+                rgba(255,255,255,.78) !important;
+        }
+
+        .compact-metric-card.protein-card .home-card-icon,
+        .compact-metric-card.water-card .home-card-icon,
+        .compact-metric-card.protein-card .coach-info-btn,
+        .compact-metric-card.water-card .coach-info-btn {
+            display: none !important;
+        }
+
+        .compact-metric-card.protein-card .coach-card-label,
+        .compact-metric-card.water-card .coach-card-label {
+            position: relative !important;
+            z-index: 2 !important;
+            max-width: 58% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            color: #252630 !important;
+            font-size: clamp(17px, 4.5vw, 22px) !important;
+            line-height: 1.08 !important;
+            font-weight: 900 !important;
+            letter-spacing: 0 !important;
+            text-transform: none !important;
+        }
+
+        .compact-metric-card.protein-card .coach-card-value,
+        .compact-metric-card.water-card .coach-card-value {
+            position: relative !important;
+            z-index: 2 !important;
+            max-width: 56% !important;
+            margin-top: clamp(16px, 4.4vw, 22px) !important;
+            color: #7d55f1 !important;
+            font-size: clamp(38px, 11vw, 56px) !important;
+            line-height: .9 !important;
+            font-weight: 950 !important;
+            letter-spacing: 0 !important;
+            white-space: nowrap !important;
+        }
+
+        .compact-metric-card.water-card .coach-card-value {
+            color: #43aee8 !important;
+        }
+
+        .compact-metric-card.protein-card .coach-card-note,
+        .compact-metric-card.water-card .coach-card-note {
+            position: relative !important;
+            z-index: 2 !important;
+            max-width: 58% !important;
+            margin-top: clamp(10px, 2.8vw, 14px) !important;
+            color: #696674 !important;
+            font-size: clamp(13px, 3.5vw, 16px) !important;
+            line-height: 1.2 !important;
+            font-weight: 720 !important;
+        }
+
+        .compact-metric-card.protein-card .home-metric-visual,
+        .compact-metric-card.water-card .home-metric-visual {
+            position: absolute !important;
+            z-index: 1 !important;
+            inset: auto clamp(4px, 2vw, 14px) clamp(26px, 6vw, 38px) auto !important;
+            display: block !important;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            pointer-events: none !important;
+        }
+
+        .compact-metric-card.protein-card .home-metric-visual {
+            width: min(46%, clamp(78px, 25vw, 132px)) !important;
+            height: clamp(76px, 23vw, 122px) !important;
+        }
+
+        .compact-metric-card.water-card .home-metric-visual {
+            right: clamp(8px, 2.6vw, 18px) !important;
+            width: min(40%, clamp(68px, 22vw, 112px)) !important;
+            height: clamp(86px, 24vw, 126px) !important;
+        }
+
+        .compact-metric-card.protein-card .home-metric-visual img,
+        .compact-metric-card.water-card .home-metric-visual img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: contain !important;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            filter: drop-shadow(0 12px 16px rgba(74,57,36,.13)) !important;
+        }
+
+        .compact-metric-card.protein-card .home-card-progress,
+        .compact-metric-card.water-card .home-card-progress {
+            position: absolute !important;
+            left: clamp(14px, 4vw, 22px) !important;
+            right: clamp(14px, 4vw, 22px) !important;
+            bottom: clamp(12px, 3.4vw, 18px) !important;
+            width: auto !important;
+            height: 6px !important;
+            margin: 0 !important;
+            border-radius: 999px !important;
+            background: rgba(125,85,241,.11) !important;
+        }
+
+        .compact-metric-card.water-card .home-card-progress {
+            background: rgba(67,174,232,.12) !important;
+        }
+
+        .compact-metric-card.protein-card .home-card-progress span {
+            background: linear-gradient(90deg, #7d55f1, #d7c4ff) !important;
+        }
+
+        .compact-metric-card.water-card .home-card-progress span {
+            background: linear-gradient(90deg, #43aee8, #bfeaff) !important;
+        }
+
+        @media (max-width: 340px) {
+            .coach-feedback-grid {
+                gap: 10px !important;
+            }
+
+            .compact-metric-card.protein-card,
+            .compact-metric-card.water-card {
+                min-height: 146px !important;
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+
+            .compact-metric-card.protein-card .coach-card-label,
+            .compact-metric-card.water-card .coach-card-label,
+            .compact-metric-card.protein-card .coach-card-note,
+            .compact-metric-card.water-card .coach-card-note {
+                max-width: 60% !important;
+            }
+
+            .compact-metric-card.protein-card .coach-card-value,
+            .compact-metric-card.water-card .coach-card-value {
+                font-size: 36px !important;
+                max-width: 60% !important;
+            }
+        }
