@@ -61,11 +61,17 @@
         <div class="recipes-screen">
             <div class="recipes-screen-head">
                 <div class="recipes-screen-title-row">
-                    <div class="recipes-screen-title">Все рецепты</div>
-                    <button class="info-sheet-close" type="button" aria-label="Закрыть рецепты" onclick="closeRecipesScreen()">×</button>
+                    <button class="recipe-library-back" type="button" aria-label="Назад" onclick="closeRecipesScreen()">‹</button>
+                    <div class="recipes-screen-title">Библиотека рецептов</div>
+                    <div class="recipe-library-head-spacer" aria-hidden="true"></div>
                 </div>
+                <div class="recipe-library-segment" aria-label="Раздел рецептов">
+                    <button class="active" type="button"><span>𐄹</span>Рецепты</button>
+                    <button type="button"><span>♡</span>Избранное</button>
+                </div>
+                <div class="recipe-library-live-controls">
                 <div class="recipe-search-row">
-                    <input class="recipe-search-input" id="recipe-search-input" type="search" placeholder="Поиск: курица, творог, high protein" oninput="setRecipeSearch(this.value)">
+                    <input class="recipe-search-input" id="recipe-search-input" type="search" placeholder="Поиск: курица, творог, белок" oninput="setRecipeSearch(this.value)">
                     <select class="recipe-sort-select" id="recipe-sort-select" onchange="setRecipeSort(this.value)">
                         <option value="recommended">Рекоменд.</option>
                         <option value="kcal-asc">Калории ↑</option>
@@ -93,13 +99,93 @@
                     <button class="tab" onclick="setScreenDietFilter('Сушка', this)">Сушка</button>
                     <button class="tab" onclick="setScreenDietFilter('Похудение', this)">Похудение</button>
                     <button class="tab" onclick="setScreenDietFilter('Поддержание', this)">Поддержание</button>
-                    <button class="tab" onclick="setScreenDietFilter('Набор', this)">Набор</button>
+                    <button class="tab" onclick="setScreenDietFilter('Набор массы', this)">Набор массы</button>
                     <button class="tab" onclick="setScreenDietFilter('Рост мышц', this)">Рост мышц</button>
-                    <button class="tab" onclick="setScreenDietFilter('Высокий белок', this)">High Protein</button>
+                    <button class="tab" onclick="setScreenDietFilter('Белок+', this)">Белок+</button>
+                </div>
                 </div>
             </div>
             <div class="recipes-screen-body">
-                <div class="recipe-results-meta" id="recipe-results-meta">0 рецептов</div>
+                <section class="recipe-library-section">
+                    <div class="recipe-library-section-head">
+                        <h2>Категории</h2>
+                        <button type="button" onclick="document.getElementById('recipe-search-input')?.focus()">Смотреть все <span>›</span></button>
+                    </div>
+                    <div class="recipe-category-row">
+                        <button class="recipe-category-card active" type="button" onclick="setScreenDietFilter('Все')">
+                            <span class="recipe-category-emoji pizza">🍕</span>
+                            <span><b>Обычные</b><small>Для любого дня</small></span>
+                        </button>
+                        <button class="recipe-category-card" type="button" onclick="setScreenDietFilter('Поддержание')">
+                            <span class="recipe-category-emoji greens">🥦</span>
+                            <span><b>Вегетарианские</b><small>Растительная основа</small></span>
+                        </button>
+                        <button class="recipe-category-card" type="button" onclick="setScreenDietFilter('Похудение')">
+                            <span class="recipe-category-emoji fish">🍣</span>
+                            <span><b>Пескетарианские</b><small>Рыба и морепродукты</small></span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="recipe-library-section recipe-library-all">
+                    <h2>Все рецепты</h2>
+                    <div class="recipe-library-hero">
+                        <div class="recipe-library-hero-icon">✦</div>
+                        <div class="recipe-library-hero-copy">
+                            <h3>Собрано всё,<br>что хочется<br>приготовить</h3>
+                            <p>Вдохновение на каждый день — в одной библиотеке.</p>
+                        </div>
+                        <div class="recipe-library-mascot" aria-hidden="true">
+                            <img src="assets/images/home/hero-mascot.png" alt="" onerror="this.hidden=true; this.parentElement.classList.add('is-placeholder')">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="recipe-library-section">
+                    <h2>Приемы пищи</h2>
+                    <div class="recipe-meal-grid">
+                        <button class="recipe-meal-card breakfast" type="button" onclick="setScreenMealFilter('Завтрак')"><span>🍳</span><b>Завтрак</b><small>Энергия на день</small></button>
+                        <button class="recipe-meal-card lunch" type="button" onclick="setScreenMealFilter('Обед')"><span>🍜</span><b>Обед</b><small>Сбалансировано</small></button>
+                        <button class="recipe-meal-card dinner" type="button" onclick="setScreenMealFilter('Ужин')"><span>🥩</span><b>Ужин</b><small>Легко и вкусно</small></button>
+                        <button class="recipe-meal-card snack" type="button" onclick="setScreenMealFilter('Перекус')"><span>🍏</span><b>Перекус</b><small>Между делом</small></button>
+                    </div>
+                </section>
+
+                <section class="recipe-library-section">
+                    <div class="recipe-library-section-head">
+                        <h2>Подборки</h2>
+                        <button type="button" onclick="setRecipeSort('popular')">Смотреть все <span>›</span></button>
+                    </div>
+                    <div class="recipe-collection-row">
+                        <button class="recipe-collection-card top-breakfasts" type="button" onclick="setScreenMealFilter('Завтрак')">
+                            <span class="recipe-rating">★ 4,9</span>
+                            <span class="recipe-collection-copy"><b>Топ завтраков</b><small>12 рецептов</small></span>
+                            <span class="recipe-collection-arrow">›</span>
+                        </button>
+                        <button class="recipe-collection-card quick-dinner" type="button" onclick="setScreenMealFilter('Ужин')">
+                            <span class="recipe-rating">★ 4,8</span>
+                            <span class="recipe-collection-copy"><b>Ужин за 20 минут</b><small>15 рецептов</small></span>
+                            <span class="recipe-collection-arrow">›</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="recipe-library-section">
+                    <div class="recipe-library-section-head">
+                        <h2>Калорийность</h2>
+                        <button type="button" onclick="setScreenDietFilter('Похудение')">Смотреть все <span>›</span></button>
+                    </div>
+                    <div class="recipe-calorie-row">
+                        <button type="button" onclick="setScreenDietFilter('Похудение')"><span>🌿</span><b>Низкокалорийные</b><small>Легкий рацион</small></button>
+                        <button type="button" onclick="setScreenDietFilter('Поддержание')"><span>⚖️</span><b>Оптимальный баланс</b><small>На каждый день</small></button>
+                        <button type="button" onclick="setScreenDietFilter('Набор массы')"><span>🔥</span><b>Больше калорий</b><small>Для набора массы</small></button>
+                    </div>
+                </section>
+
+                <div class="recipe-library-results-head">
+                    <h2>Каталог</h2>
+                    <span class="recipe-results-meta" id="recipe-results-meta">0 рецептов</span>
+                </div>
                 <div class="recipes-results-grid" id="recipes-results-grid"></div>
             </div>
         </div>
@@ -304,7 +390,7 @@
                 <span style="font-size:10px;">▼</span>
             </button>
             <div class="nav-actions">
-                <button class="nav-btn" onclick="toggleEdit(true)">✏️</button>
+                <button class="nav-btn" onclick="toggleEdit(true)" aria-label="Редактировать профиль"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 20 4.7-1.1L19.3 8.3a2.1 2.1 0 0 0 0-3l-.6-.6a2.1 2.1 0 0 0-3 0L5.1 15.3 4 20Z"></path><path d="m14.5 5.9 3.6 3.6"></path></svg></button>
             </div>
         </div>
 
@@ -327,10 +413,11 @@
 
         <section class="coach-feedback-grid" aria-live="polite">
             <div class="coach-feedback-card calories-card" data-info-topic="calories" onclick="openInfoSheet('calories')">
-                <div class="home-card-icon" aria-hidden="true">⌁</div>
+                <div class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 3c1.7 3.1-.9 4.7-.9 7 0 1.6 1.1 2.5 2.4 2.5 1.8 0 3-1.5 2.6-3.5 2 1.7 3.1 3.8 3.1 6.1 0 3.7-3 6.4-7.2 6.4s-7.2-2.7-7.2-6.4c0-2.9 1.8-5 3.7-6.8 1.4-1.3 2.7-2.6 3.5-5.3Z"></path></svg></div>
                 <div class="coach-card-label"><span>Калории</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('calories')">?</button></div>
                 <div class="coach-card-value" id="coach-kcal-feedback">0 ккал</div>
                 <div class="coach-card-note" id="coach-kcal-note">План обновится после дневника.</div>
+                <div class="home-card-progress calories-progress" aria-hidden="true"><span></span></div>
                 <div class="home-calories-visual-wrap home-image-slot calories-visual-slot" aria-hidden="true">
                     <img class="home-calories-visual" src="assets/images/home/calories-visual.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
                 </div>
@@ -340,29 +427,31 @@
                 </div>
             </div>
             <div class="coach-feedback-card compact-metric-card protein-card" data-info-topic="protein" onclick="openInfoSheet('protein')">
-                <div class="home-card-icon" aria-hidden="true">⌬</div>
+                <div class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5 19.4 8v8L12 20.5 4.6 16V8L12 3.5Z"></path><path d="M8.2 10.1 12 7.8l3.8 2.3v3.8L12 16.2l-3.8-2.3v-3.8Z"></path></svg></div>
                 <div class="coach-card-label"><span>Белок</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('protein')">?</button></div>
                 <div class="coach-card-value" id="coach-protein-feedback">0 г</div>
                 <div class="coach-card-note" id="coach-protein-note">Подскажу, что добрать.</div>
-                <div class="home-metric-visual home-image-slot protein-food-slot" aria-hidden="true">
+                <div class="home-card-progress protein-progress" aria-hidden="true"><span></span></div>
+                <div class="home-metric-visual protein-card-visual home-image-slot protein-food-slot" aria-hidden="true">
                     <img class="home-protein-visual" src="assets/images/home/protein-food.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
                 </div>
             </div>
             <div class="coach-feedback-card compact-metric-card water-card" data-info-topic="water" onclick="openInfoSheet('water')">
-                <div class="home-card-icon" aria-hidden="true">◌</div>
+                <div class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3.5c3.8 4.4 6 7.6 6 10.5a6 6 0 0 1-12 0c0-2.9 2.2-6.1 6-10.5Z"></path></svg></div>
                 <div class="coach-card-label"><span>Вода</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('water')">?</button></div>
                 <div class="coach-card-value" id="coach-water-feedback">0%</div>
                 <div class="coach-card-note" id="coach-water-note">Следим за гидратацией.</div>
-                <div class="home-metric-visual home-image-slot water-glass-slot" aria-hidden="true">
+                <div class="home-card-progress water-progress" aria-hidden="true"><span></span></div>
+                <div class="home-metric-visual water-card-visual home-image-slot water-glass-slot" aria-hidden="true">
                     <img class="home-water-visual" src="assets/images/home/water-glass.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
                 </div>
             </div>
             <div class="coach-feedback-card compact-metric-card streak-card" data-info-topic="streak" onclick="openInfoSheet('streak')">
-                <div class="home-card-icon" aria-hidden="true">✦</div>
-                <div class="coach-card-label"><span>Streak</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('streak')">?</button></div>
+                <div class="home-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h10v4.5a5 5 0 0 1-10 0V4Z"></path><path d="M9 20h6"></path><path d="M12 13v7"></path><path d="M17 6h2.5a2.5 2.5 0 0 1-2.5 2.5"></path><path d="M7 6H4.5A2.5 2.5 0 0 0 7 8.5"></path></svg></div>
+                <div class="coach-card-label"><span>Серия</span><button class="coach-info-btn" type="button" aria-label="Подробнее" onclick="event.stopPropagation(); openInfoSheet('streak')">?</button></div>
                 <div class="coach-card-value" id="coach-streak-feedback">0 дней</div>
                 <div class="coach-card-note" id="coach-streak-note">Каждый день в дневнике считается.</div>
-                <div class="home-metric-visual home-image-slot streak-fire-slot" aria-hidden="true">
+                <div class="home-metric-visual streak-card-visual home-image-slot streak-fire-slot" aria-hidden="true">
                     <img class="home-streak-visual" src="assets/images/home/streak-fire.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
                 </div>
             </div>
@@ -393,26 +482,29 @@
                 </div>
                 <div class="daily-norm-summary">
                     <div class="daily-mini-row">
-                        <span>Ккал</span>
-                        <b id="daily-kcal-summary">0 / 0</b>
-                    </div>
-                    <div class="daily-mini-row">
-                        <span>Белок</span>
+                        <span>белки</span>
                         <b id="daily-protein-summary">0 / 0 г</b>
                     </div>
                     <div class="daily-mini-row">
-                        <span>Вода</span>
-                        <b id="daily-water-summary">0 / 0 л</b>
+                        <span>жиры</span>
+                        <b id="daily-fat-summary">0 / 0 г</b>
+                    </div>
+                    <div class="daily-mini-row">
+                        <span>углеводы</span>
+                        <b id="daily-carbs-summary">0 / 0 г</b>
                     </div>
                 </div>
             </div>
         </div>
 
+        <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="event.stopPropagation(); document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"><span>+</span>Добавить приём пищи</button>
+
         <section class="coach-feedback-card smart home-smart-card">
-            <div class="home-smart-icon" aria-hidden="true">✦</div>
+            <div class="home-smart-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></div>
             <div class="home-smart-copy">
-                <div class="coach-card-label"><span>Умная подсказка</span><span>Nexus</span></div>
+                <div class="coach-card-label"><span>Умная подсказка</span><span>Совет</span></div>
                 <div class="coach-card-value" id="coach-smart-feedback">Добавьте первый прием пищи, и я покажу точный фокус дня.</div>
+                <button class="home-smart-more" type="button" onclick="openInfoSheet('protein')">Подробнее <span>›</span></button>
             </div>
             <div class="home-smart-visual home-image-slot smart-tip-bowl-slot" aria-hidden="true">
                 <img class="home-smart-tip-visual" src="assets/images/home/smart-tip-bowl.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
@@ -422,32 +514,33 @@
         <section class="nutrition-coach-card" id="nutrition-coach-card" aria-live="polite">
             <div class="nutrition-coach-head">
                 <div class="nutrition-coach-title">AI-рекомендация на сегодня</div>
-                <div class="nutrition-coach-meta" id="nutrition-coach-meta">Rule-based coach</div>
+                <div class="nutrition-coach-meta" id="nutrition-coach-meta">Рекомендация</div>
             </div>
             <div class="nutrition-coach-list">
                 <div class="nutrition-coach-row">
+                    <div class="nutrition-row-icon focus" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg></div>
                     <div class="nutrition-coach-label">Фокус</div>
                     <div class="nutrition-coach-copy" id="nutrition-coach-tip">Добавь первый прием пищи, и я уточню фокус дня.</div>
                 </div>
                 <div class="nutrition-coach-row risk">
+                    <div class="nutrition-row-icon risk" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4 21 20H3L12 4Z"></path><path d="M12 9v5"></path><path d="M12 17.5v.1"></path></svg></div>
                     <div class="nutrition-coach-label">Риск</div>
                     <div class="nutrition-coach-copy" id="nutrition-coach-risk">Пока нет записей, поэтому ориентир общий.</div>
                 </div>
                 <div class="nutrition-coach-row upgrade">
+                    <div class="nutrition-row-icon upgrade" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 16 9 11l4 4 7-8"></path><path d="M15 7h5v5"></path></svg></div>
                     <div class="nutrition-coach-label">Улучшить</div>
                     <div class="nutrition-coach-copy" id="nutrition-coach-upgrade">Начни с блюда с белком и понятной порцией.</div>
                 </div>
             </div>
         </section>
 
-        <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="event.stopPropagation(); document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"><span>+</span>Добавить приём пищи</button>
-
         <nav class="home-bottom-nav" aria-label="Основная навигация">
-            <button class="active" type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"><span>⌂</span>Главная</button>
-            <button type="button" onclick="document.getElementById('history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"><span>□</span>Дневник</button>
-            <button type="button" onclick="openChartModal()"><span>▥</span>Аналитика</button>
-            <button type="button" onclick="openMealPrep()"><span>☷</span>План</button>
-            <button type="button" onclick="toggleEdit(true)"><span>○</span>Профиль</button>
+            <button class="active" type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"><span><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8Z"></path></svg></span>Главная</button>
+            <button type="button" onclick="document.getElementById('history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"><span><svg viewBox="0 0 24 24"><path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h8M8 13h6"></path></svg></span>Дневник</button>
+            <button type="button" onclick="openChartModal()"><span><svg viewBox="0 0 24 24"><path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-7"></path></svg></span>Аналитика</button>
+            <button type="button" onclick="openMealPrep()"><span><svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16M4 8h16M4 16h16"></path></svg></span>План</button>
+            <button type="button" onclick="toggleEdit(true)"><span><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span>Профиль</button>
         </nav>
 
         <div class="nutritions-card" id="nutritions-display">
@@ -505,7 +598,7 @@
                     <div class="input-group"><label>Тренировок / нед.</label><input type="number" id="inp-workouts" min="0" max="14" placeholder="3"></div>
                 </div>
                 <div class="settings-grid-2">
-                    <div class="input-group"><label>Цель</label><select id="inp-goal"><option value="cut">Сушка</option><option value="maintain">Поддержание</option><option value="bulk">Набор веса</option><option value="muscle">Рост мышечной массы</option></select></div>
+                    <div class="input-group"><label>Цель</label><select id="inp-goal"><option value="cut">Сушка</option><option value="maintain">Поддержание</option><option value="bulk">Набор массы</option><option value="muscle">Рост мышц</option></select></div>
                     <div class="input-group"><label>Вода (мл)</label><input type="number" id="inp-water" placeholder="2000"></div>
                 </div>
                 <div class="input-group"><label>Предпочтения в питании</label><textarea id="inp-food-preferences" placeholder="Например: люблю курицу, творог, рис, простые блюда"></textarea></div>
@@ -541,39 +634,122 @@
             </div>
         </div>
 
-        <div class="recipes-open-row">
-            <h3 class="section-title" style="margin-bottom: 0;">Рацион</h3>
-            <button class="recipes-open-btn" type="button" onclick="openRecipesScreen()">Все рецепты</button>
-        </div>
-        <div class="recipe-coach-card recipe-section-control" id="recipe-coach-card">
-            <div class="recipe-coach-top">
-                <div class="recipe-coach-icon">AI</div>
-                <div><div class="recipe-coach-title">AI подбирает</div><div class="recipe-coach-caption">Под твою цель и текущий день</div></div>
+        <section class="home-recipe-library" id="home-recipe-library">
+            <div class="home-library-title-row">
+                <h2>Библиотека рецептов</h2>
+                <button class="home-library-link" type="button" onclick="openRecipesScreen()">Смотреть все <span>›</span></button>
             </div>
-            <div id="recipe-coach-text">Подберу блюда под твою цель после загрузки рецептов.</div>
-            <div class="recipe-coach-chips" id="recipe-coach-chips"></div>
-        </div>
-        <div class="recipe-filter-panel recipe-section-control">
-            <div class="recipe-filter-label">Прием пищи</div>
-            <div class="meal-segmented" id="meal-tabs">
-                <button class="meal-segment active" type="button" onclick="setMealFilter('Завтрак', this)">Завтрак</button>
-                <button class="meal-segment" type="button" onclick="setMealFilter('Обед', this)">Обед</button>
-                <button class="meal-segment" type="button" onclick="setMealFilter('Ужин', this)">Ужин</button>
-                <button class="meal-segment" type="button" onclick="setMealFilter('Перекус', this)">Перекус</button>
+
+            <div class="home-library-segment" aria-label="Раздел рецептов">
+                <button class="active" type="button"><span>𐄹</span>Рецепты</button>
+                <button type="button" onclick="setDietFilter('Избранное')"><span>♡</span>Избранное</button>
             </div>
-            <div class="recipe-filter-label">Цель и диета</div>
-            <div class="tabs-container diet-tabs" id="diet-tabs">
-                <button class="tab active" onclick="setDietFilter('Все', this)">Все</button>
-                <button class="tab" onclick="setDietFilter('Для меня', this)">Для меня</button>
-                <button class="tab" onclick="setDietFilter('Сушка', this)">Сушка</button>
-                <button class="tab" onclick="setDietFilter('Похудение', this)">Похудение</button>
-                <button class="tab" onclick="setDietFilter('Поддержание', this)">Поддержание</button>
-                <button class="tab" onclick="setDietFilter('Набор', this)">Набор</button>
-                <button class="tab" onclick="setDietFilter('Рост мышц', this)">Рост мышц</button>
-                <button class="tab" onclick="setDietFilter('Высокий белок', this)">Высокий белок</button>
+
+            <section class="home-library-section">
+                <div class="home-library-section-head">
+                    <h3>Категории</h3>
+                    <button type="button" onclick="setDietFilter('Все')">Смотреть все <span>›</span></button>
+                </div>
+                <div class="recipe-category-row home-library-row">
+                    <button class="recipe-category-card active" type="button" onclick="setDietFilter('Все')">
+                        <span class="recipe-category-emoji pizza">🍕</span>
+                        <span><b>Обычные</b><small>Для любого дня</small></span>
+                    </button>
+                    <button class="recipe-category-card" type="button" onclick="setDietFilter('Поддержание')">
+                        <span class="recipe-category-emoji greens">🥦</span>
+                        <span><b>Вегетарианские</b><small>Растительная основа</small></span>
+                    </button>
+                    <button class="recipe-category-card" type="button" onclick="setDietFilter('Похудение')">
+                        <span class="recipe-category-emoji fish">🍣</span>
+                        <span><b>Пескетарианские</b><small>Рыба и морепродукты</small></span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="home-library-section">
+                <h3>Все рецепты</h3>
+                <div class="recipe-library-hero home-library-hero">
+                    <div class="recipe-library-hero-icon">✦</div>
+                    <div class="recipe-library-hero-copy">
+                        <h3>Собрано всё,<br>что хочется<br>приготовить</h3>
+                        <p>Вдохновение на каждый день — в одной библиотеке.</p>
+                    </div>
+                    <div class="recipe-library-mascot" aria-hidden="true">
+                        <img src="assets/images/home/hero-mascot.png" alt="" onerror="this.hidden=true; this.parentElement.classList.add('is-placeholder')">
+                    </div>
+                </div>
+            </section>
+
+            <section class="home-library-section">
+                <h3>Приемы пищи</h3>
+                <div class="recipe-meal-grid home-library-row" id="meal-tabs">
+                    <button class="recipe-meal-card breakfast active" type="button" onclick="setMealFilter('Завтрак', this)"><span>🍳</span><b>Завтрак</b><small>Энергия на день</small></button>
+                    <button class="recipe-meal-card lunch" type="button" onclick="setMealFilter('Обед', this)"><span>🍜</span><b>Обед</b><small>Сбалансировано</small></button>
+                    <button class="recipe-meal-card dinner" type="button" onclick="setMealFilter('Ужин', this)"><span>🥩</span><b>Ужин</b><small>Легко и вкусно</small></button>
+                    <button class="recipe-meal-card snack" type="button" onclick="setMealFilter('Перекус', this)"><span>🍏</span><b>Перекус</b><small>Между делом</small></button>
+                </div>
+            </section>
+
+            <section class="home-library-section">
+                <div class="home-library-section-head">
+                    <h3>Подборки</h3>
+                    <button type="button" onclick="setDietFilter('Для меня')">Смотреть все <span>›</span></button>
+                </div>
+                <div class="recipe-collection-row">
+                    <button class="recipe-collection-card top-breakfasts" type="button" onclick="setMealFilter('Завтрак')">
+                        <span class="recipe-rating">★ 4,9</span>
+                        <span class="recipe-collection-copy"><b>Топ завтраков</b><small>12 рецептов</small></span>
+                        <span class="recipe-collection-arrow">›</span>
+                    </button>
+                    <button class="recipe-collection-card quick-dinner" type="button" onclick="setMealFilter('Ужин')">
+                        <span class="recipe-rating">★ 4,8</span>
+                        <span class="recipe-collection-copy"><b>Ужин за 20 минут</b><small>15 рецептов</small></span>
+                        <span class="recipe-collection-arrow">›</span>
+                    </button>
+                </div>
+            </section>
+
+            <section class="home-library-section">
+                <div class="home-library-section-head">
+                    <h3>Калорийность</h3>
+                    <button type="button" onclick="setDietFilter('Похудение')">Смотреть все <span>›</span></button>
+                </div>
+                <div class="recipe-calorie-row home-library-row">
+                    <button type="button" onclick="setDietFilter('Похудение')"><span>🌿</span><b>Низкокалорийные</b><small>Легкий рацион</small></button>
+                    <button type="button" onclick="setDietFilter('Поддержание')"><span>⚖️</span><b>Оптимальный баланс</b><small>На каждый день</small></button>
+                    <button type="button" onclick="setDietFilter('Набор массы')"><span>🔥</span><b>Больше калорий</b><small>Для набора массы</small></button>
+                </div>
+            </section>
+
+            <div class="recipe-coach-card recipe-section-control home-library-coach" id="recipe-coach-card">
+                <div class="recipe-coach-top">
+                    <div class="recipe-coach-icon">AI</div>
+                    <div><div class="recipe-coach-title">Подборка для тебя</div><div class="recipe-coach-caption">Под цель и текущий день</div></div>
+                </div>
+                <div id="recipe-coach-text">Подберу блюда под твою цель после загрузки рецептов.</div>
+                <div class="recipe-coach-chips" id="recipe-coach-chips"></div>
             </div>
-        </div>
-        <div id="recipe-list"></div>
+
+            <div class="recipe-filter-panel recipe-section-control home-library-filters">
+                <div class="recipe-filter-label">Цель и диета</div>
+                <div class="tabs-container diet-tabs" id="diet-tabs">
+                    <button class="tab active" onclick="setDietFilter('Все', this)">Все</button>
+                    <button class="tab" onclick="setDietFilter('Для меня', this)">Для меня</button>
+                    <button class="tab" onclick="setDietFilter('Сушка', this)">Сушка</button>
+                    <button class="tab" onclick="setDietFilter('Похудение', this)">Похудение</button>
+                    <button class="tab" onclick="setDietFilter('Поддержание', this)">Поддержание</button>
+                    <button class="tab" onclick="setDietFilter('Набор массы', this)">Набор массы</button>
+                    <button class="tab" onclick="setDietFilter('Рост мышц', this)">Рост мышц</button>
+                    <button class="tab" onclick="setDietFilter('Белок+', this)">Белок+</button>
+                </div>
+            </div>
+
+            <div class="home-library-section-head recipe-list-head">
+                <h3>Рецепты</h3>
+                <button type="button" onclick="document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });">К каталогу <span>›</span></button>
+            </div>
+            <div id="recipe-list"></div>
+        </section>
 
         <section class="meal-prep-preview" hidden aria-hidden="true">
             <div class="meal-prep-preview-head">
@@ -606,16 +782,6 @@
     <script src="./scripts/app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
 
 

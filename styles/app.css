@@ -2700,6 +2700,27 @@
             font-weight: 900;
         }
 
+        .home-card-icon svg,
+        .home-smart-icon svg,
+        .nutrition-row-icon svg,
+        .home-bottom-nav svg {
+            width: 20px;
+            height: 20px;
+            display: block;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .home-card-icon svg path:first-child,
+        .home-smart-icon svg path:first-child,
+        .nutrition-row-icon svg path:first-child {
+            fill: currentColor;
+            fill-opacity: .10;
+        }
+
         .protein-card .home-card-icon,
         .streak-card .home-card-icon { color: #c47b1e; }
 
@@ -2808,6 +2829,11 @@
             bottom: -8px;
             width: min(126px, 52%);
             height: 98px;
+        }
+
+        .streak-card {
+            grid-column: 1 / -1;
+            min-height: 108px;
         }
 
         .streak-card .home-metric-visual {
@@ -2960,6 +2986,12 @@
             box-shadow: 0 16px 28px rgba(210,154,72,.22), inset 0 1px 0 rgba(255,255,255,.42);
         }
 
+        .home-smart-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke-width: 1.8;
+        }
+
         .home-smart-copy .coach-card-label {
             margin-left: 0;
             color: #9b6728;
@@ -2999,9 +3031,80 @@
             color: var(--nexus-muted);
         }
 
+        .nutrition-coach-list {
+            margin-top: 14px;
+            overflow: hidden;
+            border-radius: 20px;
+            border: 1px solid rgba(94,76,49,.10);
+            background: rgba(255,255,255,.46);
+        }
+
+        .nutrition-coach-row {
+            display: grid;
+            grid-template-columns: 38px 112px minmax(0, 1fr) 18px;
+            gap: 12px;
+            align-items: center;
+            min-height: 58px;
+            padding: 12px 14px;
+            border: 0;
+            border-bottom: 1px solid rgba(94,76,49,.10);
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .nutrition-coach-row:last-child {
+            border-bottom: 0;
+        }
+
+        .nutrition-coach-row::after {
+            content: "›";
+            color: rgba(36,34,41,.38);
+            font-size: 24px;
+            line-height: 1;
+            justify-self: end;
+        }
+
+        .nutrition-row-icon {
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: var(--nexus-lavender);
+            background: rgba(238,230,255,.72);
+        }
+
+        .nutrition-row-icon.risk {
+            color: #d6533d;
+            background: rgba(255,231,222,.72);
+        }
+
+        .nutrition-row-icon.upgrade {
+            color: #b97925;
+            background: rgba(246,221,178,.72);
+        }
+
         .nutrition-coach-label {
+            min-height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            border-radius: 999px;
             color: var(--nexus-lavender);
             background: var(--nexus-lavender-soft);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+
+        .nutrition-coach-copy {
+            min-width: 0;
+            color: #514c56;
+            font-size: 13.5px;
+            line-height: 1.34;
+            font-weight: 680;
         }
 
         .nutrition-coach-row.risk .nutrition-coach-label {
@@ -3069,6 +3172,10 @@
         }
 
         .home-bottom-nav button span {
+            width: 24px;
+            height: 24px;
+            display: grid;
+            place-items: center;
             color: inherit;
             font-size: 22px;
             line-height: 1;
@@ -3212,6 +3319,34 @@
             .home-smart-visual { display: none; }
             .home-smart-copy .coach-card-value { font-size: 17px; }
 
+            .nutrition-coach-row {
+                grid-template-columns: 34px 88px minmax(0, 1fr) 12px;
+                gap: 8px;
+                min-height: 56px;
+                padding: 11px 10px;
+            }
+
+            .nutrition-row-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .nutrition-row-icon svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .nutrition-coach-label {
+                min-height: 28px;
+                padding: 0 9px;
+                font-size: 10px;
+            }
+
+            .nutrition-coach-copy {
+                font-size: 12px;
+                line-height: 1.3;
+            }
+
             .home-bottom-nav {
                 margin-inline: -4px;
                 padding: 8px;
@@ -3262,4 +3397,1801 @@
             .coach-feedback-grid { grid-template-columns: 1fr; }
             .compact-metric-card,
             .streak-card { min-height: 112px; }
+
+            .nutrition-coach-row {
+                grid-template-columns: 30px minmax(0, 1fr) 12px;
+                align-items: start;
+            }
+
+            .nutrition-coach-label {
+                grid-column: 2;
+                justify-self: start;
+            }
+
+            .nutrition-coach-copy {
+                grid-column: 2;
+            }
+
+            .nutrition-coach-row::after {
+                grid-column: 3;
+                grid-row: 1 / span 2;
+                align-self: center;
+            }
+        }
+
+        /* Screenshot-matched top home composition */
+        body {
+            background:
+                radial-gradient(circle at 8% 4%, rgba(255,255,255,.96), transparent 36%),
+                radial-gradient(circle at 88% 12%, rgba(244,225,201,.46), transparent 30%),
+                radial-gradient(circle at 80% 48%, rgba(238,220,255,.34), transparent 28%),
+                linear-gradient(180deg, #fffaf2 0%, #f8efe4 100%);
+        }
+
+        .coach-kicker::before {
+            content: "*";
+            color: #f2a12e;
+            font-size: 16px;
+            line-height: 1;
+        }
+
+        .top-nav {
+            position: relative;
+            top: auto;
+            z-index: 5;
+            margin: 0 0 22px;
+            padding: 8px 4px 0;
+            background: transparent;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .date-selector {
+            min-height: 58px;
+            padding: 0 22px;
+            border-radius: 28px;
+            gap: 16px;
+            background: rgba(255,255,255,.82);
+            border: 1px solid rgba(65,55,45,.12);
+            box-shadow: 0 18px 38px rgba(52,45,36,.10), inset 0 1px 0 rgba(255,255,255,.9);
+            color: #19171d;
+            font-size: 19px;
+            font-weight: 900;
+        }
+
+        .date-selector svg {
+            width: 24px;
+            height: 24px;
+            padding-right: 14px;
+            box-sizing: content-box;
+            border-right: 1px solid rgba(36,34,41,.14);
+            color: #19171d;
+        }
+
+        .date-selector span:last-child {
+            color: transparent;
+            width: 18px;
+            height: 18px;
+            position: relative;
+        }
+
+        .date-selector span:last-child::before {
+            content: "";
+            position: absolute;
+            inset: 3px 2px 5px;
+            border-right: 3px solid #19171d;
+            border-bottom: 3px solid #19171d;
+            transform: rotate(45deg);
+            border-radius: 1px;
+        }
+
+        .nav-btn {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.82);
+            border: 1px solid rgba(65,55,45,.12);
+            box-shadow: 0 18px 38px rgba(52,45,36,.10), inset 0 1px 0 rgba(255,255,255,.9);
+            color: #ff5b22;
+        }
+
+        .nav-btn svg {
+            width: 25px;
+            height: 25px;
+            display: block;
+            fill: #ff5b22;
+            stroke: #ff5b22;
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .coach-hero {
+            grid-template-columns: minmax(0, .98fr) minmax(180px, .78fr);
+            min-height: 276px;
+            margin: 0 0 18px;
+            padding: 24px 24px 22px;
+            border-radius: 34px;
+            border-color: rgba(205,151,88,.22);
+            background:
+                radial-gradient(circle at 83% 24%, rgba(235,202,255,.52), transparent 34%),
+                radial-gradient(circle at 78% 72%, rgba(255,203,98,.22), transparent 30%),
+                linear-gradient(135deg, rgba(255,253,247,.94), rgba(255,240,223,.78));
+            box-shadow: 0 20px 46px rgba(93,70,42,.12), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        .coach-hero::before {
+            inset: 10% -12% -18% 46%;
+            background:
+                radial-gradient(circle at 42% 24%, rgba(255,255,255,.72), transparent 10%),
+                radial-gradient(circle at 86% 16%, rgba(255,211,89,.56), transparent 2.5%),
+                radial-gradient(circle at 62% 68%, rgba(255,211,89,.48), transparent 2.2%),
+                radial-gradient(ellipse at center, rgba(155,123,233,.22), transparent 60%);
+        }
+
+        .coach-kicker {
+            min-height: 34px;
+            margin-bottom: 22px;
+            padding: 0 17px;
+            color: #e27b08;
+            background: rgba(255,250,241,.70);
+            border: 1px solid rgba(238,153,46,.42);
+            font-size: 12px;
+            letter-spacing: .04em;
+        }
+
+        .coach-title {
+            max-width: 310px;
+            font-size: clamp(44px, 9.8vw, 64px);
+            line-height: .98;
+            letter-spacing: 0;
+        }
+
+        .coach-subtitle {
+            max-width: 330px;
+            margin-top: 18px;
+            color: #242229;
+            font-size: 17px;
+            line-height: 1.34;
+        }
+
+        .coach-meta-row {
+            margin-top: 22px;
+            gap: 14px;
+        }
+
+        .goal-status-badge,
+        .streak-badge {
+            min-height: 46px;
+            padding: 0 16px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.72);
+            border: 1px solid rgba(205,151,88,.16);
+            box-shadow: 0 12px 24px rgba(93,70,42,.08), inset 0 1px 0 rgba(255,255,255,.9);
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .goal-status-badge { color: #7857e9; }
+        .streak-badge { color: #d86c03; }
+
+        .home-hero-visual {
+            width: 134%;
+            min-height: 282px;
+            margin: -24px -38px -22px -58px;
+        }
+
+        .home-hero-mascot {
+            max-height: 326px;
+            filter: drop-shadow(0 22px 26px rgba(111,76,34,.18)) drop-shadow(0 0 30px rgba(155,123,233,.20));
+        }
+
+        .coach-feedback-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+
+        .coach-feedback-card.calories-card {
+            grid-column: 1 / -1;
+            grid-row: auto;
+            min-height: 270px;
+            padding: 26px 26px 24px;
+            border-radius: 34px;
+            background:
+                radial-gradient(circle at 88% 20%, rgba(235,220,255,.74), transparent 32%),
+                radial-gradient(circle at 78% 84%, rgba(255,245,226,.82), transparent 28%),
+                rgba(255,255,255,.72);
+        }
+
+        .calories-card .home-card-icon {
+            left: 26px;
+            top: 24px;
+            width: 46px;
+            height: 46px;
+            color: #7857e9;
+            background: rgba(247,242,255,.92);
+        }
+
+        .calories-card .coach-card-label {
+            margin-left: 64px;
+            padding-top: 6px;
+            max-width: 48%;
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .calories-card .coach-card-value {
+            margin-top: 28px;
+            max-width: 54%;
+            font-size: clamp(64px, 18vw, 92px);
+            line-height: .85;
+            letter-spacing: 0;
+        }
+
+        .calories-card .coach-card-value::first-letter {
+            letter-spacing: 0;
+        }
+
+        .calories-card .coach-card-note {
+            max-width: 46%;
+            margin-top: 14px;
+            color: #54627d;
+            font-size: 16px;
+        }
+
+        .home-card-progress {
+            position: relative;
+            z-index: 2;
+            height: 8px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(120,87,233,.10);
+        }
+
+        .home-card-progress span {
+            display: block;
+            width: 62%;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #7857e9, #c9a9ff);
+            animation: progressFill .55s ease both;
+        }
+
+        .calories-progress {
+            width: 74%;
+            margin-top: 18px;
+        }
+
+        .home-calories-visual-wrap {
+            right: 24px;
+            bottom: 70px;
+            width: min(390px, 50%);
+            height: 150px;
+        }
+
+        .home-calories-footer {
+            left: 26px;
+            right: 26px;
+            bottom: 24px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(61,52,44,.10);
+            font-size: 16px;
+        }
+
+        .home-calories-footer span {
+            padding-top: 0;
+            border-top: 0;
+        }
+
+        .home-calories-footer span + span {
+            padding-left: 22px;
+            border-left: 1px solid rgba(61,52,44,.12);
+        }
+
+        .compact-metric-card {
+            min-height: 156px;
+            padding: 22px;
+            border-radius: 28px;
+        }
+
+        .compact-metric-card .home-card-icon {
+            left: 20px;
+            top: 18px;
+            width: 42px;
+            height: 42px;
+        }
+
+        .compact-metric-card .coach-card-label {
+            margin-left: 58px;
+            padding-top: 5px;
+            max-width: 58%;
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .compact-metric-card .coach-card-value {
+            margin-top: 28px;
+            max-width: 56%;
+            font-size: 34px;
+        }
+
+        .compact-metric-card .coach-card-note {
+            max-width: 52%;
+            color: #54627d;
+            font-size: 14px;
+        }
+
+        .protein-progress,
+        .water-progress {
+            width: 58%;
+            margin-top: 16px;
+            height: 7px;
+        }
+
+        .protein-progress {
+            background: rgba(226,123,8,.10);
+        }
+
+        .protein-progress span {
+            width: 8%;
+            background: linear-gradient(90deg, #e47b00, #f6c472);
+        }
+
+        .water-progress span {
+            width: 10%;
+            background: linear-gradient(90deg, #7857e9, #a8c8ff);
+        }
+
+        .protein-card .home-card-icon { color: #e47b00; }
+        .water-card .home-card-icon { color: #7857e9; }
+
+        .protein-card .home-metric-visual {
+            right: 4px;
+            bottom: 14px;
+            width: min(168px, 52%);
+            height: 104px;
+        }
+
+        .water-card .home-metric-visual {
+            right: 8px;
+            bottom: 12px;
+            width: min(146px, 46%);
+            height: 110px;
+        }
+
+        .streak-card,
+        .home-progress-card,
+        .nutrition-coach-card,
+        .home-primary-cta,
+        .home-bottom-nav {
+            display: none !important;
+        }
+
+        .home-smart-card {
+            min-height: 138px;
+            grid-template-columns: 62px minmax(0, .95fr) minmax(168px, .55fr);
+            gap: 18px;
+            margin-bottom: 20px;
+            padding: 20px 24px;
+            border-radius: 30px;
+            background:
+                radial-gradient(circle at 84% 46%, rgba(235,220,255,.70), transparent 34%),
+                radial-gradient(circle at 72% 82%, rgba(255,211,89,.28), transparent 25%),
+                rgba(255,255,255,.74);
+        }
+
+        .home-smart-icon {
+            align-self: start;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.84);
+            color: #7857e9;
+            box-shadow: 0 12px 26px rgba(71,52,101,.10), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        .home-smart-copy .coach-card-label {
+            color: #7857e9;
+            font-size: 16px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .home-smart-copy .coach-card-label span:last-child {
+            display: none;
+        }
+
+        .home-smart-copy .coach-card-value {
+            max-width: 390px;
+            margin-top: 10px;
+            font-size: 17px;
+            line-height: 1.28;
+        }
+
+        .home-smart-more {
+            position: relative;
+            z-index: 2;
+            width: fit-content;
+            min-height: 34px;
+            margin-top: 12px;
+            padding: 0 17px;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            border-radius: 999px;
+            color: #7857e9;
+            background: rgba(255,255,255,.72);
+            border: 1px solid rgba(120,87,233,.12);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.92);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .home-smart-more span {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .home-smart-visual {
+            width: min(230px, 100%);
+            height: 118px;
+        }
+
+        @keyframes progressFill {
+            from { transform: scaleX(.18); transform-origin: left center; opacity: .4; }
+            to { transform: scaleX(1); transform-origin: left center; opacity: 1; }
+        }
+
+        @media (max-width: 520px) {
+            .top-nav {
+                margin-bottom: 20px;
+                padding-inline: 8px;
+            }
+
+            .date-selector {
+                min-height: 56px;
+                padding: 0 18px;
+                font-size: 18px;
+            }
+
+            .nav-btn {
+                width: 56px;
+                height: 56px;
+            }
+
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) minmax(152px, 43%);
+                min-height: 268px;
+                padding: 22px 18px;
+            }
+
+            .coach-title {
+                max-width: 260px;
+                font-size: clamp(42px, 13vw, 56px);
+            }
+
+            .coach-subtitle {
+                max-width: 250px;
+                font-size: 15.5px;
+            }
+
+            .coach-meta-row {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .goal-status-badge,
+            .streak-badge {
+                min-height: 40px;
+                font-size: 13px;
+            }
+
+            .home-hero-visual {
+                width: 148%;
+                min-height: 264px;
+                margin: -18px -38px -24px -70px;
+            }
+
+            .home-hero-mascot {
+                max-height: 310px;
+            }
+
+            .coach-feedback-card.calories-card {
+                min-height: 246px;
+                padding: 22px 20px;
+            }
+
+            .calories-card .coach-card-value {
+                font-size: clamp(58px, 19vw, 78px);
+                max-width: 58%;
+            }
+
+            .calories-card .coach-card-note {
+                max-width: 54%;
+            }
+
+            .home-calories-visual-wrap {
+                right: 10px;
+                bottom: 74px;
+                width: min(260px, 52%);
+                height: 122px;
+            }
+
+            .calories-progress {
+                width: 74%;
+            }
+
+            .compact-metric-card {
+                min-height: 150px;
+                padding: 18px 16px;
+            }
+
+            .compact-metric-card .coach-card-value {
+                font-size: 30px;
+            }
+
+            .protein-card .home-metric-visual {
+                width: min(138px, 52%);
+            }
+
+            .water-card .home-metric-visual {
+                width: min(126px, 48%);
+            }
+
+            .home-smart-card {
+                grid-template-columns: 50px minmax(0, 1fr) minmax(120px, 34%);
+                min-height: 128px;
+                padding: 18px 18px;
+            }
+
+            .home-smart-visual {
+                width: min(160px, 100%);
+                height: 104px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) 122px;
+                min-height: 250px;
+            }
+
+            .coach-title {
+                max-width: 210px;
+                font-size: clamp(36px, 12vw, 44px);
+            }
+
+            .home-hero-visual {
+                min-height: 224px;
+                margin-left: -54px;
+            }
+
+            .home-hero-mascot {
+                max-height: 264px;
+            }
+
+            .coach-feedback-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .compact-metric-card {
+                min-height: 136px;
+            }
+
+            .home-smart-card {
+                grid-template-columns: 48px minmax(0, 1fr);
+            }
+
+            .home-smart-visual {
+                display: none;
+            }
+        }
+
+        /* Keep the main page scrollable in mobile browsers; modal scroll lock still wins. */
+        html {
+            overflow-y: auto;
+        }
+
+        body:not(.app-scroll-locked) {
+            position: relative;
+            height: auto;
+            min-height: 100dvh;
+            overflow-y: auto !important;
+            touch-action: pan-y;
+        }
+
+        body:not(.app-scroll-locked) #app-content {
+            height: auto;
+            min-height: 100dvh;
+            overflow-y: visible !important;
+            pointer-events: auto;
+            touch-action: pan-y;
+        }
+
+        /* Reference pass: recipe library and daily progress composition */
+        #app-content {
+            width: min(100%, 760px);
+            margin: 0 auto;
+        }
+
+        .home-progress-card {
+            display: block !important;
+            margin: 12px 0 10px;
+            padding: 12px 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.78);
+            background: rgba(255,255,255,.76);
+            box-shadow: 0 10px 26px rgba(67,54,41,.075), inset 0 1px 0 rgba(255,255,255,.9);
+            overflow: hidden;
+        }
+
+        .home-progress-card::before { content: none; }
+
+        .home-progress-card .intake-header {
+            margin-bottom: 8px;
+        }
+
+        .home-progress-card .intake-header-title {
+            color: #26242d;
+            font-size: 14px;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .home-progress-card .intake-header-title svg,
+        .home-progress-card .daily-goal-caption {
+            display: none;
+        }
+
+        .home-progress-card .intake-content {
+            display: grid;
+            grid-template-columns: 116px minmax(0, 1fr);
+            gap: 14px;
+            align-items: center;
+        }
+
+        .home-progress-card .intake-gauge-container {
+            grid-column: 1;
+            grid-row: 1;
+            width: 106px;
+            min-height: 88px;
+            margin: 0;
+            align-self: center;
+            justify-self: center;
+        }
+
+        .home-progress-card .gauge-svg {
+            width: 106px;
+            height: 70px;
+            display: block;
+            overflow: visible;
+        }
+
+        .home-progress-card .gauge-svg path:first-child {
+            stroke: rgba(139,94,225,.16);
+            stroke-width: 10;
+        }
+
+        .home-progress-card #gauge-path {
+            stroke: #d7bff7 !important;
+            stroke-width: 10;
+        }
+
+        .home-progress-card .intake-pct {
+            position: absolute;
+            left: 38px;
+            top: 35px;
+            z-index: 2;
+            color: #171924;
+            font-size: 32px;
+            line-height: 1;
+            font-weight: 950;
+        }
+
+        .home-progress-card .intake-pct::after {
+            content: "ккал";
+            position: absolute;
+            left: 50%;
+            top: 42px;
+            transform: translateX(-50%);
+            color: #a475f0;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 950;
+            text-transform: lowercase;
+        }
+
+        .home-progress-card .gauge-center {
+            display: none;
+        }
+
+        .home-progress-card .daily-norm-summary {
+            grid-column: 2;
+            display: grid;
+            gap: 7px;
+            border: 0;
+            background: transparent;
+            overflow: visible;
+        }
+
+        .home-progress-card .daily-mini-row {
+            min-height: 31px;
+            display: grid;
+            grid-template-columns: 20px minmax(0, 1fr) auto;
+            column-gap: 8px;
+            align-items: center;
+            padding: 0 8px 6px 0;
+            border: 0;
+            border-bottom: 1px solid rgba(74,62,54,.08);
+            background: transparent;
+        }
+
+        .home-progress-card .daily-mini-row::before {
+            content: "";
+            width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            background: rgba(255,157,58,.14);
+            box-shadow: inset 0 0 0 2px rgba(255,157,58,.52);
+        }
+
+        .home-progress-card .daily-mini-row:nth-child(2)::before {
+            background: rgba(155,123,233,.14);
+            box-shadow: inset 0 0 0 2px rgba(155,123,233,.56);
+        }
+
+        .home-progress-card .daily-mini-row:nth-child(3)::before {
+            background: rgba(89,162,238,.13);
+            box-shadow: inset 0 0 0 2px rgba(89,162,238,.54);
+        }
+
+        .home-progress-card .daily-mini-row:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .home-progress-card .daily-mini-row span {
+            color: #4d4a53;
+            font-size: 12px;
+            line-height: 1.1;
+            font-weight: 820;
+            text-transform: lowercase;
+        }
+
+        .home-progress-card .daily-mini-row b {
+            color: #4d4a53;
+            font-size: 10px;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .home-progress-card .daily-mini-row::after {
+            content: "";
+            grid-column: 2 / 4;
+            height: 3px;
+            margin-top: -4px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(255,157,58,.46) 0 42%, rgba(74,62,54,.08) 42% 100%);
+        }
+
+        .home-progress-card .daily-mini-row:nth-child(2)::after {
+            background: linear-gradient(90deg, rgba(155,123,233,.50) 0 36%, rgba(74,62,54,.08) 36% 100%);
+        }
+
+        .home-progress-card .daily-mini-row:nth-child(3)::after {
+            background: linear-gradient(90deg, rgba(89,162,238,.48) 0 22%, rgba(74,62,54,.08) 22% 100%);
+        }
+
+        .home-primary-cta {
+            display: flex !important;
+            width: 100%;
+            min-height: 48px;
+            margin: 0 0 14px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-radius: 10px;
+            color: #fff;
+            background: linear-gradient(180deg, #ffbd67 0%, #ff8f1f 100%);
+            box-shadow: 0 12px 24px rgba(233,126,23,.22), inset 0 1px 0 rgba(255,255,255,.48);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .home-primary-cta span {
+            width: 24px;
+            height: 24px;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #ff9c32;
+            background: #fff;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .home-bottom-nav {
+            display: none !important;
+        }
+
+        .recipes-screen-overlay {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(255,255,255,.92), transparent 36%),
+                radial-gradient(circle at 85% 18%, rgba(246,225,204,.54), transparent 32%),
+                linear-gradient(180deg, #fffaf3 0%, #f8f0e6 100%);
+        }
+
+        .recipes-screen {
+            max-width: 760px;
+            padding: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .recipes-screen-head {
+            position: sticky;
+            top: 0;
+            z-index: 4;
+            padding: max(18px, env(safe-area-inset-top)) clamp(18px, 4vw, 30px) 12px;
+            border: 0;
+            background: linear-gradient(180deg, rgba(255,250,243,.96), rgba(255,250,243,.78) 72%, rgba(255,250,243,0));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .recipes-screen-title-row {
+            display: grid;
+            grid-template-columns: 64px minmax(0, 1fr) 64px;
+            align-items: center;
+            margin: 0 0 26px;
+        }
+
+        .recipe-library-back,
+        .recipe-library-head-spacer {
+            width: 58px;
+            height: 58px;
+        }
+
+        .recipe-library-back {
+            display: grid;
+            place-items: center;
+            border-radius: 26px;
+            color: #b36f12;
+            background: rgba(255,255,255,.82);
+            border: 1px solid rgba(87,73,54,.09);
+            box-shadow: 0 14px 28px rgba(76,57,36,.10), inset 0 1px 0 rgba(255,255,255,.92);
+            font-size: 48px;
+            line-height: 1;
+            font-weight: 300;
+        }
+
+        .recipes-screen-title {
+            text-align: center;
+            color: #1e202b;
+            font-size: clamp(31px, 6vw, 42px);
+            line-height: 1.05;
+            font-weight: 920;
+            letter-spacing: 0;
+        }
+
+        .recipe-library-segment {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 66px;
+            padding: 0;
+            border-radius: 30px;
+            border: 1px solid rgba(75,63,50,.10);
+            background: rgba(255,255,255,.54);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 12px 30px rgba(72,55,36,.055);
+            overflow: hidden;
+        }
+
+        .recipe-library-segment button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border-radius: 29px;
+            color: #6d6a70;
+            background: transparent;
+            font-size: 20px;
+            font-weight: 820;
+        }
+
+        .recipe-library-segment button.active {
+            color: #bd7214;
+            background: linear-gradient(135deg, rgba(255,246,228,.96), rgba(255,237,204,.76));
+            border: 1px solid rgba(235,162,70,.82);
+            box-shadow: 0 14px 28px rgba(197,123,28,.10), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .recipe-library-live-controls {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 24px;
+            background: rgba(255,255,255,.48);
+            border: 1px solid rgba(76,57,36,.07);
+        }
+
+        .recipes-screen-body {
+            padding: 18px clamp(18px, 4vw, 30px) max(36px, env(safe-area-inset-bottom));
+        }
+
+        .recipe-library-section {
+            margin: 0 0 30px;
+        }
+
+        .recipe-library-section h2,
+        .recipe-library-results-head h2 {
+            color: #1e202b;
+            font-size: 26px;
+            line-height: 1.08;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .recipe-library-section-head,
+        .recipe-library-results-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .recipe-library-section-head button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #9868d4;
+            background: transparent;
+            font-size: 17px;
+            font-weight: 760;
+            white-space: nowrap;
+        }
+
+        .recipe-library-section-head button span {
+            font-size: 34px;
+            line-height: .5;
+            font-weight: 300;
+        }
+
+        .recipe-category-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 16px;
+        }
+
+        .recipe-category-card {
+            min-height: 118px;
+            padding: 20px 18px;
+            display: grid;
+            grid-template-columns: 82px minmax(0,1fr);
+            align-items: center;
+            gap: 16px;
+            text-align: left;
+            border-radius: 24px;
+            color: #1e202b;
+            background: rgba(255,255,255,.68);
+            border: 1px solid rgba(82,66,49,.07);
+            box-shadow: 0 14px 34px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .recipe-category-card.active {
+            background: linear-gradient(135deg, rgba(255,248,234,.95), rgba(255,255,255,.70));
+        }
+
+        .recipe-category-emoji {
+            width: 78px;
+            height: 78px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #fff1d5;
+            font-size: 46px;
+            filter: drop-shadow(0 12px 14px rgba(103,70,32,.14));
+        }
+
+        .recipe-category-emoji.greens { background: #f0ecdb; }
+        .recipe-category-emoji.fish { background: #f8e9de; }
+
+        .recipe-category-card b,
+        .recipe-meal-card b,
+        .recipe-calorie-row b {
+            display: block;
+            color: #20222c;
+            font-size: 16px;
+            line-height: 1.15;
+            font-weight: 860;
+        }
+
+        .recipe-category-card small,
+        .recipe-meal-card small,
+        .recipe-calorie-row small {
+            display: block;
+            margin-top: 8px;
+            color: #8d8a91;
+            font-size: 14px;
+            line-height: 1.25;
+            font-weight: 620;
+        }
+
+        .recipe-library-hero {
+            position: relative;
+            min-height: 314px;
+            overflow: hidden;
+            padding: 48px 48px;
+            border-radius: 34px;
+            border: 1px solid rgba(255,255,255,.76);
+            background:
+                radial-gradient(circle at 86% 28%, rgba(217,198,255,.70), transparent 30%),
+                radial-gradient(circle at 42% 14%, rgba(255,255,255,.86), transparent 2%),
+                radial-gradient(circle at 62% 20%, rgba(255,255,255,.72), transparent 1.4%),
+                linear-gradient(135deg, rgba(255,248,235,.94), rgba(246,224,196,.72));
+            box-shadow: 0 16px 36px rgba(89,67,39,.10), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        .recipe-library-hero-icon {
+            width: 56px;
+            height: 56px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #f3a232;
+            background: rgba(255,255,255,.72);
+            box-shadow: 0 10px 24px rgba(87,63,35,.08);
+            font-size: 28px;
+        }
+
+        .recipe-library-hero-copy {
+            position: relative;
+            z-index: 2;
+            margin-top: 40px;
+            max-width: 330px;
+        }
+
+        .recipe-library-hero-copy h3 {
+            color: #1f222e;
+            font-size: clamp(34px, 7vw, 43px);
+            line-height: 1.08;
+            font-weight: 920;
+            letter-spacing: 0;
+        }
+
+        .recipe-library-hero-copy p {
+            max-width: 320px;
+            margin-top: 18px;
+            color: #79777e;
+            font-size: 19px;
+            line-height: 1.32;
+            font-weight: 560;
+        }
+
+        .recipe-library-mascot {
+            position: absolute;
+            right: -28px;
+            bottom: -38px;
+            width: min(390px, 52%);
+            height: 350px;
+            display: grid;
+            place-items: end center;
+            pointer-events: none;
+        }
+
+        .recipe-library-mascot img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 24px 26px rgba(102,67,28,.16)) drop-shadow(0 0 28px rgba(155,123,233,.20));
+        }
+
+        .recipe-meal-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0,1fr));
+            gap: 16px;
+        }
+
+        .recipe-meal-card,
+        .recipe-calorie-row button {
+            min-height: 152px;
+            padding: 16px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-radius: 22px;
+            background: rgba(255,255,255,.68);
+            border: 1px solid rgba(82,66,49,.07);
+            box-shadow: 0 14px 34px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .recipe-meal-card span,
+        .recipe-calorie-row button span {
+            width: 82px;
+            height: 82px;
+            margin-bottom: 10px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            font-size: 42px;
+            background: #efe4ff;
+            filter: drop-shadow(0 10px 12px rgba(72,55,36,.10));
+        }
+
+        .recipe-meal-card.breakfast b { color: #8d67d9; }
+        .recipe-meal-card.lunch b { color: #c57308; }
+        .recipe-meal-card.dinner b { color: #8d67d9; }
+        .recipe-meal-card.snack b { color: #688b28; }
+        .recipe-meal-card.lunch span { background: #fff0db; }
+        .recipe-meal-card.dinner span { background: #ffe9ee; }
+        .recipe-meal-card.snack span { background: #f5f4d9; }
+
+        .recipe-collection-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(280px,1fr));
+            gap: 22px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+        }
+
+        .recipe-collection-row::-webkit-scrollbar { display: none; }
+
+        .recipe-collection-card {
+            position: relative;
+            min-height: 252px;
+            overflow: hidden;
+            padding: 22px;
+            border-radius: 22px;
+            text-align: left;
+            color: #fff;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 16px 34px rgba(72,55,36,.14);
+        }
+
+        .recipe-collection-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,.08) 15%, rgba(0,0,0,.52) 100%);
+        }
+
+        .top-breakfasts {
+            background-image:
+                linear-gradient(135deg, rgba(105,71,34,.12), rgba(40,26,14,.22)),
+                url("https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?auto=format&fit=crop&w=900&q=80");
+        }
+
+        .quick-dinner {
+            background-image:
+                linear-gradient(135deg, rgba(105,71,34,.12), rgba(40,26,14,.22)),
+                url("https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80");
+        }
+
+        .recipe-rating,
+        .recipe-collection-copy,
+        .recipe-collection-arrow {
+            position: absolute;
+            z-index: 2;
+        }
+
+        .recipe-rating {
+            top: 18px;
+            right: 16px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            color: #fff;
+            background: rgba(54,48,43,.58);
+            font-size: 15px;
+            font-weight: 850;
+        }
+
+        .recipe-collection-copy {
+            left: 22px;
+            bottom: 22px;
+        }
+
+        .recipe-collection-copy b {
+            display: block;
+            font-size: 26px;
+            line-height: 1.05;
+            font-weight: 880;
+        }
+
+        .recipe-collection-copy small {
+            display: block;
+            margin-top: 6px;
+            font-size: 19px;
+            font-weight: 620;
+        }
+
+        .recipe-collection-arrow {
+            right: 22px;
+            bottom: 22px;
+            width: 50px;
+            height: 50px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #736a61;
+            background: rgba(255,255,255,.86);
+            font-size: 42px;
+            font-weight: 250;
+            line-height: 1;
+        }
+
+        .recipe-calorie-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0,1fr));
+            gap: 16px;
+        }
+
+        .recipe-calorie-row button span { background: #eef6e7; }
+        .recipe-calorie-row button:nth-child(2) span { background: #f1eaff; }
+        .recipe-calorie-row button:nth-child(3) span { background: #fff0dc; }
+
+        .recipe-library-results-head {
+            margin-top: 2px;
+            margin-bottom: 14px;
+        }
+
+        .recipe-library-results-head .recipe-results-meta {
+            margin: 0;
+            color: #8a858d;
+            font-size: 13px;
+            font-weight: 760;
+            white-space: nowrap;
+        }
+
+        .recipes-results-grid {
+            gap: 14px;
+        }
+
+        .recipe-card {
+            border-radius: 24px;
+            background: rgba(255,255,255,.72);
+            border-color: rgba(82,66,49,.08);
+            box-shadow: 0 14px 34px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .recipe-image {
+            height: 138px;
+            border-radius: 22px 22px 0 0;
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding-inline: clamp(8px, 2.6vw, 14px);
+            }
+
+            .recipes-screen-title-row {
+                grid-template-columns: 54px minmax(0, 1fr) 54px;
+                margin-bottom: 22px;
+            }
+
+            .recipe-library-back,
+            .recipe-library-head-spacer {
+                width: 48px;
+                height: 48px;
+                border-radius: 22px;
+            }
+
+            .recipe-library-back {
+                font-size: 40px;
+            }
+
+            .recipe-library-segment {
+                min-height: 58px;
+                border-radius: 26px;
+            }
+
+            .recipe-library-segment button {
+                border-radius: 25px;
+                font-size: 17px;
+            }
+
+            .recipe-library-live-controls {
+                display: none;
+            }
+
+            .recipe-category-row,
+            .recipe-meal-grid,
+            .recipe-calorie-row {
+                display: flex;
+                gap: 14px;
+                margin-inline: -8px;
+                padding-inline: 8px;
+                overflow-x: auto;
+                scroll-snap-type: x proximity;
+                scrollbar-width: none;
+            }
+
+            .recipe-category-row::-webkit-scrollbar,
+            .recipe-meal-grid::-webkit-scrollbar,
+            .recipe-calorie-row::-webkit-scrollbar {
+                display: none;
+            }
+
+            .recipe-category-card {
+                flex: 0 0 278px;
+                min-height: 110px;
+                grid-template-columns: 76px minmax(0,1fr);
+                padding: 16px;
+                scroll-snap-align: start;
+            }
+
+            .recipe-category-emoji {
+                width: 70px;
+                height: 70px;
+                font-size: 40px;
+            }
+
+            .recipe-library-hero {
+                min-height: 284px;
+                padding: 30px 24px;
+                border-radius: 30px;
+            }
+
+            .recipe-library-hero-copy {
+                margin-top: 34px;
+                max-width: 245px;
+            }
+
+            .recipe-library-hero-copy p {
+                max-width: 220px;
+                font-size: 16px;
+            }
+
+            .recipe-library-mascot {
+                right: -56px;
+                bottom: -42px;
+                width: 250px;
+                height: 276px;
+            }
+
+            .recipe-meal-card,
+            .recipe-calorie-row button {
+                flex: 0 0 158px;
+                min-height: 150px;
+                scroll-snap-align: start;
+            }
+
+            .recipe-collection-row {
+                grid-template-columns: repeat(2, minmax(330px, 1fr));
+                gap: 18px;
+                margin-inline: -8px;
+                padding-inline: 8px;
+                scroll-snap-type: x proximity;
+            }
+
+            .recipe-collection-card {
+                min-height: 228px;
+                scroll-snap-align: start;
+            }
+
+            .recipes-results-grid {
+                grid-template-columns: repeat(2, minmax(0,1fr));
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .home-progress-card .intake-content {
+                grid-template-columns: 104px minmax(0,1fr);
+                gap: 10px;
+            }
+
+            .home-progress-card .intake-gauge-container,
+            .home-progress-card .gauge-svg {
+                width: 98px;
+            }
+
+            .home-progress-card .intake-pct {
+                left: 34px;
+                font-size: 30px;
+            }
+
+            .recipes-screen-body {
+                padding-inline: 14px;
+            }
+
+            .recipes-results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .home-progress-card {
+                padding: 11px 10px 13px;
+            }
+
+            .home-progress-card .intake-content {
+                grid-template-columns: 96px minmax(0,1fr);
+            }
+
+            .home-progress-card .daily-mini-row {
+                grid-template-columns: 18px minmax(0,1fr) auto;
+                column-gap: 7px;
+            }
+
+            .home-progress-card .daily-mini-row span {
+                font-size: 11.5px;
+            }
+
+            .home-progress-card .daily-mini-row b {
+                font-size: 9.5px;
+            }
+
+            .recipe-library-hero-copy h3 {
+                font-size: 31px;
+            }
+
+            .recipe-library-mascot {
+                width: 218px;
+                opacity: .9;
+            }
+        }
+
+        /* Main page recipe library */
+        .home-recipe-library {
+            margin: 22px 0 20px;
+            overflow: hidden;
+        }
+
+        .home-library-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin: 0 0 16px;
+        }
+
+        .home-library-title-row h2 {
+            color: #1e202b;
+            font-size: clamp(29px, 6.4vw, 42px);
+            line-height: 1.04;
+            font-weight: 920;
+            letter-spacing: 0;
+        }
+
+        .home-library-link,
+        .home-library-section-head button,
+        .recipe-list-head button {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: #9868d4;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 780;
+            white-space: nowrap;
+        }
+
+        .home-library-link span,
+        .home-library-section-head button span,
+        .recipe-list-head button span {
+            font-size: 30px;
+            line-height: .6;
+            font-weight: 260;
+        }
+
+        .home-library-segment {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 62px;
+            margin-bottom: 26px;
+            border-radius: 28px;
+            border: 1px solid rgba(75,63,50,.10);
+            background: rgba(255,255,255,.52);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.88), 0 12px 30px rgba(72,55,36,.055);
+            overflow: hidden;
+        }
+
+        .home-library-segment button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-radius: 27px;
+            color: #6d6a70;
+            background: transparent;
+            font-size: clamp(16px, 4.4vw, 20px);
+            font-weight: 830;
+        }
+
+        .home-library-segment button.active {
+            color: #bd7214;
+            background: linear-gradient(135deg, rgba(255,246,228,.96), rgba(255,237,204,.76));
+            border: 1px solid rgba(235,162,70,.78);
+            box-shadow: 0 12px 26px rgba(197,123,28,.10), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .home-library-section {
+            margin: 0 0 28px;
+        }
+
+        .home-library-section > h3,
+        .home-library-section-head h3,
+        .recipe-list-head h3 {
+            color: #1e202b;
+            font-size: clamp(23px, 5.4vw, 28px);
+            line-height: 1.08;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .home-library-section > h3 {
+            margin-bottom: 15px;
+        }
+
+        .home-library-section-head,
+        .recipe-list-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .home-recipe-library .recipe-category-row,
+        .home-recipe-library .recipe-meal-grid,
+        .home-recipe-library .recipe-calorie-row {
+            display: flex;
+            gap: 14px;
+            margin-inline: -4px;
+            padding: 4px 4px 8px;
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+            scrollbar-width: none;
+        }
+
+        .home-recipe-library .recipe-category-row::-webkit-scrollbar,
+        .home-recipe-library .recipe-meal-grid::-webkit-scrollbar,
+        .home-recipe-library .recipe-calorie-row::-webkit-scrollbar {
+            display: none;
+        }
+
+        .home-recipe-library .recipe-category-card {
+            flex: 0 0 min(278px, calc(100vw - 56px));
+            scroll-snap-align: start;
+        }
+
+        .home-recipe-library .recipe-meal-card,
+        .home-recipe-library .recipe-calorie-row button {
+            flex: 0 0 156px;
+            scroll-snap-align: start;
+        }
+
+        .home-recipe-library .recipe-meal-card.active {
+            border-color: rgba(235,162,70,.72);
+            background: linear-gradient(135deg, rgba(255,247,232,.96), rgba(255,255,255,.72));
+            box-shadow: 0 16px 32px rgba(197,123,28,.12), inset 0 1px 0 rgba(255,255,255,.94);
+        }
+
+        .home-library-hero {
+            min-height: clamp(250px, 55vw, 314px);
+            padding: clamp(24px, 6vw, 48px);
+        }
+
+        .home-library-hero .recipe-library-hero-copy {
+            max-width: min(330px, 62%);
+        }
+
+        .home-library-hero .recipe-library-mascot {
+            width: min(360px, 52%);
+        }
+
+        .home-library-coach {
+            margin: 4px 0 14px;
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 84% 14%, rgba(238,230,255,.56), transparent 30%),
+                rgba(255,255,255,.72);
+            border: 1px solid rgba(82,66,49,.08);
+            box-shadow: 0 14px 34px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .home-library-filters {
+            margin: 0 0 18px;
+            padding: 14px;
+            border-radius: 24px;
+            background: rgba(255,255,255,.56);
+            border: 1px solid rgba(82,66,49,.08);
+            box-shadow: 0 10px 26px rgba(72,55,36,.055), inset 0 1px 0 rgba(255,255,255,.85);
+        }
+
+        .home-library-filters .tabs-container {
+            padding-bottom: 2px;
+        }
+
+        .home-library-filters .tab {
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 999px;
+            color: #77717b;
+            background: rgba(255,255,255,.70);
+            border: 1px solid rgba(82,66,49,.07);
+            box-shadow: none;
+            font-size: 13px;
+            font-weight: 820;
+        }
+
+        .home-library-filters .tab.active {
+            color: #fff;
+            background: linear-gradient(180deg, #dba650, #c87919);
+            border-color: rgba(219,166,80,.4);
+            box-shadow: 0 10px 20px rgba(196,121,30,.18);
+        }
+
+        .home-recipe-library #recipe-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            padding: 0 0 16px;
+            overflow: visible;
+            scroll-snap-type: none;
+        }
+
+        .home-recipe-library #recipe-list .recipe-card {
+            width: 100%;
+            min-width: 0;
+            flex: none;
+            scroll-snap-align: none;
+            overflow: hidden;
+            border-radius: 24px;
+            background: rgba(255,255,255,.74);
+            border: 1px solid rgba(82,66,49,.08);
+            box-shadow: 0 14px 34px rgba(72,55,36,.075), inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .home-recipe-library #recipe-list .recipe-image {
+            height: clamp(126px, 24vw, 160px);
+            border-radius: 22px 22px 0 0;
+            filter: saturate(.9) contrast(.96) brightness(1.04);
+        }
+
+        .home-recipe-library #recipe-list .recipe-content {
+            padding: 12px;
+            gap: 8px;
+        }
+
+        .home-recipe-library #recipe-list .recipe-title {
+            min-height: 36px;
+            color: #1f222e;
+            font-size: 14px;
+            line-height: 1.24;
+            font-weight: 880;
+        }
+
+        .home-recipe-library #recipe-list .recipe-kbju-line {
+            color: #6f7471;
+            font-size: 10.5px;
+            line-height: 1.35;
+            font-weight: 650;
+        }
+
+        .home-recipe-library #recipe-list .recipe-time-line {
+            color: #9b6728;
+            background: rgba(255,239,214,.82);
+            border: 1px solid rgba(214,151,66,.14);
+            font-size: 11px;
+            font-weight: 820;
+        }
+
+        .home-recipe-library #recipe-list .recipe-add-btn {
+            min-height: 38px;
+            margin-top: 2px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffbd67 0%, #ff8f1f 100%);
+            box-shadow: 0 10px 20px rgba(233,126,23,.18), inset 0 1px 0 rgba(255,255,255,.42);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .home-recipe-library #recipe-list .fav-btn {
+            top: 10px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(34,28,24,.32);
+            border: 1px solid rgba(255,255,255,.34);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            font-size: 17px;
+        }
+
+        @media (min-width: 700px) {
+            .home-recipe-library #recipe-list {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 430px) {
+            .home-library-title-row {
+                align-items: flex-start;
+            }
+
+            .home-library-link {
+                padding-top: 7px;
+                font-size: 14px;
+            }
+
+            .home-library-segment {
+                min-height: 58px;
+                border-radius: 26px;
+            }
+
+            .home-library-hero .recipe-library-hero-copy {
+                max-width: 245px;
+            }
+
+            .home-library-hero .recipe-library-mascot {
+                right: -62px;
+                width: 248px;
+            }
+
+            .home-recipe-library #recipe-list {
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 370px) {
+            .home-recipe-library #recipe-list {
+                grid-template-columns: 1fr;
+            }
+
+            .home-library-title-row {
+                display: block;
+            }
+
+            .home-library-link {
+                margin-top: 8px;
+            }
+        }
+
+        /* Browser scroll recovery: keep Telegram modal locks, but never lock the main page. */
+        html {
+            height: auto !important;
+            min-height: 100%;
+            overflow-y: auto !important;
+            overscroll-behavior-y: auto !important;
+        }
+
+        body:not(.app-scroll-locked) {
+            position: relative !important;
+            inset: auto !important;
+            top: auto !important;
+            height: auto !important;
+            min-height: 100dvh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            overscroll-behavior-y: auto !important;
+            touch-action: auto !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body:not(.app-scroll-locked) #app-content {
+            height: auto !important;
+            max-height: none !important;
+            min-height: 100dvh !important;
+            overflow: visible !important;
+            overscroll-behavior-y: auto !important;
+            touch-action: auto !important;
+        }
+
+        body.app-scroll-locked {
+            position: fixed !important;
+            inset: 0 !important;
+            height: var(--app-viewport-height) !important;
+            overflow: hidden !important;
         }

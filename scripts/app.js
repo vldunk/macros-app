@@ -1038,12 +1038,12 @@
             if (topic === 'streak') {
                 return {
                     icon: 'S',
-                    title: 'Streak',
+                    title: 'Серия',
                     subtitle: streakData.streak + ' ' + pluralDays(streakData.streak) + ' режима',
                     progress: Math.min(streakData.streak * 10, 100),
                     color: '#d7955b',
                     paragraphs: [
-                        'Streak — это серия дней подряд, когда ты ведешь дневник без пропусков.',
+                        'Серия — это количество дней подряд, когда ты ведешь дневник без пропусков.',
                         'Регулярность важнее идеальности. Даже простой день с одной записью помогает держать привычку.'
                     ],
                     chips: ['ритм', 'привычка', 'последовательность'],
@@ -1083,7 +1083,7 @@
         function getGoalStatus() {
             const goalType = userProfile.goal_type || 'maintain';
             if (goalType === 'cut') return { key: 'deficit', icon: '🔥', label: 'Дефицит', tone: 'Сжигаем аккуратно' };
-            if (goalType === 'bulk') return { key: 'mass', icon: '💪', label: 'Набор веса', tone: 'Строим форму' };
+            if (goalType === 'bulk') return { key: 'mass', icon: '💪', label: 'Набор массы', tone: 'Строим форму' };
             if (goalType === 'muscle') return { key: 'muscle', icon: '💪', label: 'Рост мышц', tone: 'Растим мышцы спокойно' };
             const kcal = Number(userProfile.target_kcal) || 0;
             const weight = Number(userProfile.weight) || 0;
@@ -1261,7 +1261,8 @@
             document.getElementById('gauge-path').style.strokeDashoffset = 125.66 - (kcalPct / 100) * 125.66;
             setText('daily-kcal-summary', Math.round(stats.kcal) + ' / ' + (Number(userProfile.target_kcal) || 0));
             setText('daily-protein-summary', Math.round(stats.protein) + ' / ' + (Number(userProfile.target_protein) || 0) + ' г');
-            setText('daily-water-summary', (Math.round((Number(dailyWater) || 0) / 100) / 10) + ' / ' + (Math.round((Number(userProfile.target_water) || 2000) / 100) / 10) + ' л');
+            setText('daily-fat-summary', Math.round(stats.fat) + ' / ' + (Number(userProfile.target_fat) || 0) + ' г');
+            setText('daily-carbs-summary', Math.round(stats.carbs) + ' / ' + (Number(userProfile.target_carbs) || 0) + ' г');
             let cPct = getPct(stats.carbs, userProfile.target_carbs); document.getElementById('val-c').innerText = `${Math.round(stats.carbs)} / ${userProfile.target_carbs} г`; document.getElementById('pct-c').innerText = Math.round(cPct) + '%'; setRingProgress('bar-c', cPct);
             let fPct = getPct(stats.fat, userProfile.target_fat); document.getElementById('val-f').innerText = `${Math.round(stats.fat)} / ${userProfile.target_fat} г`; document.getElementById('pct-f').innerText = Math.round(fPct) + '%'; setRingProgress('bar-f', fPct);
             let pPct = getPct(stats.protein, userProfile.target_protein); document.getElementById('val-p').innerText = `${Math.round(stats.protein)} / ${userProfile.target_protein} г`; document.getElementById('pct-p').innerText = Math.round(pPct) + '%'; setRingProgress('bar-p', pPct);
@@ -1272,7 +1273,7 @@
         function getDefaultDietFilterForGoal() {
             const goal = userProfile.goal_type || 'maintain';
             if (goal === 'cut') return 'Сушка';
-            if (goal === 'bulk') return 'Набор';
+            if (goal === 'bulk') return 'Набор массы';
             if (goal === 'muscle') return 'Рост мышц';
             return 'Поддержание';
         }
@@ -1291,8 +1292,9 @@
 
         function setMealFilter(meal, btn) {
             currentMealFilter = meal;
-            document.querySelectorAll('#meal-tabs .meal-segment').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('#meal-tabs button').forEach(el => el.classList.remove('active'));
             if (btn) btn.classList.add('active');
+            else setActiveButton('#meal-tabs', currentMealFilter);
             renderRecipes(true);
         }
 
@@ -1300,6 +1302,7 @@
             currentDietFilter = filter;
             document.querySelectorAll('#diet-tabs .tab').forEach(el => el.classList.remove('active'));
             if (btn) btn.classList.add('active');
+            else setActiveButton('#diet-tabs', currentDietFilter);
             renderRecipes(true);
         }
 
@@ -1459,8 +1462,8 @@
         function getGoalBadgePriority() {
             const goal = userProfile.goal_type || 'maintain';
             if (goal === 'cut') return ['Сушка', 'Похудение'];
-            if (goal === 'bulk') return ['Набор', 'Рост мышц'];
-            if (goal === 'muscle') return ['Рост мышц', 'Высокий белок'];
+            if (goal === 'bulk') return ['Набор массы', 'Рост мышц'];
+            if (goal === 'muscle') return ['Рост мышц', 'Белок+'];
             return ['Поддержание'];
         }
 
@@ -2238,7 +2241,7 @@ async function updateHistoryUI() {
 
         function toggleEdit(show) {
             document.getElementById('edit-form').style.display = show ? 'block' : 'none';
-            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .home-smart-card, .nutrition-coach-card, .intake-card, .home-primary-cta, .home-bottom-nav, .nutritions-card, .recipe-section-control, .recipes-open-row, #recipe-list, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : ''; });
+            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .home-smart-card, .nutrition-coach-card, .intake-card, .home-primary-cta, .home-bottom-nav, .nutritions-card, .home-recipe-library, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : ''; });
             if(!show) document.querySelector('.top-nav').style.display = 'flex';
             if (show) {
                 setGender(currentGender);

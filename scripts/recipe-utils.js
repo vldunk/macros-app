@@ -1,4 +1,4 @@
-function recipeToSearchHaystack(recipe) {
+﻿function recipeToSearchHaystack(recipe) {
             return [
                 recipe.title,
                 recipe.description,
@@ -35,9 +35,9 @@ function getRecipeDietMeta(recipe, nutrition) {
                 cutting: { key: 'cut', filter: 'Сушка', label: 'Сушка', className: 'cut' },
                 weight_loss: { key: 'loss', filter: 'Похудение', label: 'Дефицит', className: 'loss' },
                 maintenance: { key: 'maintain', filter: 'Поддержание', label: 'Поддержание', className: 'maintain' },
-                bulking: { key: 'bulk', filter: 'Набор', label: 'Набор', className: 'bulk' },
+                bulking: { key: 'bulk', filter: 'Набор массы', label: 'Набор массы', className: 'bulk' },
                 muscle_gain: { key: 'muscle', filter: 'Рост мышц', label: 'Рост мышц', className: 'muscle' },
-                high_protein: { key: 'protein', filter: 'Высокий белок', label: 'Белок+', className: 'protein' }
+                high_protein: { key: 'protein', filter: 'Белок+', label: 'Белок+', className: 'protein' }
             };
             const tags = [...(recipe.goalTags || []), ...(recipe.nutritionTags || []).filter(tag => tag === 'high_protein')]
                 .map(tag => tagMap[tag])
@@ -49,10 +49,10 @@ function getRecipeDietMeta(recipe, nutrition) {
 
 function getUserRecipeFilters() {
             const goal = userProfile.goal_type || 'maintain';
-            if (goal === 'cut') return ['Сушка', 'Похудение', 'Высокий белок'];
-            if (goal === 'bulk') return ['Набор', 'Рост мышц', 'Высокий белок'];
-            if (goal === 'muscle') return ['Рост мышц', 'Высокий белок', 'Поддержание'];
-            return ['Поддержание', 'Высокий белок'];
+            if (goal === 'cut') return ['Сушка', 'Похудение', 'Белок+'];
+            if (goal === 'bulk') return ['Набор массы', 'Рост мышц', 'Белок+'];
+            if (goal === 'muscle') return ['Рост мышц', 'Белок+', 'Поддержание'];
+            return ['Поддержание', 'Белок+'];
         }
 
 function recipeMatchesDietFilter(recipe, meta, filter, favs) {
@@ -80,11 +80,11 @@ function getPrimaryRecipeBadge(item) {
                 .find(Boolean);
             if (goalMatch) return goalMatch;
 
-            const proteinTag = meta.tags.find(tag => tag.filter === 'Высокий белок');
+            const proteinTag = meta.tags.find(tag => tag.filter === 'Белок+');
             if (proteinTag) return proteinTag;
             if ((Number(nutrition.kcal) || 0) <= 350) return { label: 'Легкое', className: 'light', filter: 'Похудение' };
             if ((Number(item.time) || 0) <= 20) return { label: 'Быстро', className: 'quick', filter: 'Быстро' };
-            if ((Number(nutrition.kcal) || 0) >= 600) return { label: 'Сытное', className: 'satiety', filter: 'Набор' };
+            if ((Number(nutrition.kcal) || 0) >= 600) return { label: 'Сытное', className: 'satiety', filter: 'Набор массы' };
             return meta.tags[0] || { label: 'Баланс', className: 'maintain', filter: 'Поддержание' };
         }
 
@@ -130,9 +130,9 @@ function recipeGoalScore(item, mealType) {
             const exclusions = String(userProfile.food_exclusions || '').toLowerCase().split(/[,;\n]/).map(x => x.trim()).filter(Boolean);
             prefs.forEach(pref => { if (pref && searchText.includes(pref)) score += 4; });
             exclusions.forEach(ex => { if (ex && searchText.includes(ex)) score -= 100; });
-            if (goal === 'cut') score += (tags.includes('Сушка') ? 22 : 0) + (tags.includes('Похудение') ? 18 : 0) + (tags.includes('Высокий белок') ? 16 : 0) - Math.max(0, n.fat - 22) - Math.max(0, n.kcal - 520) / 18;
-            else if (goal === 'bulk') score += (tags.includes('Набор') ? 24 : 0) + (n.kcal >= 480 ? 12 : 0) + (n.carbs >= 40 ? 8 : 0) + (n.protein >= 24 ? 8 : 0);
-            else if (goal === 'muscle') score += (tags.includes('Рост мышц') ? 24 : 0) + (tags.includes('Высокий белок') ? 18 : 0) + (n.protein >= 30 ? 12 : 0) - Math.max(0, n.fat - 28) / 2;
+            if (goal === 'cut') score += (tags.includes('Сушка') ? 22 : 0) + (tags.includes('Похудение') ? 18 : 0) + (tags.includes('Белок+') ? 16 : 0) - Math.max(0, n.fat - 22) - Math.max(0, n.kcal - 520) / 18;
+            else if (goal === 'bulk') score += (tags.includes('Набор массы') ? 24 : 0) + (n.kcal >= 480 ? 12 : 0) + (n.carbs >= 40 ? 8 : 0) + (n.protein >= 24 ? 8 : 0);
+            else if (goal === 'muscle') score += (tags.includes('Рост мышц') ? 24 : 0) + (tags.includes('Белок+') ? 18 : 0) + (n.protein >= 30 ? 12 : 0) - Math.max(0, n.fat - 28) / 2;
             else score += (tags.includes('Поддержание') ? 20 : 0) - Math.abs(n.kcal - 450) / 35 + (n.protein >= 18 ? 8 : 0);
             return score;
         }
@@ -160,9 +160,9 @@ function getRecipeFitNote(meta, nutrition) {
             if (!match) return 'Блюдо можно вписать в рацион по КБЖУ и размеру порции.';
             if (match.filter === 'Сушка') return 'Блюдо хорошо подходит для сушки: много белка, умеренная калорийность и его легко вписать в дневную норму.';
             if (match.filter === 'Похудение') return 'Хороший вариант для дефицита: блюдо не перегружает калории и помогает держать рацион спокойным.';
-            if (match.filter === 'Набор') return 'Подходит для набора: достаточно энергии и углеводов, чтобы закрывать дневную норму без хаоса.';
+            if (match.filter === 'Набор массы') return 'Подходит для набора: достаточно энергии и углеводов, чтобы закрывать дневную норму без хаоса.';
             if (match.filter === 'Рост мышц') return 'Хорошо для роста мышц: есть белок и энергетическая база для восстановления.';
-            if (match.filter === 'Высокий белок') return 'Помогает добрать белок без лишней сложности и хорошо ложится в дневник.';
+            if (match.filter === 'Белок+') return 'Помогает добрать белок без лишней сложности и хорошо ложится в дневник.';
             return 'Сбалансированное блюдо для поддержания веса и ровного питания.';
         }
 
@@ -187,4 +187,5 @@ function getSimilarRecipes(currentId, meta) {
                 .sort((a, b) => b.simScore - a.simScore || b.personalScore - a.personalScore)
                 .slice(0, 3);
         }
+
 
