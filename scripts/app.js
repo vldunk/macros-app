@@ -1215,7 +1215,8 @@
             }
 
             setText('streak-badge', '🔥 ' + streak + ' ' + pluralDays(streak) + ' режима');
-            setText('coach-kcal-feedback', Math.round(targetKcal || stats.kcal || 0) + ' ккал');
+            const kcalFeedback = document.getElementById('coach-kcal-feedback');
+            if (kcalFeedback) kcalFeedback.innerHTML = '<span class="kcal-number">' + Math.round(targetKcal || stats.kcal || 0) + '</span><span class="kcal-unit">ккал</span>';
             setText('coach-kcal-note', 'Цель на день');
             setText('home-kcal-left', 'Осталось ' + Math.round(kcalLeft) + ' ккал');
             setText('home-kcal-consumed', 'Потреблено ' + Math.round(Number(stats.kcal) || 0) + ' ккал');
@@ -1256,6 +1257,7 @@
             const getPct = (val, max) => max > 0 ? Math.min((val / max) * 100, 100) : 0;
             let kcalPct = getPct(stats.kcal, userProfile.target_kcal);
             document.getElementById('intake-pct').innerText = Math.round(kcalPct) + '%';
+            document.getElementById('profile-display')?.style.setProperty('--daily-pct', Math.round(kcalPct) + '%');
             document.getElementById('gauge-cur').innerText = Math.round(stats.kcal);
             document.getElementById('gauge-max').innerText = userProfile.target_kcal;
             document.getElementById('gauge-path').style.strokeDashoffset = 125.66 - (kcalPct / 100) * 125.66;
@@ -1263,6 +1265,22 @@
             setText('daily-protein-summary', Math.round(stats.protein) + ' / ' + (Number(userProfile.target_protein) || 0) + ' г');
             setText('daily-fat-summary', Math.round(stats.fat) + ' / ' + (Number(userProfile.target_fat) || 0) + ' г');
             setText('daily-carbs-summary', Math.round(stats.carbs) + ' / ' + (Number(userProfile.target_carbs) || 0) + ' г');
+            setText('daily-water-summary', (Math.round((Number(dailyWater) || 0) / 100) / 10) + ' / ' + (Math.round((Number(userProfile.target_water) || 2000) / 100) / 10) + ' л');
+            const dailyKcalPct = getPct(stats.kcal, userProfile.target_kcal);
+            const dailyProteinPct = getPct(stats.protein, userProfile.target_protein);
+            const dailyFatPct = getPct(stats.fat, userProfile.target_fat);
+            const dailyCarbsPct = getPct(stats.carbs, userProfile.target_carbs);
+            const dailyWaterPct = getPct(dailyWater, userProfile.target_water || 2000);
+            const dailyKcalBar = document.getElementById('daily-kcal-bar');
+            const dailyProteinBar = document.getElementById('daily-protein-bar');
+            const dailyFatBar = document.getElementById('daily-fat-bar');
+            const dailyCarbsBar = document.getElementById('daily-carbs-bar');
+            const dailyWaterBar = document.getElementById('daily-water-bar');
+            if (dailyKcalBar) dailyKcalBar.style.width = dailyKcalPct + '%';
+            if (dailyProteinBar) dailyProteinBar.style.width = dailyProteinPct + '%';
+            if (dailyFatBar) dailyFatBar.style.width = dailyFatPct + '%';
+            if (dailyCarbsBar) dailyCarbsBar.style.width = dailyCarbsPct + '%';
+            if (dailyWaterBar) dailyWaterBar.style.width = dailyWaterPct + '%';
             let cPct = getPct(stats.carbs, userProfile.target_carbs); document.getElementById('val-c').innerText = `${Math.round(stats.carbs)} / ${userProfile.target_carbs} г`; document.getElementById('pct-c').innerText = Math.round(cPct) + '%'; setRingProgress('bar-c', cPct);
             let fPct = getPct(stats.fat, userProfile.target_fat); document.getElementById('val-f').innerText = `${Math.round(stats.fat)} / ${userProfile.target_fat} г`; document.getElementById('pct-f').innerText = Math.round(fPct) + '%'; setRingProgress('bar-f', fPct);
             let pPct = getPct(stats.protein, userProfile.target_protein); document.getElementById('val-p').innerText = `${Math.round(stats.protein)} / ${userProfile.target_protein} г`; document.getElementById('pct-p').innerText = Math.round(pPct) + '%'; setRingProgress('bar-p', pPct);
@@ -2241,7 +2259,7 @@ async function updateHistoryUI() {
 
         function toggleEdit(show) {
             document.getElementById('edit-form').style.display = show ? 'block' : 'none';
-            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .home-smart-card, .nutrition-coach-card, .intake-card, .home-primary-cta, .home-bottom-nav, .nutritions-card, .home-recipe-library, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : ''; });
+            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .home-smart-card, .nutrition-coach-card, .intake-card, .home-primary-cta, .home-bottom-nav, .nutritions-card, .recipes-open-row, .recipe-section-control, #recipe-list, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : ''; });
             if(!show) document.querySelector('.top-nav').style.display = 'flex';
             if (show) {
                 setGender(currentGender);
