@@ -210,6 +210,28 @@
         </div>
     </div>
 
+    <div class="smart-tip-overlay" id="smart-tip-overlay" onclick="closeSmartTipPopup()">
+        <div class="smart-tip-popup" role="dialog" aria-modal="true" aria-labelledby="smart-tip-title" onclick="event.stopPropagation()">
+            <button class="smart-tip-close" type="button" aria-label="Закрыть подсказку" onclick="closeSmartTipPopup()">×</button>
+            <div class="smart-tip-kicker">Умная подсказка</div>
+            <h3 id="smart-tip-title">Умная подсказка</h3>
+            <div class="smart-tip-status" id="smart-tip-status">Главный фокус: план на день</div>
+            <p id="smart-tip-copy">Добавьте первый прием пищи, и я покажу точный фокус дня.</p>
+            <div class="smart-tip-section">
+                <div class="smart-tip-section-title">Чем добрать</div>
+                <div class="smart-tip-chip-grid" id="smart-tip-foods"></div>
+            </div>
+            <div class="smart-tip-section">
+                <div class="smart-tip-section-title">Рекомендуемая порция</div>
+                <div class="smart-tip-portion-list" id="smart-tip-portions"></div>
+            </div>
+            <div class="smart-tip-action-note" id="smart-tip-action-note">Начни с одного спокойного шага.</div>
+            <div class="smart-tip-actions">
+                <button class="smart-tip-primary" id="smart-tip-recipes-btn" type="button" onclick="showSmartTipRecipes()">Показать подходящие рецепты</button>
+            </div>
+        </div>
+    </div>
+
     <div id="meal-modal">
         <div class="bottom-modal">
             <h3 style="margin-top:0; margin-bottom:20px; font-size: 20px;">Куда добавить?</h3>
@@ -411,73 +433,90 @@
             </div>
         </section>
 
-        <div class="intake-card home-progress-card daily-progress-card daily-summary-card" id="profile-display" onclick="openChartModal()">
-            <div class="intake-header daily-summary-header">
-                <div class="intake-header-title"><span class="daily-summary-title-icon" aria-hidden="true"></span>Фокус дня</div>
-                <span class="daily-goal-caption" id="daily-goal-caption">Цель: баланс</span>
-            </div>
-
-            <div class="intake-content daily-progress-layout daily-summary-layout">
-                <div class="daily-summary-copy">
-                    <div class="intake-pct daily-progress-percent" id="intake-pct">0%</div>
-                    <div class="daily-summary-left-note" id="home-kcal-left">Осталось 0 ккал</div>
+        <section class="daily-norm-card" id="profile-display" onclick="openChartModal()">
+            <div class="daily-norm-header">
+                <div class="daily-block-title">
+                    <span class="daily-title-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"></path></svg>
+                    </span>
+                    <span>Ежедневная норма</span>
                 </div>
-
-                <div class="intake-gauge-container daily-progress-ring">
-                    <svg viewBox="0 0 100 55" class="gauge-svg">
-                        <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--progress-bg)" stroke-width="12" stroke-linecap="round"/>
-                        <path id="gauge-path" d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="var(--success)" stroke-width="12" stroke-linecap="round" stroke-dasharray="125.66" stroke-dashoffset="125.66" style="transition: stroke-dashoffset 1s ease;" />
+                <span class="daily-norm-goal" id="daily-goal-caption">Поддержание</span>
+            </div>
+            <div class="daily-norm-body">
+                <div class="daily-norm-copy">
+                    <div class="daily-norm-percent" id="intake-pct">0%</div>
+                    <div class="daily-norm-label">выполнено</div>
+                    <div class="daily-norm-status" id="home-kcal-left">Осталось 0 ккал</div>
+                </div>
+                <div class="daily-norm-gauge" aria-label="Прогресс калорий">
+                    <svg class="daily-gauge-svg" viewBox="0 0 120 72" aria-hidden="true">
+                        <path d="M 18 60 A 42 42 0 0 1 102 60"></path>
+                        <path id="gauge-path" d="M 18 60 A 42 42 0 0 1 102 60"></path>
                     </svg>
-                    <div class="daily-progress-center">
-                        <div class="daily-ring-mark" aria-hidden="true"></div>
-                    </div>
-                    <div class="gauge-center" aria-hidden="true">
-                        <div class="g-cur" id="gauge-cur">0</div>
-                        <div class="g-div"></div>
-                        <div class="g-max" id="gauge-max">0</div>
-                    </div>
-                </div>
-                <div class="daily-norm-summary daily-progress-list">
-                    <div class="daily-mini-row daily-progress-row daily-metric-row calories">
-                        <div class="daily-progress-row-icon calories" aria-hidden="true"></div>
-                        <div class="daily-progress-row-main">
-                            <div class="daily-progress-row-head">
-                                <b id="daily-kcal-summary">0 / 0</b>
-                                <span>ккал</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="daily-mini-row daily-progress-row daily-metric-row protein">
-                        <div class="daily-progress-row-icon protein" aria-hidden="true"></div>
-                        <div class="daily-progress-row-main">
-                            <div class="daily-progress-row-head">
-                                <b id="daily-protein-summary">0 / 0 г</b>
-                                <span>белок</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="daily-mini-row daily-progress-row daily-water-row daily-metric-row water">
-                        <div class="daily-progress-row-icon water" aria-hidden="true"></div>
-                        <div class="daily-progress-row-main">
-                            <div class="daily-progress-row-head">
-                                <b id="daily-water-summary">0 / 2 л</b>
-                                <span>вода</span>
-                            </div>
-                        </div>
+                    <div class="daily-gauge-center">
+                        <strong id="gauge-cur">0</strong>
+                        <span id="gauge-max">0</span>
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="daily-norm-progress" aria-hidden="true"><span></span></div>
+            <span class="daily-hidden-summary" id="daily-kcal-summary">0 / 0</span>
+        </section>
+
+        <section class="macro-summary-card">
+            <div class="daily-block-title macro-summary-title">
+                <span class="daily-title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M12 3v9h9"></path><path d="M21 12a9 9 0 1 1-9-9"></path></svg>
+                </span>
+                <span>Макронутриенты</span>
+            </div>
+            <div class="macro-grid">
+                <div class="macro-mini-card carbs">
+                    <div class="macro-ring" id="macro-carbs-ring" style="--pct:0"><span id="macro-carbs-pct">0%</span></div>
+                    <div class="macro-mini-name">Углеводы</div>
+                    <div class="macro-mini-value" id="daily-carbs-summary">0 / 0 г</div>
+                    <div class="macro-mini-bar"><span id="daily-carbs-bar"></span></div>
+                </div>
+                <div class="macro-mini-card fat">
+                    <div class="macro-ring" id="macro-fat-ring" style="--pct:0"><span id="macro-fat-pct">0%</span></div>
+                    <div class="macro-mini-name">Жиры</div>
+                    <div class="macro-mini-value" id="daily-fat-summary">0 / 0 г</div>
+                    <div class="macro-mini-bar"><span id="daily-fat-bar"></span></div>
+                </div>
+                <div class="macro-mini-card protein">
+                    <div class="macro-ring" id="macro-protein-ring" style="--pct:0"><span id="macro-protein-pct">0%</span></div>
+                    <div class="macro-mini-name">Белки</div>
+                    <div class="macro-mini-value" id="daily-protein-summary">0 / 0 г</div>
+                    <div class="macro-mini-bar"><span id="daily-protein-bar"></span></div>
+                </div>
+            </div>
+            <div class="macro-water-card">
+                <div class="macro-water-head">
+                    <div>
+                        <div class="macro-water-title">Вода</div>
+                        <div class="macro-water-value"><span id="daily-water-summary">0 / 2 л</span></div>
+                    </div>
+                    <div class="macro-water-percent" id="macro-water-pct">0%</div>
+                </div>
+                <div class="macro-water-bar"><span id="daily-water-bar"></span></div>
+                <div class="macro-water-stepper" aria-label="Управление водой">
+                    <button class="macro-water-btn" type="button" aria-label="Убавить 250 мл воды" onclick="event.stopPropagation(); addWater(-250, event)">−</button>
+                    <span class="macro-water-step">250 мл</span>
+                    <button class="macro-water-btn macro-water-btn-plus" type="button" aria-label="Добавить 250 мл воды" onclick="event.stopPropagation(); addWater(250, event)">+</button>
+                </div>
+            </div>
+        </section>
 
         <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="event.stopPropagation(); document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"><span>+</span>Добавить приём пищи</button>
 
-        <section class="coach-feedback-card smart home-smart-card">
+        <section class="coach-feedback-card smart home-smart-card" role="button" tabindex="0" onclick="openSmartTipPopup()" onkeydown="handleSmartTipKey(event)">
             <div class="home-smart-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></div>
             <div class="home-smart-copy">
                 <div class="coach-card-label"><span>Умная подсказка</span><span>Совет</span></div>
-                <div class="coach-card-value" id="coach-smart-feedback">Добавьте первый прием пищи, и я покажу точный фокус дня.</div>
-                <button class="home-smart-more" type="button" onclick="openInfoSheet('protein')">Подробнее <span>›</span></button>
+                <div class="coach-card-value" id="coach-smart-feedback">Добавьте первый прием пищи — покажу фокус дня.</div>
             </div>
+            <div class="home-smart-chevron" aria-hidden="true">›</div>
             <div class="home-smart-visual home-image-slot smart-tip-bowl-slot" aria-hidden="true">
                 <img class="home-smart-tip-visual" src="assets/images/home/smart-tip-bowl.png" alt="" onerror="this.hidden=true; this.closest('.home-image-slot')?.classList.add('is-placeholder')">
             </div>
@@ -508,11 +547,11 @@
         </section>
 
         <nav class="home-bottom-nav" aria-label="Основная навигация">
-            <button class="active" type="button" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"><span><svg viewBox="0 0 24 24"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8Z"></path></svg></span>Главная</button>
-            <button type="button" onclick="document.getElementById('history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"><span><svg viewBox="0 0 24 24"><path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h8M8 13h6"></path></svg></span>Дневник</button>
-            <button type="button" onclick="openChartModal()"><span><svg viewBox="0 0 24 24"><path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-7"></path></svg></span>Аналитика</button>
-            <button type="button" onclick="openMealPrep()"><span><svg viewBox="0 0 24 24"><path d="M7 4v16M17 4v16M4 8h16M4 16h16"></path></svg></span>План</button>
-            <button type="button" onclick="toggleEdit(true)"><span><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span>Профиль</button>
+            <button class="home-bottom-nav-item active" type="button" aria-current="page" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v8a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-8Z"></path></svg></span><b>Главная</b></button>
+            <button class="home-bottom-nav-item" type="button" onclick="document.getElementById('history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h8M8 13h6"></path></svg></span><b>Дневник</b></button>
+            <button class="home-bottom-nav-add" type="button" aria-label="Добавить приём пищи" onclick="openAddMealAction(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span><b>Добавить</b></button>
+            <button class="home-bottom-nav-item" type="button" onclick="openChartModal()"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-7"></path></svg></span><b>Аналитика</b></button>
+            <button class="home-bottom-nav-item" type="button" onclick="toggleEdit(true)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><b>Профиль</b></button>
         </nav>
 
         <div class="nutritions-card" id="nutritions-display" hidden aria-hidden="true">
@@ -626,17 +665,6 @@
                 <button class="meal-segment" type="button" onclick="setMealFilter('Ужин', this)">Ужин</button>
                 <button class="meal-segment" type="button" onclick="setMealFilter('Перекус', this)">Перекус</button>
             </div>
-            <div class="recipe-filter-label">Цель и диета</div>
-            <div class="tabs-container diet-tabs" id="diet-tabs">
-                <button class="tab active" onclick="setDietFilter('Все', this)">Все</button>
-                <button class="tab" onclick="setDietFilter('Для меня', this)">Для меня</button>
-                <button class="tab" onclick="setDietFilter('Сушка', this)">Сушка</button>
-                <button class="tab" onclick="setDietFilter('Похудение', this)">Похудение</button>
-                <button class="tab" onclick="setDietFilter('Поддержание', this)">Поддержание</button>
-                <button class="tab" onclick="setDietFilter('Набор массы', this)">Набор массы</button>
-                <button class="tab" onclick="setDietFilter('Рост мышц', this)">Рост мышц</button>
-                <button class="tab" onclick="setDietFilter('Белок+', this)">Белок+</button>
-            </div>
         </div>
         <div id="recipe-list"></div>
 
@@ -671,10 +699,3 @@
     <script src="./scripts/app.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-

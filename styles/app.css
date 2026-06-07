@@ -673,7 +673,7 @@
         .tabs-container::-webkit-scrollbar, #recipe-list::-webkit-scrollbar, .recipes-screen-body::-webkit-scrollbar { display: none; }
         .tab { flex: 0 0 auto; border-radius: 999px; padding: 10px 18px; color: #657169; font-size: 14px; font-weight: 800; white-space: nowrap; scroll-snap-align: start; }
         .tab.active { color: #fff; background: linear-gradient(180deg, #7da893, #5f8f7a); border-color: rgba(95,143,122,.26); box-shadow: 0 12px 26px rgba(95,143,122,.14); }
-        .recipe-filter-panel { margin-bottom: 12px; }
+        .recipe-filter-panel { margin-bottom: 6px; }
         .recipe-filter-label { margin: 2px 0 8px; color: var(--text-muted); font-size: 11px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
         .meal-segmented {
             display: grid;
@@ -740,6 +740,7 @@
         .recipe-kbju-line { color: #557d6c; font-size: 11px; line-height: 1.4; font-weight: 820; }
         .recipe-time-line { width: fit-content; padding: 4px 8px; border-radius: 999px; color: var(--text-muted); background: rgba(82,73,58,.055); font-size: 11px; line-height: 1; font-weight: 760; }
         .recipe-kbju { width: fit-content; margin-bottom: 4px; padding: 5px 9px; border-radius: 999px; color: #557d6c; background: rgba(95,143,122,.075); border: 1px solid rgba(95,143,122,.13); font-size: 11px; font-weight: 800; }
+        .recipe-image-placeholder { display: none; }
         .recipe-coach-card {
             margin: 0 0 12px;
             padding: 14px 15px;
@@ -1230,6 +1231,7 @@
         #meal-modal,
         #full-calendar-modal,
         #recipe-details-modal,
+        .smart-tip-overlay,
         .info-sheet-overlay {
             background: rgba(247,245,239,.62);
             backdrop-filter: blur(18px);
@@ -1393,6 +1395,191 @@
         .info-mini-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
         .info-chip { padding: 8px 10px; border-radius: 999px; background: rgba(247,245,239,.78); border: 1px solid rgba(82,73,58,.08); color: var(--text-soft); font-size: 12px; font-weight: 800; }
         .info-tip-card { margin-top: 14px; padding: 14px; border-radius: 20px; background: var(--surfaceTinted); border: 1px solid rgba(95,143,122,.09); color: var(--text-soft); font-size: 13px; line-height: 1.45; }
+
+        .smart-tip-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 13100;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+            overflow-x: hidden;
+            opacity: 0;
+            transition: opacity .22s ease;
+        }
+        .smart-tip-overlay,
+        .smart-tip-overlay * { box-sizing: border-box; }
+        .smart-tip-overlay.active { display: flex; opacity: 1; }
+        .smart-tip-popup {
+            position: relative;
+            width: calc(100vw - 32px);
+            max-width: 430px;
+            min-width: 0;
+            max-height: min(calc(100vh - 20px), 620px);
+            max-height: min(calc(100dvh - 20px), 620px);
+            overflow-y: auto;
+            padding: 18px 18px 0;
+            border-radius: 28px;
+            background: rgba(255,255,255,.94);
+            border: 1px solid rgba(82,73,58,.10);
+            box-shadow: 0 24px 70px rgba(82,73,58,.16), inset 0 1px 0 rgba(255,255,255,.82);
+            color: var(--text-main);
+            overscroll-behavior: contain;
+            scrollbar-width: none;
+        }
+        .smart-tip-popup::-webkit-scrollbar { display: none; }
+        .smart-tip-overlay.active .smart-tip-popup { animation: infoSheetIn .26s var(--ease-soft) forwards; }
+        .smart-tip-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            padding: 0;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            border: 1px solid rgba(82,73,58,.10);
+            background: rgba(255,255,255,.82);
+            color: #746f66;
+            font-size: 23px;
+            line-height: 1;
+            font-weight: 800;
+            box-shadow: 0 10px 24px rgba(77,68,54,.08), inset 0 1px 0 rgba(255,255,255,.78);
+        }
+        .smart-tip-kicker {
+            width: fit-content;
+            max-width: calc(100% - 48px);
+            padding: 6px 9px;
+            border-radius: 999px;
+            background: rgba(95,143,122,.10);
+            color: #557d6c;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .smart-tip-popup h3 {
+            margin: 10px 42px 8px 0;
+            color: var(--text-main);
+            font-size: 23px;
+            line-height: 1.08;
+            font-weight: 950;
+            overflow-wrap: anywhere;
+        }
+        .smart-tip-status {
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(247,245,239,.88), rgba(239,235,226,.66));
+            border: 1px solid rgba(82,73,58,.08);
+            color: #557d6c;
+            font-size: 14px;
+            line-height: 1.35;
+            font-weight: 920;
+            overflow-wrap: anywhere;
+        }
+        #smart-tip-copy {
+            margin: 10px 0 11px;
+            color: var(--text-soft);
+            font-size: 14px;
+            line-height: 1.44;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+        }
+        .smart-tip-section {
+            margin-top: 8px;
+            padding: 11px;
+            border-radius: 18px;
+            background: rgba(250,248,242,.70);
+            border: 1px solid rgba(82,73,58,.08);
+        }
+        .smart-tip-section-title {
+            margin-bottom: 7px;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 950;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .smart-tip-chip-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-width: 0;
+        }
+        .smart-tip-chip-grid span {
+            max-width: 100%;
+            padding: 6px 9px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(95,143,122,.10);
+            color: #557d6c;
+            font-size: 12px;
+            line-height: 1.1;
+            font-weight: 850;
+            overflow-wrap: anywhere;
+        }
+        .smart-tip-portion-list {
+            display: grid;
+            gap: 5px;
+        }
+        .smart-tip-portion-list div {
+            padding: 7px 9px;
+            border-radius: 13px;
+            background: rgba(255,255,255,.74);
+            color: var(--text-soft);
+            font-size: 13px;
+            line-height: 1.25;
+            font-weight: 780;
+            overflow-wrap: anywhere;
+        }
+        .smart-tip-action-note {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: rgba(95,143,122,.09);
+            color: #496d5e;
+            font-size: 13px;
+            line-height: 1.36;
+            font-weight: 780;
+            overflow-wrap: anywhere;
+        }
+        .smart-tip-actions {
+            position: sticky;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 7px;
+            margin: 10px -18px 0;
+            padding: 10px 18px max(14px, env(safe-area-inset-bottom));
+            border-radius: 0 0 28px 28px;
+            background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.98) 34%, rgba(255,255,255,.98));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .smart-tip-primary,
+        .smart-tip-secondary {
+            width: 100%;
+            min-height: 44px;
+            padding: 0 14px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 900;
+            box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.70);
+        }
+        .smart-tip-primary {
+            color: #fff;
+            background: linear-gradient(180deg, #86b39e, #6f9d88);
+            border-color: rgba(95,143,122,.20);
+        }
+        .smart-tip-secondary {
+            color: #557d6c;
+            background: rgba(255,255,255,.78);
+            border-color: rgba(95,143,122,.16);
+        }
+        .smart-tip-secondary[hidden] { display: none; }
 
         #edit-form { display: none; }
         .settings-card { padding: 22px; border-radius: var(--radius-xl); }
@@ -2870,7 +3057,7 @@
         .home-progress-card,
         .home-smart-card,
         .nutrition-coach-card {
-            margin-bottom: 12px;
+            margin-bottom: 6px;
         }
 
         .home-progress-card {
@@ -3807,6 +3994,12 @@
             margin-top: 10px;
             font-size: 17px;
             line-height: 1.28;
+            min-height: calc(2em * 1.28);
+            display: block;
+            overflow: visible;
+            -webkit-line-clamp: unset;
+            -webkit-box-orient: initial;
+            overflow-wrap: anywhere;
         }
 
         .home-smart-more {
@@ -5159,6 +5352,789 @@
             }
         }
 
+        /* Compact home recipe rail */
+        #recipe-list {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-start;
+            gap: 12px;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            margin-inline: 0;
+            padding: 2px 0 14px;
+            scroll-snap-type: x mandatory;
+            scroll-padding-left: 0;
+            scrollbar-width: none;
+            overscroll-behavior-x: contain;
+            transform: none;
+        }
+
+        #recipe-list .recipe-card {
+            flex: 0 0 clamp(150px, 42vw, 165px);
+            width: clamp(150px, 42vw, 165px);
+            min-width: 0;
+            min-height: 252px;
+            max-height: 252px;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow: hidden;
+            border-radius: 23px;
+            background:
+                radial-gradient(circle at 15% 7%, rgba(255,255,255,.86), transparent 31%),
+                linear-gradient(145deg, rgba(255,253,248,.96), rgba(247,240,229,.82));
+            border: 1px solid rgba(82,66,49,.10);
+            box-shadow: 0 12px 28px rgba(72,55,36,.075), inset 0 1px 0 rgba(255,255,255,.92);
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+        }
+
+        #recipe-list.recipe-hidden-transition {
+            transform: none;
+        }
+
+        #recipe-list .recipe-image {
+            flex: 0 0 92px;
+            width: 100%;
+            height: 92px;
+            aspect-ratio: auto;
+            overflow: hidden;
+            border-radius: 19px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: rgba(239,235,226,.72);
+            filter: saturate(.96) contrast(.98) brightness(1.03);
+            position: relative;
+        }
+
+        #recipe-list .recipe-no-image .recipe-image {
+            position: static;
+            align-self: flex-start;
+            width: 48px;
+            flex-basis: 48px;
+            height: 48px;
+            border-radius: 17px;
+            background:
+                radial-gradient(circle at 20% 16%, rgba(255,255,255,.9), transparent 28%),
+                radial-gradient(circle at 82% 24%, rgba(217,208,243,.34), transparent 38%),
+                linear-gradient(145deg, rgba(255,251,244,.98), rgba(244,226,191,.46));
+            filter: none;
+            box-shadow: 0 8px 18px rgba(90,70,43,.075), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        #recipe-list .recipe-image::before {
+            background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(39,32,26,.10));
+        }
+
+        #recipe-list .recipe-no-image .recipe-image::before {
+            content: none;
+        }
+
+        #recipe-list .recipe-image-placeholder {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            margin: 9px 0 0 9px;
+            border-radius: 50%;
+            color: #8d7140;
+            background:
+                linear-gradient(145deg, rgba(255,255,255,.92), rgba(250,238,212,.72));
+            border: 1px solid rgba(201,163,95,.16);
+            box-shadow: 0 5px 11px rgba(112,86,45,.08), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        #recipe-list .recipe-image-placeholder svg {
+            width: 15px;
+            height: 15px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        #recipe-list .fav-btn {
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(255,255,255,.70);
+            box-shadow: 0 7px 14px rgba(49,39,28,.09), inset 0 1px 0 rgba(255,255,255,.88);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        #recipe-list .recipe-no-image .fav-btn {
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,.78);
+            border-color: rgba(201,163,95,.14);
+            box-shadow: 0 6px 14px rgba(72,55,36,.08), inset 0 1px 0 rgba(255,255,255,.88);
+        }
+
+        #recipe-list .recipe-content {
+            flex: 1 1 auto;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 8px 0 0;
+        }
+
+        #recipe-list .recipe-title {
+            min-height: 31px;
+            color: #20222b;
+            font-size: 13px;
+            line-height: 1.23;
+            font-weight: 900;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        #recipe-list .recipe-kbju-line {
+            min-height: 28px;
+            color: #6f7471;
+            font-size: 10.25px;
+            line-height: 1.34;
+            font-weight: 760;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        #recipe-list .recipe-time-line {
+            width: fit-content;
+            padding: 4px 8px;
+            border-radius: 999px;
+            color: #8b6f3d;
+            background: rgba(255,239,214,.86);
+            border: 1px solid rgba(214,151,66,.15);
+            font-size: 10.25px;
+            line-height: 1;
+            font-weight: 860;
+        }
+
+        #recipe-list .recipe-add-btn {
+            min-height: 34px;
+            margin-top: auto;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(249,251,248,.96), rgba(235,242,237,.88));
+            border-color: rgba(95,143,122,.14);
+            box-shadow: 0 6px 13px rgba(95,143,122,.055), inset 0 1px 0 rgba(255,255,255,.86);
+            color: #5a7c6e;
+            font-size: 11.5px;
+            font-weight: 950;
+        }
+
+        .recipe-section-control .meal-segmented {
+            min-height: 40px;
+            gap: 5px;
+            padding: 4px;
+            border-radius: 999px;
+            background: rgba(255,253,248,.58);
+            border: 1px solid rgba(112,96,70,.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.84);
+        }
+
+        .recipe-section-control .meal-segment {
+            min-height: 32px;
+            border: 1px solid transparent;
+            outline: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: #6d6871;
+            box-shadow: none;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 820;
+        }
+
+        .recipe-section-control .meal-segment.active {
+            color: #2b2a30;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,247,232,.84));
+            border-color: rgba(201,163,95,.18);
+            box-shadow: 0 7px 15px rgba(112,86,45,.075), inset 0 1px 0 rgba(255,255,255,.94);
+        }
+
+        .recipe-section-control .meal-segment:focus {
+            outline: 0;
+        }
+
+        .recipe-section-control .meal-segment:focus-visible {
+            outline: 2px solid rgba(201,163,95,.24);
+            outline-offset: 2px;
+        }
+
+        .home-primary-cta {
+            margin-bottom: 10px;
+        }
+
+        .coach-feedback-card.smart.home-smart-card {
+            display: grid;
+            min-height: 0;
+            grid-template-columns: 48px minmax(0, 1fr) 18px;
+            align-items: center;
+            column-gap: 11px;
+            margin-bottom: 12px;
+            padding: 9px 12px;
+            border-radius: 24px;
+            background:
+                radial-gradient(circle at 92% 18%, rgba(235,220,255,.58), transparent 30%),
+                rgba(255,255,255,.76);
+            box-shadow: 0 12px 28px rgba(72,55,36,.075), inset 0 1px 0 rgba(255,255,255,.90);
+        }
+
+        .home-smart-icon {
+            grid-column: 1;
+            align-self: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 17px;
+        }
+
+        .home-smart-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .home-smart-copy .coach-card-label {
+            font-size: 12.5px;
+            line-height: 1.12;
+            font-weight: 900;
+        }
+
+        .home-smart-copy {
+            grid-column: 2;
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .home-smart-copy .coach-card-value {
+            max-width: 100%;
+            margin-top: 0;
+            font-size: 13.5px;
+            line-height: 1.32;
+            min-height: 0;
+            color: rgba(48,45,53,.82);
+            font-weight: 700;
+            display: block;
+            overflow: visible;
+            -webkit-line-clamp: unset;
+            -webkit-box-orient: initial;
+            overflow-wrap: break-word;
+        }
+
+        .home-smart-chevron {
+            grid-column: 3;
+            justify-self: end;
+            align-self: center;
+            color: rgba(120,87,233,.54);
+            font-size: 17px;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .home-smart-visual {
+            display: none !important;
+        }
+
+        .recipes-open-row {
+            margin: 0 0 8px;
+        }
+
+        .recipe-coach-card {
+            margin: 0 0 8px;
+            padding: 11px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            line-height: 1.34;
+            box-shadow: 0 10px 22px rgba(77,68,54,.055), inset 0 1px 0 rgba(255,255,255,.74);
+        }
+
+        .recipe-coach-top {
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .recipe-coach-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 11px;
+            font-size: 11px;
+        }
+
+        .recipe-coach-title {
+            font-size: 13px;
+        }
+
+        .recipe-coach-caption {
+            font-size: 10px;
+            margin-top: 1px;
+        }
+
+        #recipe-coach-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .recipe-coach-chips {
+            gap: 5px;
+            margin-top: 7px;
+        }
+
+        .recipe-coach-chip {
+            min-height: 22px;
+            padding: 0 7px;
+            font-size: 10px;
+            font-weight: 850;
+        }
+
+        .recipe-filter-panel.recipe-section-control {
+            margin-bottom: 8px;
+        }
+
+        .daily-norm-card,
+        .macro-summary-card {
+            color: #25242b;
+            border: 1px solid rgba(112,96,70,.10);
+            background:
+                radial-gradient(circle at 15% 4%, rgba(217,208,243,.30), transparent 30%),
+                linear-gradient(145deg, rgba(255,253,248,.96), rgba(250,244,233,.86));
+            box-shadow: 0 14px 32px rgba(62,51,36,.09), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        .daily-norm-card {
+            --daily-pct: 0%;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 116px;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0 10px;
+            padding: 14px 15px;
+            border-radius: 26px;
+            overflow: hidden;
+        }
+
+        .daily-block-title {
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #557d6c;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 950;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+
+        .daily-title-icon {
+            flex: 0 0 auto;
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            color: #557d6c;
+            background: rgba(236,246,239,.78);
+            border: 1px solid rgba(95,143,122,.10);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+        }
+
+        .daily-title-icon svg {
+            width: 17px;
+            height: 17px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .daily-norm-percent {
+            margin-top: 12px;
+            color: #071512;
+            font-size: clamp(44px, 13vw, 62px);
+            line-height: .88;
+            font-weight: 950;
+            letter-spacing: 0;
+        }
+
+        .daily-norm-status {
+            width: fit-content;
+            max-width: 100%;
+            margin-top: 9px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            color: #756b5e;
+            background: rgba(255,255,255,.58);
+            border: 1px solid rgba(112,96,70,.08);
+            font-size: 11.5px;
+            line-height: 1;
+            font-weight: 850;
+            white-space: nowrap;
+        }
+
+        .daily-norm-card.is-kcal-over .daily-norm-status {
+            color: #a36d26;
+            background: rgba(255,239,214,.70);
+        }
+
+        .daily-norm-goal {
+            display: none;
+        }
+
+        .daily-norm-gauge {
+            position: relative;
+            width: 116px;
+            height: 78px;
+            align-self: end;
+        }
+
+        .daily-gauge-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .daily-gauge-svg path {
+            fill: none;
+            stroke-linecap: round;
+            stroke-width: 14;
+            stroke-dasharray: 125.66;
+        }
+
+        .daily-gauge-svg path:first-child {
+            stroke: rgba(82,73,58,.08);
+        }
+
+        .daily-gauge-svg #gauge-path {
+            stroke: #6ca47d;
+            filter: drop-shadow(0 8px 12px rgba(95,143,122,.18));
+            transition: stroke-dashoffset .45s var(--ease-soft);
+        }
+
+        .daily-gauge-center {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 6px;
+            display: grid;
+            place-items: center;
+            gap: 2px;
+            color: #071512;
+            text-align: center;
+        }
+
+        .daily-gauge-center strong {
+            font-size: 23px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .daily-gauge-center span {
+            color: #6d6964;
+            font-size: 14.5px;
+            line-height: 1;
+            font-weight: 780;
+        }
+
+        .daily-hidden-summary {
+            display: none;
+        }
+
+        .macro-summary-card {
+            margin: 0 0 10px;
+            padding: 13px;
+            border-radius: 26px;
+        }
+
+        .macro-summary-title {
+            margin-bottom: 11px;
+            color: #25242b;
+            font-size: 15px;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .macro-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .macro-mini-card {
+            min-width: 0;
+            min-height: 126px;
+            display: grid;
+            justify-items: center;
+            align-content: start;
+            gap: 5px;
+            padding: 10px 7px 8px;
+            border-radius: 20px;
+            background: rgba(255,255,255,.56);
+            border: 1px solid rgba(112,96,70,.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+        }
+
+        .macro-ring {
+            --ring-color: #c9a35f;
+            width: 58px;
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, rgba(255,253,248,.98) 0 55%, transparent 56%),
+                conic-gradient(var(--ring-color) calc(var(--pct) * 1%), rgba(82,73,58,.075) 0);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .macro-ring span {
+            color: #071512;
+            font-size: 13.5px;
+            line-height: 1;
+            font-weight: 820;
+        }
+
+        .macro-mini-card.carbs .macro-ring { --ring-color: #d9a48f; }
+        .macro-mini-card.fat .macro-ring { --ring-color: #e2b047; }
+        .macro-mini-card.protein .macro-ring { --ring-color: #6ca47d; }
+
+        .macro-mini-name {
+            color: #4f4b53;
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 850;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+        }
+
+        .macro-mini-value {
+            color: #67625c;
+            font-size: 11px;
+            line-height: 1.18;
+            font-weight: 850;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .macro-mini-bar {
+            width: 100%;
+            height: 3px;
+            margin-top: auto;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(82,73,58,.07);
+        }
+
+        .macro-mini-bar span {
+            display: block;
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--ring-color, #c9a35f);
+            transition: width .45s var(--ease-soft);
+        }
+
+        .macro-mini-card.carbs .macro-mini-bar span { background: #d9a48f; }
+        .macro-mini-card.fat .macro-mini-bar span { background: #e2b047; }
+        .macro-mini-card.protein .macro-mini-bar span { background: #6ca47d; }
+
+        .macro-water-card {
+            margin-top: 9px;
+            padding: 11px;
+            border-radius: 20px;
+            background:
+                radial-gradient(circle at 10% 14%, rgba(138,183,201,.18), transparent 34%),
+                rgba(247,252,254,.76);
+            border: 1px solid rgba(138,183,201,.20);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.86);
+        }
+
+        .macro-water-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .macro-water-title {
+            color: #4f8ca4;
+            font-size: 15px;
+            line-height: 1;
+            font-weight: 950;
+        }
+
+        .macro-water-value {
+            margin-top: 5px;
+            color: #6c7480;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 850;
+        }
+
+        .macro-water-percent {
+            color: #071512;
+            font-size: 24px;
+            line-height: 1;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .macro-water-bar {
+            height: 7px;
+            margin: 10px 0 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(138,183,201,.16);
+        }
+
+        .macro-water-bar span {
+            display: block;
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #7fb8d7, #5aa3d8);
+            transition: width .45s var(--ease-soft);
+        }
+
+        .macro-water-stepper {
+            display: grid;
+            grid-template-columns: 38px minmax(0, 1fr) 38px;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .macro-water-btn {
+            width: 38px;
+            min-width: 38px;
+            min-height: 38px;
+            padding: 0;
+            border-radius: 14px;
+            color: #4f8ca4;
+            background: linear-gradient(180deg, rgba(245,252,255,.98), rgba(224,241,248,.88));
+            border: 1px solid rgba(82,142,166,.18);
+            box-shadow: 0 7px 14px rgba(82,142,166,.10), inset 0 1px 0 rgba(255,255,255,.9);
+            font-size: 22px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .macro-water-btn-plus {
+            color: #fff;
+            background: linear-gradient(180deg, #94c8df, #5fa6c6);
+            border-color: rgba(95,166,198,.30);
+        }
+
+        .macro-water-step {
+            min-height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            color: #2f78a2;
+            background: rgba(235,248,253,.78);
+            border: 1px solid rgba(82,142,166,.14);
+            font-size: 13px;
+            font-weight: 950;
+        }
+
+        @media (max-width: 360px) {
+            .daily-norm-card {
+                grid-template-columns: minmax(0, 1fr) 102px;
+                padding: 13px;
+                gap: 8px;
+            }
+
+            .daily-norm-gauge {
+                width: 102px;
+                height: 72px;
+            }
+
+            .daily-norm-percent {
+                font-size: 40px;
+            }
+
+            .macro-summary-card {
+                padding: 11px;
+            }
+
+            .macro-grid {
+                gap: 6px;
+            }
+
+            .macro-mini-card {
+                min-height: 116px;
+                padding: 9px 5px 7px;
+                border-radius: 18px;
+            }
+
+            .macro-ring {
+                width: 50px;
+            }
+
+            .macro-ring span {
+                font-size: 11.5px;
+            }
+
+            .macro-mini-name,
+            .macro-mini-value {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            #recipe-list {
+                gap: 12px;
+            }
+
+            #recipe-list .recipe-card {
+                flex-basis: 150px;
+                width: 150px;
+                min-height: 246px;
+                max-height: 246px;
+                padding: 9px;
+            }
+
+            #recipe-list .recipe-image {
+                flex-basis: 88px;
+                height: 88px;
+            }
+
+            #recipe-list .recipe-no-image .recipe-image {
+                width: 46px;
+                flex-basis: 46px;
+                height: 46px;
+            }
+
+            #recipe-list .recipe-title {
+                font-size: 12.5px;
+            }
+        }
+
         /* Browser scroll recovery: keep Telegram modal locks, but never lock the main page. */
         html {
             height: auto !important;
@@ -5875,6 +6851,740 @@
             display: none !important;
         }
 
+        .coach-hero {
+            min-height: 208px;
+            padding: 18px 20px 14px;
+            margin-bottom: 10px;
+        }
+
+        .coach-kicker {
+            min-height: 28px;
+            margin-bottom: 10px;
+            padding: 0 12px;
+            font-size: 10.5px;
+        }
+
+        .coach-title {
+            max-width: min(340px, 100%);
+            font-size: clamp(34px, 8.1vw, 48px);
+            line-height: 1.02;
+            overflow-wrap: anywhere;
+        }
+
+        .coach-subtitle {
+            margin-top: 9px;
+            font-size: 14.5px;
+            line-height: 1.24;
+        }
+
+        .coach-meta-row {
+            margin-top: 11px;
+            gap: 7px;
+        }
+
+        .goal-status-badge,
+        .streak-badge {
+            min-height: 32px;
+            padding: 0 10px;
+            font-size: 12px;
+        }
+
+        .home-hero-visual {
+            min-height: 204px;
+            margin-top: -14px;
+            margin-bottom: -14px;
+        }
+
+        .home-hero-mascot {
+            max-height: 250px;
+        }
+
+        .focus-day-card {
+            --focus-graphite: #25242b;
+            --focus-muted: #78727e;
+            --focus-cream: #fffaf0;
+            --focus-pearl: #fffdf8;
+            --focus-champagne: #f5e3bd;
+            --focus-gold: #c9a35f;
+            --focus-lavender: #d9d0f3;
+            --focus-kcal: #c9a35f;
+            --focus-protein: #9f91ca;
+            --focus-water: #8ab7c9;
+            --daily-pct: 0%;
+            margin: 12px 0 12px;
+            padding: 15px;
+            border-radius: 30px;
+            background:
+                radial-gradient(circle at 18% 8%, rgba(217,208,243,.42), transparent 32%),
+                radial-gradient(circle at 92% 2%, rgba(245,227,189,.48), transparent 30%),
+                linear-gradient(145deg, rgba(255,253,248,.96), rgba(255,250,240,.88));
+            border: 1px solid rgba(112,96,70,.12);
+            box-shadow: 0 14px 34px rgba(62,51,36,.10), inset 0 1px 0 rgba(255,255,255,.9);
+            color: var(--focus-graphite);
+            overflow: visible;
+        }
+
+        .focus-day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .focus-day-title {
+            min-width: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 17px;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: 0;
+        }
+
+        .focus-day-target-icon,
+        .focus-day-metric-icon {
+            flex: 0 0 auto;
+            display: inline-grid;
+            place-items: center;
+            color: var(--focus-gold);
+        }
+
+        .focus-day-target-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.72);
+            border: 1px solid rgba(201,163,95,.18);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.95);
+        }
+
+        .focus-day-target-icon svg,
+        .focus-day-metric-icon svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .focus-day-goal {
+            flex: 0 0 auto;
+            max-width: 46%;
+            min-height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.62);
+            border: 1px solid rgba(201,163,95,.18);
+            color: #7d6944;
+            font-size: 11px;
+            line-height: 1.1;
+            font-weight: 850;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .focus-day-main {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) clamp(96px, 28vw, 112px);
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .focus-day-copy {
+            min-width: 0;
+            display: grid;
+            gap: 5px;
+        }
+
+        .focus-day-percent {
+            color: var(--focus-graphite);
+            font-size: clamp(42px, 14.5vw, 58px);
+            line-height: .94;
+            font-weight: 950;
+            letter-spacing: 0;
+            white-space: nowrap;
+        }
+
+        .focus-day-status {
+            color: var(--focus-muted);
+            font-size: clamp(13px, 3.7vw, 15px);
+            line-height: 1.2;
+            font-weight: 760;
+        }
+
+        .focus-day-ring {
+            position: relative;
+            width: clamp(96px, 28vw, 112px);
+            aspect-ratio: 1;
+            justify-self: end;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, rgba(255,253,248,.98) 0 54%, transparent 55%),
+                conic-gradient(from -90deg, var(--focus-gold) 0 var(--daily-pct), rgba(143,125,99,.13) var(--daily-pct) 100%);
+            box-shadow: 0 10px 22px rgba(87,70,47,.09), inset 0 1px 0 rgba(255,255,255,.86);
+        }
+
+        .focus-day-ring::before {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            border-radius: inherit;
+            border: 1px solid rgba(201,163,95,.12);
+        }
+
+        .focus-day-ring-core {
+            width: 48%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at 34% 28%, rgba(255,255,255,.9), transparent 42%),
+                linear-gradient(145deg, rgba(245,227,189,.55), rgba(217,208,243,.34));
+            border: 1px solid rgba(201,163,95,.12);
+        }
+
+        .focus-day-gauge-compat,
+        .focus-day-ring #gauge-cur,
+        .focus-day-ring #gauge-max {
+            display: none;
+        }
+
+        .focus-day-metrics {
+            display: grid;
+            gap: 4px;
+        }
+
+        .focus-day-metric {
+            min-height: 40px;
+            display: grid;
+            align-content: center;
+            gap: 5px;
+            padding: 6px 0 5px;
+            border-top: 1px solid rgba(87,72,52,.08);
+        }
+
+        .focus-day-metric-top {
+            min-width: 0;
+            display: grid;
+            grid-template-columns: 22px minmax(58px, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .focus-day-metric-name {
+            min-width: 0;
+            color: #5f5a63;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 780;
+        }
+
+        .focus-day-metric-value {
+            min-width: 0;
+            justify-self: end;
+            color: var(--focus-graphite);
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 880;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .focus-day-metric-kcal .focus-day-metric-icon { color: var(--focus-kcal); }
+        .focus-day-metric-protein .focus-day-metric-icon { color: var(--focus-protein); }
+        .focus-day-metric-water .focus-day-metric-icon { color: var(--focus-water); }
+
+        .focus-day-bar {
+            height: 3px;
+            width: 100%;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(67,57,43,.09);
+        }
+
+        .focus-day-bar span {
+            display: block;
+            width: 0%;
+            height: 100%;
+            border-radius: inherit;
+            transition: width .45s var(--ease-soft);
+        }
+
+        .focus-day-metric-kcal .focus-day-bar span {
+            background: linear-gradient(90deg, #c9a35f, #efd28f);
+        }
+
+        .focus-day-metric-protein .focus-day-bar span {
+            background: linear-gradient(90deg, #9f91ca, #cfc4ef);
+        }
+
+        .focus-day-metric-water .focus-day-bar span {
+            background: linear-gradient(90deg, #8ab7c9, #c8e4ee);
+        }
+
+        .focus-day-water-btn {
+            min-width: 76px;
+            min-height: 32px;
+            padding: 0 12px;
+            border: 0;
+            border-radius: 999px;
+            background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(245,227,189,.58));
+            color: #765f34;
+            box-shadow: 0 9px 18px rgba(108,84,45,.16), inset 0 1px 0 rgba(255,255,255,.92);
+            font-size: 12px;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .focus-day-metric-water .focus-day-metric-top {
+            grid-template-columns: 22px minmax(38px, 1fr) auto auto;
+        }
+
+        @media (max-width: 430px) {
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) minmax(132px, 39%);
+                min-height: 204px;
+                padding: 16px 16px 13px;
+            }
+
+            .coach-title {
+                max-width: min(260px, 100%);
+                font-size: clamp(31px, 9.9vw, 41px);
+                line-height: 1.03;
+            }
+
+            .coach-subtitle {
+                max-width: 250px;
+                font-size: 13.5px;
+            }
+
+            .coach-meta-row {
+                flex-wrap: wrap;
+                margin-top: 10px;
+                gap: 7px;
+            }
+
+            .goal-status-badge,
+            .streak-badge {
+                min-height: 30px;
+                padding: 0 9px;
+                border-radius: 14px;
+                font-size: 11.5px;
+            }
+
+            .home-hero-visual {
+                min-height: 196px;
+                margin: -12px -28px -14px -48px;
+            }
+
+            .home-hero-mascot {
+                max-height: 236px;
+            }
+        }
+
+        @media (max-width: 390px) {
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) 112px;
+                min-height: 194px;
+                padding: 15px 14px 12px;
+            }
+
+            .coach-title {
+                max-width: min(222px, 100%);
+                font-size: clamp(29px, 9.7vw, 37px);
+            }
+
+            .coach-kicker {
+                margin-bottom: 8px;
+            }
+
+            .coach-subtitle {
+                margin-top: 8px;
+                max-width: 218px;
+                font-size: 12.8px;
+            }
+
+            .home-hero-visual {
+                min-height: 184px;
+                margin-left: -43px;
+                margin-right: -25px;
+            }
+
+            .home-hero-mascot {
+                max-height: 218px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) 102px;
+                min-height: 186px;
+                padding: 14px 13px 12px;
+            }
+
+            .coach-title {
+                max-width: min(204px, 100%);
+                font-size: clamp(27px, 9.2vw, 33px);
+            }
+
+            .coach-subtitle {
+                max-width: 200px;
+            }
+
+            .home-hero-visual {
+                min-height: 172px;
+                margin-left: -39px;
+            }
+
+            .home-hero-mascot {
+                max-height: 202px;
+            }
+
+            .focus-day-card {
+                padding: 14px;
+                border-radius: 28px;
+            }
+
+            .focus-day-title {
+                font-size: 17px;
+            }
+
+            .focus-day-goal {
+                max-width: 48%;
+                padding: 0 9px;
+                font-size: 11px;
+            }
+
+            .focus-day-main {
+                grid-template-columns: minmax(0, 1fr) 92px;
+                gap: 9px;
+            }
+
+            .focus-day-ring {
+                width: 92px;
+            }
+
+            .focus-day-metric-top {
+                grid-template-columns: 22px minmax(52px, 1fr) auto;
+                gap: 7px;
+            }
+
+            .focus-day-metric-water .focus-day-metric-top {
+                grid-template-columns: 22px minmax(36px, 1fr) auto auto;
+            }
+
+            .focus-day-water-btn {
+                min-width: 68px;
+                min-height: 30px;
+                padding: 0 9px;
+                font-size: 11px;
+            }
+
+            .focus-day-metric-name,
+            .focus-day-metric-value {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 330px) {
+            .coach-hero {
+                grid-template-columns: minmax(0, 1fr) 92px;
+                min-height: 180px;
+            }
+
+            .coach-title {
+                max-width: min(188px, 100%);
+                font-size: 26px;
+            }
+
+            .focus-day-main {
+                grid-template-columns: minmax(0, 1fr) 86px;
+            }
+
+            .focus-day-ring {
+                width: 86px;
+            }
+
+            .focus-day-percent {
+                font-size: 40px;
+            }
+
+            .focus-day-goal {
+                max-width: 50%;
+            }
+        }
+
+        /* Stage 5: premium bento refinement for Focus day only. */
+        .focus-day-card {
+            --focus-accent: var(--focus-gold);
+            --focus-accent-soft: rgba(201,163,95,.18);
+            padding: 14px;
+            background:
+                radial-gradient(circle at 16% 6%, rgba(217,208,243,.34), transparent 30%),
+                radial-gradient(circle at 94% 0%, rgba(245,227,189,.45), transparent 32%),
+                linear-gradient(145deg, rgba(255,253,248,.98), rgba(250,244,233,.88));
+            box-shadow: 0 16px 38px rgba(62,51,36,.11), inset 0 1px 0 rgba(255,255,255,.94);
+        }
+
+        .focus-day-card.is-kcal-over {
+            --focus-accent: #d49a45;
+            --focus-accent-soft: rgba(212,154,69,.20);
+        }
+
+        .focus-day-card.is-kcal-over .focus-day-status {
+            color: #a36d26;
+        }
+
+        .focus-day-header {
+            margin-bottom: 9px;
+        }
+
+        .focus-day-goal {
+            background: rgba(255,255,255,.70);
+            border-color: rgba(201,163,95,.16);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        .focus-day-main {
+            grid-template-columns: minmax(0, 1fr) clamp(86px, 24.5vw, 98px);
+            gap: 12px;
+            margin-bottom: 9px;
+        }
+
+        .focus-day-percent {
+            font-size: clamp(40px, 12.8vw, 52px);
+        }
+
+        .focus-day-status {
+            width: fit-content;
+            max-width: 100%;
+            padding: 5px 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.58);
+            border: 1px solid rgba(112,96,70,.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+            font-size: clamp(11.5px, 3.25vw, 13px);
+            font-weight: 850;
+        }
+
+        .focus-day-ring {
+            width: clamp(86px, 24.5vw, 98px);
+            background:
+                radial-gradient(circle, rgba(255,253,248,.99) 0 50%, transparent 51%),
+                conic-gradient(from -90deg, var(--focus-accent) 0 var(--daily-pct), rgba(143,125,99,.11) var(--daily-pct) 100%);
+            box-shadow: 0 10px 22px rgba(87,70,47,.085), inset 0 1px 0 rgba(255,255,255,.92);
+        }
+
+        .focus-day-ring::before {
+            inset: 7px;
+            border: 1px solid var(--focus-accent-soft);
+        }
+
+        .focus-day-ring::after {
+            content: "";
+            position: absolute;
+            inset: 16px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(250,244,233,.58));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+        }
+
+        .focus-day-ring-core {
+            position: relative;
+            z-index: 1;
+            width: 35%;
+            background: linear-gradient(145deg, rgba(245,227,189,.48), rgba(217,208,243,.26));
+        }
+
+        .focus-day-metrics {
+            gap: 6px;
+        }
+
+        .focus-day-metric {
+            min-height: 46px;
+            gap: 6px;
+            padding: 8px 10px 7px;
+            border: 1px solid rgba(112,96,70,.08);
+            border-radius: 18px;
+            background: rgba(255,255,255,.48);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.74);
+        }
+
+        .focus-day-metric-top {
+            grid-template-columns: 22px minmax(0, 1fr) auto;
+            gap: 7px;
+        }
+
+        .focus-day-metric-icon {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.66);
+            border: 1px solid rgba(112,96,70,.07);
+        }
+
+        .focus-day-metric-icon svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .focus-day-metric-name {
+            color: #5e5964;
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        .focus-day-metric-value {
+            padding-left: 6px;
+            color: #25242b;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .focus-day-bar {
+            height: 4px;
+            background: rgba(67,57,43,.075);
+        }
+
+        .focus-day-metric-water {
+            background:
+                radial-gradient(circle at 12% 18%, rgba(138,183,201,.14), transparent 38%),
+                rgba(255,255,255,.52);
+            border-color: rgba(138,183,201,.16);
+        }
+
+        .focus-day-metric-water .focus-day-metric-top {
+            grid-template-columns: 22px minmax(0, 1fr) auto;
+        }
+
+        .focus-day-water-stepper {
+            display: grid;
+            grid-template-columns: 34px auto 34px;
+            align-items: center;
+            justify-content: end;
+            justify-self: end;
+            gap: 7px;
+            margin-top: -1px;
+        }
+
+        .focus-day-water-step {
+            min-height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 9px;
+            border-radius: 999px;
+            color: #5f8ea1;
+            background: rgba(242,250,253,.72);
+            border: 1px solid rgba(82,142,166,.12);
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .focus-day-water-btn {
+            width: 34px;
+            min-width: 34px;
+            min-height: 30px;
+            padding: 0;
+            border: 1px solid rgba(82,142,166,.18);
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(242,250,253,.96), rgba(218,238,246,.88));
+            color: #4f8297;
+            box-shadow: 0 8px 16px rgba(82,142,166,.12), inset 0 1px 0 rgba(255,255,255,.9);
+            font-size: 17px;
+            line-height: 1;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .focus-day-water-btn-plus {
+            color: #fff;
+            background: linear-gradient(180deg, #9fcbda, #72aabd);
+            border-color: rgba(114,170,189,.28);
+            box-shadow: 0 10px 20px rgba(82,142,166,.18), inset 0 1px 0 rgba(255,255,255,.36);
+        }
+
+        .focus-day-water-btn:active {
+            transform: scale(.98);
+        }
+
+        @media (max-width: 360px) {
+            .focus-day-card {
+                padding: 13px;
+            }
+
+            .focus-day-main {
+                grid-template-columns: minmax(0, 1fr) 80px;
+                gap: 9px;
+            }
+
+            .focus-day-ring {
+                width: 80px;
+            }
+
+            .focus-day-metric {
+                padding: 8px 9px 7px;
+            }
+
+            .focus-day-metric-top {
+                grid-template-columns: 22px minmax(0, 1fr) auto;
+                gap: 7px;
+            }
+
+            .focus-day-metric-water .focus-day-metric-top {
+                grid-template-columns: 22px minmax(0, 1fr) auto;
+            }
+
+            .focus-day-metric-name,
+            .focus-day-metric-value {
+                font-size: 12px;
+            }
+
+            .focus-day-water-stepper {
+                grid-template-columns: 32px auto 32px;
+                gap: 6px;
+            }
+
+            .focus-day-water-step {
+                min-height: 29px;
+                padding: 0 7px;
+                font-size: 10.5px;
+            }
+
+            .focus-day-water-btn {
+                width: 32px;
+                min-width: 32px;
+                min-height: 29px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 330px) {
+            .focus-day-main {
+                grid-template-columns: minmax(0, 1fr) 76px;
+            }
+
+            .focus-day-ring {
+                width: 76px;
+            }
+
+            .focus-day-percent {
+                font-size: 37px;
+            }
+        }
+
         .daily-summary-card {
             margin: 14px 0 12px !important;
             padding: clamp(16px, 4.6vw, 22px) !important;
@@ -6392,5 +8102,706 @@
 
             .daily-summary-card .daily-water-add-btn {
                 justify-self: start !important;
+            }
+        }
+
+        /* Final home mobile polish: rhythm, hierarchy, and compact controls. */
+        .daily-norm-card {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) clamp(84px, 27vw, 112px) !important;
+            align-items: center !important;
+            gap: 14px !important;
+            padding: 16px 17px !important;
+        }
+
+        .daily-norm-copy {
+            min-width: 0 !important;
+            display: grid !important;
+            align-content: center !important;
+            gap: 6px !important;
+        }
+
+        .daily-norm-percent {
+            margin: 2px 0 0 !important;
+            font-size: clamp(42px, 13vw, 58px) !important;
+            line-height: .92 !important;
+            letter-spacing: 0 !important;
+        }
+
+        .daily-norm-status {
+            margin: 0 !important;
+            color: #4b4358 !important;
+            font-size: clamp(13px, 3.8vw, 15px) !important;
+            line-height: 1.2 !important;
+            font-weight: 880 !important;
+        }
+
+        .daily-norm-goal {
+            margin-top: 1px !important;
+            font-size: 11.5px !important;
+            line-height: 1.2 !important;
+            font-weight: 760 !important;
+        }
+
+        .daily-norm-gauge {
+            justify-self: end !important;
+            align-self: center !important;
+            width: clamp(80px, 25vw, 108px) !important;
+            min-width: 0 !important;
+            transform: none !important;
+        }
+
+        .daily-gauge-svg {
+            width: 100% !important;
+            height: auto !important;
+            display: block !important;
+        }
+
+        .daily-gauge-center {
+            transform: translateY(-1px) !important;
+        }
+
+        .macro-summary-card {
+            padding: 14px !important;
+            border-radius: 25px !important;
+        }
+
+        .macro-summary-title {
+            margin-bottom: 10px !important;
+        }
+
+        .macro-grid {
+            gap: 7px !important;
+        }
+
+        .macro-mini-card {
+            min-height: 118px !important;
+            display: grid !important;
+            grid-template-rows: auto auto auto 1fr !important;
+            align-content: start !important;
+            justify-items: center !important;
+            gap: 5px !important;
+            padding: 9px 6px 8px !important;
+        }
+
+        .macro-ring {
+            width: clamp(52px, 15vw, 58px) !important;
+        }
+
+        .macro-mini-name {
+            margin-top: 1px !important;
+            font-size: 10.5px !important;
+        }
+
+        .macro-mini-value {
+            max-width: 100% !important;
+            font-size: 10.5px !important;
+            line-height: 1.18 !important;
+            white-space: normal !important;
+        }
+
+        .macro-water-card {
+            padding: 12px !important;
+            border-radius: 20px !important;
+        }
+
+        .macro-water-head {
+            align-items: center !important;
+        }
+
+        .macro-water-title {
+            font-size: 14px !important;
+            line-height: 1.1 !important;
+        }
+
+        .macro-water-value {
+            margin-top: 4px !important;
+            font-size: 12px !important;
+            line-height: 1.2 !important;
+        }
+
+        .macro-water-percent {
+            font-size: 22px !important;
+        }
+
+        .macro-water-stepper {
+            grid-template-columns: 40px minmax(0, 1fr) 40px !important;
+            gap: 7px !important;
+        }
+
+        .macro-water-btn,
+        .macro-water-step {
+            min-height: 38px !important;
+            border-radius: 14px !important;
+        }
+
+        .macro-water-btn {
+            width: 40px !important;
+            min-width: 40px !important;
+            display: grid !important;
+            place-items: center !important;
+        }
+
+        .macro-water-step {
+            font-size: 13px !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.88) !important;
+        }
+
+        .coach-feedback-card.smart.home-smart-card {
+            padding: 9px 12px !important;
+            grid-template-columns: 48px minmax(0, 1fr) 18px !important;
+            column-gap: 11px !important;
+        }
+
+        .home-smart-copy {
+            gap: 5px !important;
+        }
+
+        .home-smart-copy .coach-card-value {
+            line-height: 1.3 !important;
+            font-weight: 700 !important;
+        }
+
+        #recipe-list {
+            gap: 11px !important;
+            padding: 3px 2px 15px 0 !important;
+            scroll-padding-left: 0 !important;
+        }
+
+        #recipe-list .recipe-card {
+            flex-basis: clamp(154px, 43vw, 170px) !important;
+            width: clamp(154px, 43vw, 170px) !important;
+            min-height: 246px !important;
+            max-height: 246px !important;
+            padding: 10px !important;
+            border-radius: 22px !important;
+        }
+
+        #recipe-list .recipe-image {
+            flex-basis: 90px !important;
+            height: 90px !important;
+            border-radius: 18px !important;
+        }
+
+        #recipe-list .recipe-content {
+            gap: 5px !important;
+            padding-top: 8px !important;
+        }
+
+        #recipe-list .recipe-title {
+            min-height: 32px !important;
+            font-size: 13px !important;
+            line-height: 1.24 !important;
+        }
+
+        #recipe-list .recipe-kbju-line {
+            min-height: 27px !important;
+            font-size: 10.4px !important;
+            line-height: 1.32 !important;
+        }
+
+        #recipe-list .recipe-add-btn {
+            min-height: 33px !important;
+        }
+
+        .history-header {
+            margin: 22px 0 12px !important;
+            align-items: center !important;
+        }
+
+        #history-list {
+            display: grid !important;
+            gap: 10px !important;
+        }
+
+        .meal-group {
+            padding: 13px !important;
+            border-radius: 22px !important;
+            background: rgba(255,255,255,.72) !important;
+            border: 1px solid rgba(82,73,58,.08) !important;
+            box-shadow: 0 10px 24px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.82) !important;
+        }
+
+        .meal-group-header {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+
+        .meal-name {
+            color: #25242b !important;
+            font-size: 15px !important;
+            line-height: 1.15 !important;
+            font-weight: 920 !important;
+        }
+
+        .meal-stats {
+            text-align: right !important;
+        }
+
+        .meal-kcal {
+            color: #557d6c !important;
+            font-size: 14px !important;
+            line-height: 1.1 !important;
+            font-weight: 920 !important;
+        }
+
+        .meal-macros {
+            margin-top: 3px !important;
+            color: var(--text-muted) !important;
+            font-size: 10.5px !important;
+            line-height: 1.2 !important;
+            font-weight: 760 !important;
+            white-space: nowrap !important;
+        }
+
+        .meal-progress {
+            height: 5px !important;
+            margin: 10px 0 5px !important;
+            border-radius: 999px !important;
+            background: rgba(82,73,58,.07) !important;
+        }
+
+        .meal-progress-caption {
+            color: var(--text-muted) !important;
+            font-size: 10.5px !important;
+            line-height: 1.2 !important;
+            font-weight: 720 !important;
+        }
+
+        .meal-group-content {
+            display: grid !important;
+            gap: 6px !important;
+            margin-top: 9px !important;
+        }
+
+        .history-item {
+            min-height: 48px !important;
+            padding: 9px 0 !important;
+            align-items: center !important;
+        }
+
+        .history-item > div:first-child {
+            min-width: 0 !important;
+        }
+
+        @media (max-width: 360px) {
+            .daily-norm-card {
+                grid-template-columns: minmax(0, 1fr) 78px !important;
+                gap: 10px !important;
+                padding: 15px !important;
+            }
+
+            .macro-grid {
+                gap: 6px !important;
+            }
+
+            .macro-mini-card {
+                min-height: 112px !important;
+                padding-inline: 5px !important;
+            }
+
+            #recipe-list .recipe-card {
+                flex-basis: 150px !important;
+                width: 150px !important;
+            }
+
+            .meal-group-header {
+                grid-template-columns: 1fr !important;
+                gap: 6px !important;
+            }
+
+            .meal-stats {
+                text-align: left !important;
+            }
+        }
+
+        /* Daily norm card inner redesign: compact header, two-column core, one progress bar. */
+        .daily-norm-card {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+            margin: 10px 0 !important;
+            padding: 15px !important;
+            border-radius: 26px !important;
+        }
+
+        .daily-norm-header {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+
+        .daily-norm-header .daily-block-title {
+            min-width: 0 !important;
+            font-size: 11.5px !important;
+            line-height: 1 !important;
+            letter-spacing: .055em !important;
+        }
+
+        .daily-norm-header .daily-title-icon {
+            width: 28px !important;
+            height: 28px !important;
+            border-radius: 11px !important;
+        }
+
+        .daily-norm-header .daily-title-icon svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+
+        .daily-norm-goal {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            max-width: 128px !important;
+            min-height: 28px !important;
+            padding: 0 10px !important;
+            border-radius: 999px !important;
+            color: #8a6a32 !important;
+            background: rgba(255,241,210,.70) !important;
+            border: 1px solid rgba(199,151,71,.16) !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            font-weight: 880 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .daily-norm-body {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) clamp(128px, 39vw, 154px) !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+
+        .daily-norm-copy {
+            min-width: 0 !important;
+            display: grid !important;
+            align-content: center !important;
+            justify-items: start !important;
+            gap: 5px !important;
+        }
+
+        .daily-norm-percent {
+            margin: 0 !important;
+            color: #121217 !important;
+            font-size: clamp(43px, 13vw, 56px) !important;
+            line-height: .88 !important;
+            font-weight: 960 !important;
+        }
+
+        .daily-norm-label {
+            margin-top: 2px !important;
+            color: #8d7f70 !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            font-weight: 820 !important;
+            letter-spacing: .025em !important;
+            text-transform: uppercase !important;
+        }
+
+        .daily-norm-status {
+            width: fit-content !important;
+            max-width: 100% !important;
+            margin: 3px 0 0 !important;
+            padding: 6px 9px !important;
+            border-radius: 999px !important;
+            color: #5e5146 !important;
+            background: rgba(255,255,255,.66) !important;
+            border: 1px solid rgba(112,96,70,.09) !important;
+            font-size: clamp(11.5px, 3.4vw, 13px) !important;
+            line-height: 1 !important;
+            font-weight: 860 !important;
+            white-space: nowrap !important;
+        }
+
+        .daily-norm-card.is-kcal-over .daily-norm-status {
+            color: #9a6a2f !important;
+            background: rgba(255,239,214,.76) !important;
+        }
+
+        .daily-norm-gauge {
+            position: relative !important;
+            justify-self: end !important;
+            align-self: center !important;
+            width: clamp(128px, 39vw, 154px) !important;
+            height: clamp(82px, 25vw, 98px) !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .daily-gauge-svg {
+            position: absolute !important;
+            inset: 0 !important;
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: visible !important;
+        }
+
+        .daily-gauge-svg path {
+            fill: none !important;
+            stroke-linecap: round !important;
+            stroke-width: 13.5 !important;
+            stroke-dasharray: 125.66 !important;
+        }
+
+        .daily-gauge-svg path:first-child {
+            stroke: rgba(104,91,70,.105) !important;
+        }
+
+        .daily-gauge-svg #gauge-path {
+            stroke: #78a983 !important;
+            filter: drop-shadow(0 7px 12px rgba(117,167,131,.20)) !important;
+        }
+
+        .daily-gauge-center {
+            position: absolute !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 7px !important;
+            display: grid !important;
+            place-items: center !important;
+            gap: 3px !important;
+            transform: none !important;
+            text-align: center !important;
+        }
+
+        .daily-gauge-center strong {
+            color: #16161a !important;
+            font-size: clamp(20px, 5.8vw, 25px) !important;
+            line-height: 1 !important;
+            font-weight: 930 !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .daily-gauge-center strong::after {
+            content: " ккал" !important;
+            color: #7f7467 !important;
+            font-size: 10.5px !important;
+            font-weight: 820 !important;
+            letter-spacing: 0 !important;
+        }
+
+        .daily-gauge-center span {
+            color: #8b7a63 !important;
+            font-size: clamp(9.5px, 2.8vw, 10.5px) !important;
+            line-height: 1 !important;
+            font-weight: 780 !important;
+            white-space: nowrap !important;
+        }
+
+        .daily-gauge-center span::before {
+            content: "из " !important;
+        }
+
+        .daily-gauge-center span::after {
+            content: " ккал" !important;
+        }
+
+        .daily-norm-progress {
+            height: 7px !important;
+            overflow: hidden !important;
+            border-radius: 999px !important;
+            background: rgba(82,73,58,.085) !important;
+        }
+
+        .daily-norm-progress span {
+            display: block !important;
+            width: min(var(--daily-pct, 0%), 100%) !important;
+            height: 100% !important;
+            border-radius: inherit !important;
+            background: linear-gradient(90deg, #75a783, #d9bd73) !important;
+            box-shadow: 0 6px 14px rgba(117,167,131,.16) !important;
+            transition: width .45s var(--ease-soft) !important;
+        }
+
+        @media (max-width: 360px) {
+            .daily-norm-card {
+                gap: 11px !important;
+                padding: 14px !important;
+            }
+
+            .daily-norm-body {
+                grid-template-columns: minmax(0, 1fr) 116px !important;
+                gap: 8px !important;
+            }
+
+            .daily-norm-gauge {
+                width: 116px !important;
+                height: 78px !important;
+            }
+
+            .daily-norm-goal {
+                max-width: 112px !important;
+                padding-inline: 8px !important;
+            }
+        }
+
+        /* Mobile premium bento bottom navigation */
+        .home-bottom-nav {
+            position: fixed !important;
+            left: max(12px, env(safe-area-inset-left)) !important;
+            right: max(12px, env(safe-area-inset-right)) !important;
+            bottom: max(10px, env(safe-area-inset-bottom)) !important;
+            z-index: 3000 !important;
+            display: grid !important;
+            grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+            align-items: end !important;
+            gap: 0 !important;
+            width: auto !important;
+            max-width: calc(100vw - max(24px, calc(env(safe-area-inset-left) + env(safe-area-inset-right) + 24px))) !important;
+            min-height: 72px !important;
+            margin: 0 auto !important;
+            padding: 10px 9px 9px !important;
+            border: 1px solid rgba(255,255,255,.78) !important;
+            border-radius: 30px !important;
+            background:
+                linear-gradient(180deg, rgba(255,253,248,.88), rgba(247,243,234,.78)),
+                radial-gradient(circle at 50% 0%, rgba(159,202,187,.18), transparent 48%) !important;
+            box-shadow: 0 18px 44px rgba(82,73,58,.16), 0 7px 18px rgba(95,143,122,.08), inset 0 1px 0 rgba(255,255,255,.92) !important;
+            backdrop-filter: blur(18px) saturate(1.08) !important;
+            -webkit-backdrop-filter: blur(18px) saturate(1.08) !important;
+            overflow: visible !important;
+        }
+
+        .home-bottom-nav button {
+            min-width: 0 !important;
+            min-height: 52px !important;
+            display: grid !important;
+            place-items: center !important;
+            align-content: center !important;
+            gap: 4px !important;
+            padding: 6px 3px !important;
+            border: 0 !important;
+            border-radius: 20px !important;
+            color: #6e756f !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            font-size: 10.5px !important;
+            line-height: 1 !important;
+            font-weight: 760 !important;
+            letter-spacing: 0 !important;
+            white-space: nowrap !important;
+        }
+
+        .home-bottom-nav button span {
+            width: 24px !important;
+            height: 24px !important;
+            display: grid !important;
+            place-items: center !important;
+            margin: 0 !important;
+            border-radius: 999px !important;
+            color: inherit !important;
+            background: transparent !important;
+        }
+
+        .home-bottom-nav button b {
+            max-width: 100% !important;
+            overflow: hidden !important;
+            color: inherit !important;
+            font: inherit !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .home-bottom-nav svg {
+            width: 21px !important;
+            height: 21px !important;
+            fill: none !important;
+            stroke: currentColor !important;
+            stroke-width: 1.9 !important;
+            stroke-linecap: round !important;
+            stroke-linejoin: round !important;
+        }
+
+        .home-bottom-nav .home-bottom-nav-item.active {
+            color: #557d6c !important;
+            background: rgba(95,143,122,.105) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.74) !important;
+        }
+
+        .home-bottom-nav .home-bottom-nav-item.active span {
+            color: #5f8f7a !important;
+        }
+
+        .home-bottom-nav .home-bottom-nav-add {
+            min-height: 66px !important;
+            align-self: start !important;
+            margin-top: -29px !important;
+            color: #466d5b !important;
+            font-size: 10px !important;
+            font-weight: 860 !important;
+        }
+
+        .home-bottom-nav .home-bottom-nav-add span {
+            width: 58px !important;
+            height: 58px !important;
+            color: #fdfbf4 !important;
+            background:
+                radial-gradient(circle at 32% 22%, rgba(255,255,255,.46), transparent 34%),
+                linear-gradient(145deg, #9fcabb, #6f9d88) !important;
+            border: 1px solid rgba(255,255,255,.78) !important;
+            box-shadow: 0 16px 30px rgba(95,143,122,.28), 0 5px 12px rgba(201,163,78,.12), inset 0 1px 0 rgba(255,255,255,.72) !important;
+        }
+
+        .home-bottom-nav .home-bottom-nav-add svg {
+            width: 27px !important;
+            height: 27px !important;
+            stroke-width: 2.25 !important;
+        }
+
+        @media (min-width: 560px) {
+            .home-bottom-nav {
+                display: none !important;
+            }
+        }
+
+        @media (max-width: 559px) {
+            body {
+                padding-bottom: max(132px, calc(112px + env(safe-area-inset-bottom))) !important;
+            }
+
+            body:not(.app-scroll-locked) #app-content {
+                padding-bottom: max(132px, calc(112px + env(safe-area-inset-bottom))) !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .home-bottom-nav {
+                left: max(8px, env(safe-area-inset-left)) !important;
+                right: max(8px, env(safe-area-inset-right)) !important;
+                min-height: 68px !important;
+                padding-inline: 7px !important;
+                border-radius: 27px !important;
+            }
+
+            .home-bottom-nav button {
+                font-size: 9.6px !important;
+            }
+
+            .home-bottom-nav button span {
+                width: 22px !important;
+                height: 22px !important;
+            }
+
+            .home-bottom-nav svg {
+                width: 19px !important;
+                height: 19px !important;
+            }
+
+            .home-bottom-nav .home-bottom-nav-add span {
+                width: 54px !important;
+                height: 54px !important;
             }
         }

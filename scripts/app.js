@@ -886,6 +886,153 @@
             setLockedLayer('info', document.getElementById('info-sheet-overlay'), false);
         }
 
+        const SMART_TIP_RECOMMENDATIONS = {
+            protein: {
+                status: 'Главный фокус: добрать белок',
+                shortText: 'Главный фокус — белок. Добавь творог, яйца или рыбу.',
+                foods: ['куриная грудка', 'рыба', 'творог', 'яйца', 'греческий йогурт', 'протеиновая овсянка'],
+                portions: ['куриная грудка — 120–160 г', 'рыба — 120–180 г', 'творог 5% — 150–200 г', 'яйца — 2 шт.', 'греческий йогурт — 180–250 г'],
+                action: 'Сделай ближайший прием пищи белковым и не добирай норму сладким перекусом.'
+            },
+            carbs: {
+                status: 'Главный фокус: добрать углеводы',
+                shortText: 'Главный фокус — углеводы. Добавь крупу рядом с белком.',
+                foods: ['рис', 'гречка', 'булгур', 'овсянка', 'цельнозерновой хлеб', 'банан'],
+                portions: ['рис/гречка/булгур в готовом виде — 120–180 г', 'овсянка сухая — 40–60 г', 'цельнозерновой хлеб — 1–2 ломтика', 'банан — 1 шт.'],
+                action: 'Добавь спокойный источник углеводов рядом с белком, чтобы энергия держалась ровнее.'
+            },
+            fat: {
+                status: 'Главный фокус: добрать жиры',
+                shortText: 'Главный фокус — жиры. Добавь орехи, авокадо или яйца.',
+                foods: ['авокадо', 'орехи', 'оливковое масло', 'лосось', 'яйца'],
+                portions: ['орехи — 15–25 г', 'авокадо — 50–80 г', 'оливковое масло — 1 ч. л.', 'лосось — 120–180 г', 'яйца — 2 шт.'],
+                action: 'Добавь небольшую порцию жиров к обычному блюду, без тяжелого перекуса.'
+            },
+            water: {
+                status: 'Главный фокус: вода',
+                shortText: 'Главный фокус — вода. Выпей 250 мл сейчас.',
+                foods: ['вода 250–500 мл сейчас'],
+                portions: ['вода — 250 мл сейчас'],
+                action: 'Добавь 250 мл сейчас. Если через час все еще мало, повтори еще один стакан.'
+            },
+            calories: {
+                status: 'Главный фокус: закрыть калории',
+                shortText: 'Главный фокус — калории. Выбери полноценный прием пищи.',
+                foods: ['курица с крупой', 'рыба с рисом', 'гречка с яйцами', 'протеиновая овсянка', 'йогурт с бананом'],
+                portions: ['куриная грудка — 120–160 г', 'рыба — 120–180 г', 'рис/гречка/булгур в готовом виде — 120–180 г', 'овсянка сухая — 40–60 г'],
+                action: 'Лучше выбрать полноценный прием пищи: белок плюс крупа, а не быстрый сладкий перекус.'
+            },
+            over: {
+                status: 'Главный фокус: не превышать норму',
+                shortText: 'Главный фокус — без перебора. Вода и легкий следующий прием.',
+                foods: ['вода 250–500 мл сейчас', 'овощи без тяжелых соусов', 'легкий белковый прием позже'],
+                portions: ['вода — 250 мл сейчас', 'овощи — спокойная порция', 'следующий прием — легче обычного'],
+                action: 'Не нужно компенсировать жестко. Пей воду, а следующий прием сделай легче и проще.'
+            },
+            start: {
+                status: 'Главный фокус: начать день',
+                shortText: 'Добавь первый приём пищи, и я покажу точный фокус дня.',
+                foods: ['куриная грудка', 'рыба', 'творог', 'овсянка', 'гречка', 'вода 250 мл'],
+                portions: ['творог 5% — 150–200 г', 'овсянка сухая — 40–60 г', 'яйца — 2 шт.', 'вода — 250 мл сейчас'],
+                action: 'Добавь первый прием пищи или стакан воды, и подсказка станет точнее.'
+            }
+        };
+
+        function buildSmartTipRecommendation() {
+            const targetKcal = Number(userProfile.target_kcal) || 0;
+            const targetProtein = Number(userProfile.target_protein) || 0;
+            const targetFat = Number(userProfile.target_fat) || 0;
+            const targetCarbs = Number(userProfile.target_carbs) || 0;
+            const targetWater = Number(userProfile.target_water) || 2000;
+            const currentKcal = Number(stats.kcal) || 0;
+            const currentProtein = Number(stats.protein) || 0;
+            const currentFat = Number(stats.fat) || 0;
+            const currentCarbs = Number(stats.carbs) || 0;
+            const currentWater = Number(dailyWater) || 0;
+            const kcalLeft = Math.max(targetKcal - currentKcal, 0);
+            const waterLeft = Math.max(targetWater - currentWater, 0);
+            const waterPct = targetWater > 0 ? (currentWater / targetWater) * 100 : 0;
+
+            let focus = 'start';
+            let copy = 'Добавьте первый прием пищи, и я покажу точный фокус дня.';
+
+            if (targetKcal > 0 && currentKcal > targetKcal) {
+                focus = 'over';
+                copy = 'Калории уже выше дневной цели. Сейчас лучше вода и более легкий следующий прием.';
+            } else if (waterLeft >= 250 && waterPct < 55) {
+                focus = 'water';
+                copy = 'Воды пока мало. Выпей 250 мл сейчас, чтобы не отставать от дневной нормы.';
+            } else if (currentKcal > 0) {
+                const gaps = [
+                    { key: 'protein', left: Math.max(targetProtein - currentProtein, 0), target: targetProtein },
+                    { key: 'carbs', left: Math.max(targetCarbs - currentCarbs, 0), target: targetCarbs },
+                    { key: 'fat', left: Math.max(targetFat - currentFat, 0), target: targetFat }
+                ].map(item => ({ ...item, ratio: item.target > 0 ? item.left / item.target : 0 }))
+                    .sort((a, b) => b.ratio - a.ratio);
+                const biggestGap = gaps[0];
+
+                if (biggestGap && biggestGap.ratio >= 0.18) {
+                    focus = biggestGap.key;
+                    if (focus === 'protein') copy = 'Белок ниже цели. Добери его творогом, яйцами, рыбой или спокойным белковым приемом.';
+                    if (focus === 'carbs') copy = 'Углеводы ниже цели. Добери их крупой, овсянкой или фруктом рядом с белком.';
+                    if (focus === 'fat') copy = 'Жиры ниже цели. Добавь небольшую порцию орехов, авокадо, яйца или рыбу.';
+                } else if (kcalLeft >= 500 || ((userProfile.goal_type === 'bulk' || userProfile.goal_type === 'muscle') && kcalLeft >= 350)) {
+                    focus = 'calories';
+                    copy = 'Калорий осталось много. Лучше закрыть их полноценным приемом пищи, а не сладким перекусом.';
+                } else {
+                    focus = 'calories';
+                    copy = 'День идет ровно. Закрой остаток спокойным приемом пищи без перегруза.';
+                }
+            }
+
+            return { focus, copy, ...SMART_TIP_RECOMMENDATIONS[focus] };
+        }
+
+        function openSmartTipPopup() {
+            const overlay = document.getElementById('smart-tip-overlay');
+            if (!overlay) return;
+            const data = buildSmartTipRecommendation();
+            setText('smart-tip-status', data.status);
+            setText('smart-tip-copy', data.copy);
+            const foods = document.getElementById('smart-tip-foods');
+            if (foods) foods.innerHTML = data.foods.map(item => '<span>' + escapeHTML(item) + '</span>').join('');
+            const portions = document.getElementById('smart-tip-portions');
+            if (portions) portions.innerHTML = data.portions.map(item => '<div>' + escapeHTML(item) + '</div>').join('');
+            setText('smart-tip-action-note', data.action);
+            const waterBtn = document.getElementById('smart-tip-water-btn');
+            const recipesBtn = document.getElementById('smart-tip-recipes-btn');
+            if (waterBtn) waterBtn.hidden = data.focus !== 'water';
+            if (recipesBtn) recipesBtn.hidden = false;
+            setLockedLayer('smart-tip', overlay, true);
+        }
+
+        function closeSmartTipPopup() {
+            setLockedLayer('smart-tip', document.getElementById('smart-tip-overlay'), false);
+        }
+
+        function addSmartTipWater(event) {
+            addWater(250, event);
+            openSmartTipPopup();
+        }
+
+        function showSmartTipRecipes() {
+            closeSmartTipPopup();
+            setTimeout(() => document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
+        }
+
+        function openAddMealAction(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function handleSmartTipKey(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openSmartTipPopup();
+            }
+        }
+
         function handleInfoSheetTouchStart(event) {
             infoSheetTouchStartY = event.changedTouches?.[0]?.clientY ?? null;
         }
@@ -1218,7 +1365,11 @@
             const kcalFeedback = document.getElementById('coach-kcal-feedback');
             if (kcalFeedback) kcalFeedback.innerHTML = '<span class="kcal-number">' + Math.round(targetKcal || stats.kcal || 0) + '</span><span class="kcal-unit">ккал</span>';
             setText('coach-kcal-note', 'Цель на день');
-            setText('home-kcal-left', 'Осталось ' + Math.round(kcalLeft) + ' ккал');
+            const currentKcal = Number(stats.kcal) || 0;
+            const kcalStatus = targetKcal > 0 && currentKcal > targetKcal
+                ? 'Превышение ' + Math.round(currentKcal - targetKcal) + ' ккал'
+                : 'Осталось ' + Math.round(kcalLeft) + ' ккал';
+            setText('home-kcal-left', kcalStatus);
             setText('home-kcal-consumed', 'Потреблено ' + Math.round(Number(stats.kcal) || 0) + ' ккал');
             setText('coach-protein-feedback', Math.round(Number(stats.protein) || 0) + ' г');
             setText('coach-protein-note', 'из ' + Math.round(targetProtein || 0) + ' г');
@@ -1226,17 +1377,9 @@
             setText('coach-water-note', 'из ' + (Math.round((targetWater || 2000) / 100) / 10) + ' л');
             setText('coach-streak-feedback', streak + ' ' + pluralDays(streak) + ' подряд');
             setText('coach-streak-note', best > streak ? ('Лучший — ' + best + ' ' + pluralDays(best)) : 'В режиме');
-            setText('daily-goal-caption', 'Цель: ' + goal.label.toLowerCase() + ' · старт дня');
+            setText('daily-goal-caption', goal.label);
 
-            let smart = 'Добавьте первый прием пищи, и я покажу точный фокус дня.';
-            if ((Number(stats.kcal) || 0) > 0) {
-                if (waterPct < 55) smart = 'Сегодня главный фокус — вода. Добавь 250 мл сейчас, чтобы не отставать.';
-                else if (proteinPct < 55) smart = 'Вечером лучше добрать белок: подойдет курица, творог, яйца или рыба.';
-                else if (kcalPct > 105) smart = 'Калории уже выше цели. Дальше лучше выбирать легкие блюда и воду.';
-                else if (kcalPct >= 85 && proteinPct >= 80) smart = 'Ты почти идеально держишь план: осталось мягко закрыть день.';
-                else smart = goal.label + ': темп нормальный, осталось ' + Math.round(kcalLeft) + ' ккал до цели.';
-            }
-            setText('coach-smart-feedback', smart);
+            setText('coach-smart-feedback', buildSmartTipRecommendation().shortText);
             renderNutritionCoachAdvice();
         }
 
@@ -1257,7 +1400,9 @@
             const getPct = (val, max) => max > 0 ? Math.min((val / max) * 100, 100) : 0;
             let kcalPct = getPct(stats.kcal, userProfile.target_kcal);
             document.getElementById('intake-pct').innerText = Math.round(kcalPct) + '%';
-            document.getElementById('profile-display')?.style.setProperty('--daily-pct', Math.round(kcalPct) + '%');
+            const profileDisplay = document.getElementById('profile-display');
+            profileDisplay?.style.setProperty('--daily-pct', Math.round(kcalPct) + '%');
+            profileDisplay?.classList.toggle('is-kcal-over', Number(userProfile.target_kcal) > 0 && (Number(stats.kcal) || 0) > Number(userProfile.target_kcal));
             document.getElementById('gauge-cur').innerText = Math.round(stats.kcal);
             document.getElementById('gauge-max').innerText = userProfile.target_kcal;
             document.getElementById('gauge-path').style.strokeDashoffset = 125.66 - (kcalPct / 100) * 125.66;
@@ -1281,6 +1426,13 @@
             if (dailyFatBar) dailyFatBar.style.width = dailyFatPct + '%';
             if (dailyCarbsBar) dailyCarbsBar.style.width = dailyCarbsPct + '%';
             if (dailyWaterBar) dailyWaterBar.style.width = dailyWaterPct + '%';
+            setRingProgress('macro-carbs-ring', dailyCarbsPct);
+            setRingProgress('macro-fat-ring', dailyFatPct);
+            setRingProgress('macro-protein-ring', dailyProteinPct);
+            setText('macro-carbs-pct', Math.round(dailyCarbsPct) + '%');
+            setText('macro-fat-pct', Math.round(dailyFatPct) + '%');
+            setText('macro-protein-pct', Math.round(dailyProteinPct) + '%');
+            setText('macro-water-pct', Math.round(dailyWaterPct) + '%');
             let cPct = getPct(stats.carbs, userProfile.target_carbs); document.getElementById('val-c').innerText = `${Math.round(stats.carbs)} / ${userProfile.target_carbs} г`; document.getElementById('pct-c').innerText = Math.round(cPct) + '%'; setRingProgress('bar-c', cPct);
             let fPct = getPct(stats.fat, userProfile.target_fat); document.getElementById('val-f').innerText = `${Math.round(stats.fat)} / ${userProfile.target_fat} г`; document.getElementById('pct-f').innerText = Math.round(fPct) + '%'; setRingProgress('bar-f', fPct);
             let pPct = getPct(stats.protein, userProfile.target_protein); document.getElementById('val-p').innerText = `${Math.round(stats.protein)} / ${userProfile.target_protein} г`; document.getElementById('pct-p').innerText = Math.round(pPct) + '%'; setRingProgress('bar-p', pPct);
@@ -1313,7 +1465,7 @@
             document.querySelectorAll('#meal-tabs button').forEach(el => el.classList.remove('active'));
             if (btn) btn.classList.add('active');
             else setActiveButton('#meal-tabs', currentMealFilter);
-            renderRecipes(true);
+            renderRecipes(true, true);
         }
 
         function setDietFilter(filter, btn) {
@@ -1489,9 +1641,10 @@
             const el = document.getElementById('recipe-coach-text');
             if (!el) return;
             const proteinLeft = Math.max((Number(userProfile.target_protein) || 0) - (Number(stats.protein) || 0), 0);
-            let text = currentMealFilter + ' + ' + currentDietFilter.toLowerCase() + ': показываю блюда, которые лучше совпадают с твоей целью.';
-            if (currentDietFilter === 'Все') text = currentMealFilter + ': сначала идут блюда, которые лучше подходят под твой профиль.';
-            if (proteinLeft > 35) text += ' Сегодня белок проседает — обрати внимание на high protein варианты.';
+            let text = currentMealFilter + ' под твою цель';
+            if (proteinLeft > 35) text += ': белок проседает — показываю high protein варианты.';
+            else if (currentDietFilter !== 'Все') text += ': показываю ' + currentDietFilter.toLowerCase() + ' варианты.';
+            else text += ': показываю лучшие варианты под профиль.';
             text += ' Найдено: ' + visibleCount + '.';
             el.textContent = text;
             const chips = document.getElementById('recipe-coach-chips');
@@ -1501,11 +1654,11 @@
             }
         }
 
-                                function renderRecipes(animate = false) {
+                                function renderRecipes(animate = false, resetScroll = false) {
             const container = document.getElementById('recipe-list');
             if (!container) return;
             syncRecipeFilterButtons();
-            const previousScroll = container.scrollLeft;
+            const previousScroll = resetScroll ? 0 : container.scrollLeft;
             if (animate) container.classList.add('recipe-hidden-transition');
             const favs = JSON.parse(localStorage.getItem('fav_recipes_' + appUserId)) || [];
             const filtered = sortRecipeItems(getEnrichedRecipes()
