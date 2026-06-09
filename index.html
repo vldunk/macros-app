@@ -243,6 +243,118 @@
         </div>
     </div>
 
+    <div id="add-meal-choice-modal">
+        <div class="bottom-modal add-meal-choice-sheet">
+            <h3 class="add-meal-choice-title">Добавить приём пищи</h3>
+            <p class="add-meal-choice-subtitle">Выберите готовый рецепт или внесите свой продукт вручную.</p>
+            <button class="modal-btn add-meal-choice-btn" type="button" onclick="chooseRecipeAddFlow()">
+                <span class="add-meal-choice-icon">🍽</span>
+                <span><b>Выбрать из рецептов</b><small>Открыть текущий список блюд</small></span>
+            </button>
+            <button class="modal-btn add-meal-choice-btn" type="button" onclick="openManualMealModal()">
+                <span class="add-meal-choice-icon">✎</span>
+                <span><b>Добавить вручную</b><small>Название, вес и КБЖУ на 100 г</small></span>
+            </button>
+            <button class="modal-btn add-meal-choice-cancel" type="button" onclick="closeAddMealChoice()">Отмена</button>
+        </div>
+    </div>
+
+    <div class="manual-meal-overlay" id="manual-meal-modal">
+        <form class="manual-meal-sheet" onsubmit="submitManualMeal(event)">
+            <div class="manual-meal-head">
+                <div>
+                    <div class="manual-meal-title">Добавить вручную</div>
+                    <div class="manual-meal-subtitle">Укажи вес порции и КБЖУ на 100 г — итог посчитается автоматически.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeManualMealModal()">×</button>
+            </div>
+
+            <div class="manual-meal-error" id="manual-meal-error" role="alert"></div>
+
+            <section class="manual-products-block" aria-labelledby="manual-products-title">
+                <div class="manual-products-head">
+                    <div>
+                        <div class="manual-products-title" id="manual-products-title">Мои продукты</div>
+                        <div class="manual-products-subtitle" id="manual-products-hint">Выберите сохранённый продукт — КБЖУ заполнятся автоматически.</div>
+                    </div>
+                    <button class="manual-products-all" id="manual-products-all-btn" type="button" onclick="openManualProductsLibrary()">Все продукты</button>
+                </div>
+            </section>
+
+            <label class="manual-meal-field manual-meal-field-wide">
+                <span>Название продукта / блюда</span>
+                <input id="manual-meal-name" type="text" maxlength="80" placeholder="Например, творог 5%" autocomplete="off">
+            </label>
+
+            <div class="manual-meal-grid">
+                <label class="manual-meal-field">
+                    <span>Приём пищи</span>
+                    <select id="manual-meal-type">
+                        <option value="Завтрак">Завтрак</option>
+                        <option value="Обед">Обед</option>
+                        <option value="Ужин">Ужин</option>
+                        <option value="Перекус">Перекус</option>
+                    </select>
+                </label>
+                <label class="manual-meal-field">
+                    <span>Вес порции, г</span>
+                    <input id="manual-meal-grams" type="number" inputmode="decimal" min="1" step="1" placeholder="150" oninput="updateManualMealTotals()">
+                </label>
+            </div>
+
+            <div class="manual-meal-grid manual-meal-grid-4">
+                <label class="manual-meal-field">
+                    <span>Ккал / 100 г</span>
+                    <input id="manual-meal-kcal100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
+                </label>
+                <label class="manual-meal-field">
+                    <span>Белки / 100 г</span>
+                    <input id="manual-meal-protein100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
+                </label>
+                <label class="manual-meal-field">
+                    <span>Жиры / 100 г</span>
+                    <input id="manual-meal-fat100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
+                </label>
+                <label class="manual-meal-field">
+                    <span>Углеводы / 100 г</span>
+                    <input id="manual-meal-carbs100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
+                </label>
+            </div>
+
+            <div class="manual-meal-total-card" aria-live="polite">
+                <div class="manual-meal-total-title">Итого за порцию</div>
+                <div class="manual-meal-total-grid">
+                    <div><b id="manual-total-kcal">0</b><span>ккал</span></div>
+                    <div><b id="manual-total-protein">0</b><span>белки</span></div>
+                    <div><b id="manual-total-fat">0</b><span>жиры</span></div>
+                    <div><b id="manual-total-carbs">0</b><span>углеводы</span></div>
+                </div>
+            </div>
+
+            <div class="manual-meal-actions">
+                <button class="manual-meal-cancel" type="button" onclick="closeManualMealModal()">Отмена</button>
+                <button class="manual-meal-submit" id="manual-meal-submit" type="submit">Добавить в дневник</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="manual-products-overlay" id="manual-products-library-modal">
+        <div class="manual-products-sheet">
+            <div class="manual-products-library-head">
+                <div>
+                    <div class="manual-products-library-title">Мои продукты</div>
+                    <div class="manual-products-library-subtitle">Поиск и управление сохранёнными продуктами.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeManualProductsLibrary()">×</button>
+            </div>
+            <label class="manual-product-search">
+                <span>Найти продукт</span>
+                <input id="manual-product-search-input" type="search" placeholder="Например, творог" autocomplete="off" oninput="renderManualProductsLibrary()">
+            </label>
+            <div class="manual-products-library-list" id="manual-products-library-list"></div>
+        </div>
+    </div>
+
     <div class="portion-overlay" id="recipe-portion-overlay">
         <div class="portion-sheet">
             <div class="portion-head">
@@ -524,7 +636,7 @@
             </div>
         </section>
 
-        <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="event.stopPropagation(); document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"><span>+</span>Добавить приём пищи</button>
+        <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="openAddMealAction(event)"><span>+</span>Добавить приём пищи</button>
 
         <section class="coach-feedback-card smart home-smart-card" role="button" tabindex="0" onclick="openSmartTipPopup()" onkeydown="handleSmartTipKey(event)">
             <div class="home-smart-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></div>

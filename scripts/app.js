@@ -405,6 +405,163 @@
             localStorage.setItem(demoMealsStorageKey(), JSON.stringify(Array.isArray(meals) ? meals : []));
         }
 
+        function manualMealsStorageKey() {
+            return 'manual_meals_' + appUserId;
+        }
+
+        function loadManualMeals() {
+            try { return JSON.parse(localStorage.getItem(manualMealsStorageKey())) || []; } catch (e) { return []; }
+        }
+
+        function saveManualMeals(meals) {
+            localStorage.setItem(manualMealsStorageKey(), JSON.stringify(Array.isArray(meals) ? meals : []));
+        }
+
+        function manualProductsStorageKey() {
+            return 'manualProducts_' + appUserId;
+        }
+
+        function loadManualProducts() {
+            try { return JSON.parse(localStorage.getItem(manualProductsStorageKey())) || []; } catch (e) { return []; }
+        }
+
+        function saveManualProducts(products) {
+            localStorage.setItem(manualProductsStorageKey(), JSON.stringify(Array.isArray(products) ? products : []));
+        }
+
+        function normalizeManualProductName(name) {
+            return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
+        }
+
+        function normalizeManualProductNumber(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? Math.max(0, number) : 0;
+        }
+
+        function isValidManualProduct(product) {
+            return Boolean(String(product?.name || '').trim()) &&
+                ['caloriesPer100','proteinPer100','fatPer100','carbsPer100'].every(key => {
+                    const value = Number(product?.[key]);
+                    return Number.isFinite(value) && value >= 0;
+                });
+        }
+
+        function buildManualProductFromMeal(name, totals) {
+            const product = {
+                name: String(name || '').trim(),
+                caloriesPer100: normalizeManualProductNumber(totals.kcal100),
+                proteinPer100: normalizeManualProductNumber(totals.protein100),
+                fatPer100: normalizeManualProductNumber(totals.fat100),
+                carbsPer100: normalizeManualProductNumber(totals.carbs100),
+                type: 'manual-product'
+            };
+            return isValidManualProduct(product) ? product : null;
+        }
+
+        function sameManualProduct(product, candidate) {
+            return normalizeManualProductName(product.name) === normalizeManualProductName(candidate.name) &&
+                Number(product.caloriesPer100) === Number(candidate.caloriesPer100) &&
+                Number(product.proteinPer100) === Number(candidate.proteinPer100) &&
+                Number(product.fatPer100) === Number(candidate.fatPer100) &&
+                Number(product.carbsPer100) === Number(candidate.carbsPer100);
+        }
+
+        function upsertManualProduct(name, totals) {
+            const candidate = buildManualProductFromMeal(name, totals);
+            if (!candidate) return null;
+            const now = new Date().toISOString();
+            const products = loadManualProducts().filter(isValidManualProduct);
+            const existingIndex = products.findIndex(product => sameManualProduct(product, candidate));
+            if (existingIndex >= 0) {
+                products[existingIndex] = { ...products[existingIndex], updatedAt: now };
+                saveManualProducts(products);
+                return products[existingIndex];
+            }
+            const product = {
+                id: 'manual_product_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                ...candidate,
+                createdAt: now,
+                updatedAt: now
+            };
+            products.unshift(product);
+            saveManualProducts(products);
+            return product;
+        }
+
+        function getSortedManualProducts() {
+            return loadManualProducts()
+                .filter(isValidManualProduct)
+                .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+        }
+
+        function formatManualProductMacros(product) {
+            return Math.round(Number(product.caloriesPer100) || 0) + ' ккал / 100 г · Б ' +
+                (Number(product.proteinPer100) || 0).toFixed(1) + ' · Ж ' +
+                (Number(product.fatPer100) || 0).toFixed(1) + ' · У ' +
+                (Number(product.carbsPer100) || 0).toFixed(1);
+        }
+
+        function renderManualProductCard(product, options = {}) {
+            const productId = escapeAttr(JSON.stringify(String(product.id || '')));
+            const removeButton = options.withDelete
+                ? '<button class="manual-product-delete" type="button" aria-label="Удалить продукт" onclick="deleteManualProduct(event, ' + productId + ')">×</button>'
+                : '';
+            return '<div class="manual-product-card' + (options.compact ? ' compact' : '') + '" data-product-id="' + escapeAttr(String(product.id || '')) + '">' +
+                '<button class="manual-product-select" type="button" onclick="selectManualProduct(' + productId + ')"><span class="manual-product-copy"><b>' + escapeHTML(product.name) + '</b><span>' + escapeHTML(formatManualProductMacros(product)) + '</span></span></button>' +
+                removeButton +
+                '</div>';
+        }
+
+        function getManualMealsInRange(payload = {}) {
+            const start = payload.startDate ? new Date(payload.startDate).getTime() : -Infinity;
+            const end = payload.endDate ? new Date(payload.endDate).getTime() : Infinity;
+            return loadManualMeals().filter(meal => {
+                const time = new Date(meal.created_at).getTime();
+                return time >= start && time <= end;
+            });
+        }
+
+        function addManualLocalMeal(payload = {}) {
+            const meal = {
+                id: 'manual_' + Date.now(),
+                type: 'manual',
+                recipe_id: null,
+                name: payload.name || payload.recipe_title || 'Свой продукт',
+                grams: Number(payload.grams) || 0,
+                calories_per_100: Number(payload.calories_per_100) || 0,
+                protein_per_100: Number(payload.protein_per_100) || 0,
+                fat_per_100: Number(payload.fat_per_100) || 0,
+                carbs_per_100: Number(payload.carbs_per_100) || 0,
+                recipes: { title: payload.name || payload.recipe_title || 'Свой продукт' },
+                mealType: payload.mealType || payload.meal_type || 'Перекус',
+                calories: Number(payload.calories ?? payload.kcal) || 0,
+                kcal: Number(payload.kcal) || 0,
+                protein: Number(payload.protein) || 0,
+                fat: Number(payload.fat) || 0,
+                carbs: Number(payload.carbs) || 0,
+                meal_type: payload.meal_type || 'Перекус',
+                createdAt: payload.createdAt || payload.created_at || selectedDateTimeISO(),
+                created_at: payload.created_at || selectedDateTimeISO(),
+                ingredients: []
+            };
+            const meals = loadManualMeals();
+            meals.push(meal);
+            saveManualMeals(meals);
+            return meal;
+        }
+
+        function deleteManualLocalMeal(id) {
+            const before = loadManualMeals();
+            const after = before.filter(meal => String(meal.id) !== String(id));
+            saveManualMeals(after);
+            return before.length !== after.length;
+        }
+
+        function clearManualMeals(payload = {}) {
+            const remove = new Set(getManualMealsInRange(payload).map(meal => String(meal.id)));
+            saveManualMeals(loadManualMeals().filter(meal => !remove.has(String(meal.id))));
+        }
+
         function getDemoMealsInRange(payload = {}) {
             const start = payload.startDate ? new Date(payload.startDate).getTime() : -Infinity;
             const end = payload.endDate ? new Date(payload.endDate).getTime() : Infinity;
@@ -416,15 +573,26 @@
 
         function addDemoMeal(payload = {}) {
             const recipe = getRecipeById(payload.recipe_id);
+            const isManual = payload.type === 'manual' || payload.manual === true;
             const meal = {
                 id: Date.now(),
-                recipe_id: payload.recipe_id,
-                recipes: { title: recipe?.title || 'Прием пищи' },
+                type: isManual ? 'manual' : 'recipe',
+                recipe_id: isManual ? null : payload.recipe_id,
+                name: isManual ? (payload.name || payload.recipe_title || 'Свой продукт') : '',
+                grams: Number(payload.grams) || 0,
+                calories_per_100: Number(payload.calories_per_100) || 0,
+                protein_per_100: Number(payload.protein_per_100) || 0,
+                fat_per_100: Number(payload.fat_per_100) || 0,
+                carbs_per_100: Number(payload.carbs_per_100) || 0,
+                recipes: { title: isManual ? (payload.name || payload.recipe_title || 'Свой продукт') : (recipe?.title || 'Прием пищи') },
+                mealType: payload.mealType || payload.meal_type || 'Перекус',
+                calories: Number(payload.calories ?? payload.kcal) || 0,
                 kcal: Number(payload.kcal) || 0,
                 protein: Number(payload.protein) || 0,
                 fat: Number(payload.fat) || 0,
                 carbs: Number(payload.carbs) || 0,
                 meal_type: payload.meal_type || 'Перекус',
+                createdAt: payload.createdAt || payload.created_at || selectedDateTimeISO(),
                 created_at: payload.created_at || selectedDateTimeISO(),
                 ingredients: Array.isArray(payload.ingredients) ? payload.ingredients : []
             };
@@ -446,15 +614,16 @@
         }
 
         async function callServer(action, payload = {}) {
+            if (action === 'deleteMeal' && String(payload.id || '').startsWith('manual_')) return deleteManualLocalMeal(payload.id);
             if (!isTelegramMiniApp) {
                 if (action === 'getProfile') return { ...DEMO_PROFILE, ...loadProfileExtras() };
                 if (action === 'updateProfile') {
                     saveProfileExtras(payload);
                     return { ...DEMO_PROFILE, ...loadProfileExtras(), ...payload };
                 }
-                if (action === 'getMeals') return getDemoMealsInRange(payload);
+                if (action === 'getMeals') return [...getDemoMealsInRange(payload), ...getManualMealsInRange(payload)];
                 if (action === 'addMeal') return addDemoMeal(payload);
-                if (action === 'clearDay') return clearDemoMeals(payload);
+                if (action === 'clearDay') { clearManualMeals(payload); return clearDemoMeals(payload); }
                 if (action === 'deleteMeal') return deleteDemoMeal(payload.id);
                 return null;
             }
@@ -476,6 +645,8 @@
                     console.error('Edge Function error:', { status: response.status, result, rawText });
                     throw new Error(result.error || ('Ошибка Edge Function HTTP ' + response.status));
                 }
+                if (action === 'getMeals') return [...(Array.isArray(result.data) ? result.data : []), ...getManualMealsInRange(payload)];
+                if (action === 'clearDay') clearManualMeals(payload);
                 return result.data;
             } catch (e) {
                 if (e.name === 'AbortError') throw new Error('Edge Function не отвечает больше 6 секунд');
@@ -1023,7 +1194,239 @@
         function openAddMealAction(event) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
+            setDisplayedLayer('add-meal-choice', document.getElementById('add-meal-choice-modal'), true);
+        }
+
+        function closeAddMealChoice() {
+            setDisplayedLayer('add-meal-choice', document.getElementById('add-meal-choice-modal'), false);
+        }
+
+        function chooseRecipeAddFlow() {
+            closeAddMealChoice();
             document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function getManualMealNumber(id) {
+            const raw = document.getElementById(id)?.value;
+            if (raw === '' || raw === null || raw === undefined) return 0;
+            return Number(String(raw).replace(',', '.'));
+        }
+
+        function calculateManualMealTotals() {
+            const grams = getManualMealNumber('manual-meal-grams');
+            const ratio = grams > 0 ? grams / 100 : 0;
+            return {
+                grams,
+                kcal100: getManualMealNumber('manual-meal-kcal100'),
+                protein100: getManualMealNumber('manual-meal-protein100'),
+                fat100: getManualMealNumber('manual-meal-fat100'),
+                carbs100: getManualMealNumber('manual-meal-carbs100'),
+                kcal: getManualMealNumber('manual-meal-kcal100') * ratio,
+                protein: getManualMealNumber('manual-meal-protein100') * ratio,
+                fat: getManualMealNumber('manual-meal-fat100') * ratio,
+                carbs: getManualMealNumber('manual-meal-carbs100') * ratio
+            };
+        }
+
+        function setManualMealError(message = '') {
+            const el = document.getElementById('manual-meal-error');
+            if (!el) return;
+            el.textContent = message;
+            el.classList.toggle('active', Boolean(message));
+        }
+
+        function updateManualMealTotals() {
+            const totals = calculateManualMealTotals();
+            setText('manual-total-kcal', String(Math.round(Math.max(0, totals.kcal || 0))));
+            setText('manual-total-protein', (Math.max(0, totals.protein || 0)).toFixed(1) + ' г');
+            setText('manual-total-fat', (Math.max(0, totals.fat || 0)).toFixed(1) + ' г');
+            setText('manual-total-carbs', (Math.max(0, totals.carbs || 0)).toFixed(1) + ' г');
+        }
+
+        function renderManualProductsList() {
+            const products = getSortedManualProducts();
+            const allBtn = document.getElementById('manual-products-all-btn');
+            const hint = document.getElementById('manual-products-hint');
+            if (allBtn) allBtn.hidden = !products.length;
+            if (hint) hint.textContent = products.length
+                ? 'Выберите сохранённый продукт — КБЖУ заполнятся автоматически.'
+                : 'Добавь продукт вручную — он сохранится для следующего раза.';
+        }
+
+        function renderManualProductsLibrary() {
+            const list = document.getElementById('manual-products-library-list');
+            if (!list) return;
+            const query = normalizeManualProductName(document.getElementById('manual-product-search-input')?.value || '');
+            const products = getSortedManualProducts();
+            const filtered = query ? products.filter(product => normalizeManualProductName(product.name).includes(query)) : products;
+            if (!products.length) {
+                list.innerHTML = '<div class="manual-products-empty">Пока нет сохранённых продуктов.</div>';
+                return;
+            }
+            if (!filtered.length) {
+                list.innerHTML = '<div class="manual-products-empty">Ничего не найдено.</div>';
+                return;
+            }
+            list.innerHTML = filtered.map(product => renderManualProductCard(product, { withDelete: true })).join('');
+        }
+
+        function openManualProductsLibrary() {
+            const search = document.getElementById('manual-product-search-input');
+            if (search) search.value = '';
+            renderManualProductsLibrary();
+            setLockedLayer('manual-products-library', document.getElementById('manual-products-library-modal'), true);
+            setTimeout(() => search?.focus?.(), 120);
+        }
+
+        function closeManualProductsLibrary() {
+            setLockedLayer('manual-products-library', document.getElementById('manual-products-library-modal'), false);
+        }
+
+        async function deleteManualProduct(event, productId) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const confirmed = await showConfirm('Удалить продукт из сохранённых?', 'Удалить', 'Мои продукты');
+            if (!confirmed) return;
+            saveManualProducts(loadManualProducts().filter(product => String(product.id) !== String(productId)));
+            renderManualProductsList();
+            renderManualProductsLibrary();
+        }
+
+        function setManualMealInputValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        }
+
+        function selectManualProduct(productId) {
+            const product = loadManualProducts().find(item => String(item.id) === String(productId));
+            if (!product || !isValidManualProduct(product)) return;
+            closeManualProductsLibrary();
+            setManualMealInputValue('manual-meal-name', product.name);
+            setManualMealInputValue('manual-meal-kcal100', product.caloriesPer100);
+            setManualMealInputValue('manual-meal-protein100', product.proteinPer100);
+            setManualMealInputValue('manual-meal-fat100', product.fatPer100);
+            setManualMealInputValue('manual-meal-carbs100', product.carbsPer100);
+            document.querySelectorAll('.manual-product-card').forEach(card => {
+                card.classList.toggle('active', String(card.dataset.productId) === String(productId));
+            });
+            updateManualMealTotals();
+            document.getElementById('manual-meal-grams')?.focus?.();
+        }
+
+        function resetManualMealForm() {
+            setManualMealError('');
+            ['manual-meal-name','manual-meal-grams','manual-meal-kcal100','manual-meal-protein100','manual-meal-fat100','manual-meal-carbs100'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const mealType = document.getElementById('manual-meal-type');
+            if (mealType) mealType.value = ['Завтрак','Обед','Ужин','Перекус'].includes(currentMealFilter) ? currentMealFilter : 'Завтрак';
+            renderManualProductsList();
+            updateManualMealTotals();
+        }
+
+        function openManualMealModal() {
+            closeAddMealChoice();
+            resetManualMealForm();
+            setLockedLayer('manual-meal', document.getElementById('manual-meal-modal'), true);
+            setTimeout(() => document.getElementById('manual-meal-name')?.focus?.(), 120);
+        }
+
+        function closeManualMealModal() {
+            setLockedLayer('manual-meal', document.getElementById('manual-meal-modal'), false);
+            setManualMealError('');
+        }
+
+        function validateManualMeal(name, totals) {
+            if (!name) return 'Введите название продукта или блюда.';
+            if (!Number.isFinite(totals.grams) || totals.grams <= 0) return 'Вес порции должен быть больше 0 г.';
+            const fields = [
+                ['Калории', totals.kcal100],
+                ['Белки', totals.protein100],
+                ['Жиры', totals.fat100],
+                ['Углеводы', totals.carbs100]
+            ];
+            const invalid = fields.find(([, value]) => !Number.isFinite(value) || value < 0);
+            if (invalid) return invalid[0] + ' на 100 г не должны быть отрицательными.';
+            return '';
+        }
+
+        async function submitManualMeal(event) {
+            event?.preventDefault?.();
+            if (isAddingMeal) return;
+            const name = (document.getElementById('manual-meal-name')?.value || '').trim();
+            const mealType = document.getElementById('manual-meal-type')?.value || 'Перекус';
+            const totals = calculateManualMealTotals();
+            const validationError = validateManualMeal(name, totals);
+            if (validationError) {
+                setManualMealError(validationError);
+                return;
+            }
+            setManualMealError('');
+            isAddingMeal = true;
+            const submitBtn = document.getElementById('manual-meal-submit');
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const createdAt = selectedDateTimeISO();
+                const payload = {
+                    type: 'manual',
+                    manual: true,
+                    name,
+                    recipe_title: name,
+                    mealType,
+                    grams: totals.grams,
+                    calories_per_100: totals.kcal100,
+                    protein_per_100: totals.protein100,
+                    fat_per_100: totals.fat100,
+                    carbs_per_100: totals.carbs100,
+                    recipe_id: null,
+                    calories: totals.kcal,
+                    kcal: totals.kcal,
+                    protein: totals.protein,
+                    fat: totals.fat,
+                    carbs: totals.carbs,
+                    meal_type: mealType,
+                    createdAt,
+                    created_at: createdAt,
+                    ingredients: []
+                };
+                await callServer('addMeal', payload);
+                upsertManualProduct(name, totals);
+                closeManualMealModal();
+                await refreshAllData();
+                document.getElementById('history-list')?.classList.add('success-flash');
+                setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
+                showToast('Добавлено в дневник');
+            } catch (e) {
+                console.error('Ошибка ручного добавления:', e);
+                if (isTelegramMiniApp) {
+                    const fallbackMeal = addManualLocalMeal({
+                        name,
+                        recipe_title: name,
+                        grams: totals.grams,
+                        calories_per_100: totals.kcal100,
+                        protein_per_100: totals.protein100,
+                        fat_per_100: totals.fat100,
+                        carbs_per_100: totals.carbs100,
+                        kcal: totals.kcal,
+                        protein: totals.protein,
+                        fat: totals.fat,
+                        carbs: totals.carbs,
+                        meal_type: mealType,
+                        created_at: selectedDateTimeISO()
+                    });
+                    upsertManualProduct(name, totals);
+                    console.warn('Ручной продукт сохранён локально:', fallbackMeal);
+                    closeManualMealModal();
+                    await refreshAllData();
+                    showToast('Добавлено локально');
+                } else {
+                    setManualMealError('Не удалось добавить продукт: ' + e.message);
+                }
+            } finally {
+                isAddingMeal = false;
+                if (submitBtn) submitBtn.disabled = false;
+            }
         }
 
         function handleSmartTipKey(event) {
@@ -2294,7 +2697,7 @@
             recipeDetailPortionDraft.grams = Math.max(1, current + Number(delta || 0));
             renderRecipeDetailPortion();
         }
-async function updateHistoryUI() {
+        async function updateHistoryUI() {
             const hList = document.getElementById('history-list');
             let startOfDay = new Date(currentDate); startOfDay.setHours(0,0,0,0); let endOfDay = new Date(currentDate); endOfDay.setHours(23,59,59,999);
             const data = await callServer('getMeals', { startDate: startOfDay.toISOString(), endDate: endOfDay.toISOString() });
@@ -2303,7 +2706,14 @@ async function updateHistoryUI() {
             ['Завтрак', 'Обед', 'Ужин', 'Перекус'].forEach(type => {
                 const typeMeals = data.filter(m => (m.meal_type || 'Перекус') === type); if (typeMeals.length === 0) return;
                 const typeKcal = typeMeals.reduce((s, m) => s + (Number(m.kcal) || 0), 0); const typeProtein = typeMeals.reduce((s, m) => s + (Number(m.protein) || 0), 0); const typeFat = typeMeals.reduce((s, m) => s + (Number(m.fat) || 0), 0); const typeCarbs = typeMeals.reduce((s, m) => s + (Number(m.carbs) || 0), 0);
-                const mealPct = Math.min(100, Math.round((typeKcal / (Number(userProfile.target_kcal) || 1)) * 100)); html += `<div class="meal-group"><div class="meal-group-header" onclick="toggleMealGroup(this)"><div class="meal-name">${type} <span class="chevron">▼</span></div><div class="meal-stats"><div class="meal-kcal">${Math.round(typeKcal)} ккал</div><div class="meal-macros">Б: ${Math.round(typeProtein)}г &nbsp; Ж: ${Math.round(typeFat)}г &nbsp; У: ${Math.round(typeCarbs)}г</div></div></div><div class="meal-progress"><div class="meal-progress-fill" style="--meal-pct:${mealPct}%"></div></div><div class="meal-progress-caption">${mealPct}% от дневной цели</div><div class="meal-group-content">` + typeMeals.map(m => `<div class="history-item"><div><div style="font-weight:800; font-size: 15px; color: var(--text-main);">${escapeHTML(m.recipes?.title || 'Прием пищи')}</div><div style="font-size:12px; color:var(--text-muted); margin-top: 4px;">${new Date(m.created_at).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}</div></div><div style="display:flex; align-items:center"><span style="color:#6f9b86; font-weight:800; font-size: 15px;">+${Math.round(Number(m.kcal) || 0)}</span><button class="del-btn" onclick="deleteOneMeal(${Number(m.id)})">×</button></div></div>`).join('') + '</div></div>';
+                const mealPct = Math.min(100, Math.round((typeKcal / (Number(userProfile.target_kcal) || 1)) * 100));
+                html += `<div class="meal-group"><div class="meal-group-header" onclick="toggleMealGroup(this)"><div class="meal-name">${type} <span class="chevron">▼</span></div><div class="meal-stats"><div class="meal-kcal">${Math.round(typeKcal)} ккал</div><div class="meal-macros">Б: ${Math.round(typeProtein)}г &nbsp; Ж: ${Math.round(typeFat)}г &nbsp; У: ${Math.round(typeCarbs)}г</div></div></div><div class="meal-progress"><div class="meal-progress-fill" style="--meal-pct:${mealPct}%"></div></div><div class="meal-progress-caption">${mealPct}% от дневной цели</div><div class="meal-group-content">` + typeMeals.map(m => {
+                    const title = m.recipes?.title || m.name || m.recipe_title || m.title || 'Прием пищи';
+                    const isManual = m.type === 'manual' || m.manual === true || (!m.recipe_id && (m.name || m.recipe_title));
+                    const gramsText = isManual && Number(m.grams) > 0 ? ' · ' + Math.round(Number(m.grams)) + ' г' : '';
+                    const meta = new Date(m.created_at).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}) + (isManual ? ' · вручную' : '') + gramsText;
+                    return `<div class="history-item"><div><div style="font-weight:800; font-size: 15px; color: var(--text-main);">${escapeHTML(title)}</div><div style="font-size:12px; color:var(--text-muted); margin-top: 4px;">${escapeHTML(meta)}</div></div><div style="display:flex; align-items:center"><span style="color:#6f9b86; font-weight:800; font-size: 15px;">+${Math.round(Number(m.kcal) || 0)}</span><button class="del-btn" onclick="deleteOneMeal(${escapeAttr(JSON.stringify(String(m.id)))})">×</button></div></div>`;
+                }).join('') + '</div></div>';
             });
             hList.innerHTML = html;
         }

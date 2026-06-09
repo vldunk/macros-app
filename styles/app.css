@@ -1251,8 +1251,17 @@
 
         #meal-modal, #full-calendar-modal, #recipe-details-modal { display: none; position: fixed; inset: 0; width: 100%; height: 100%; z-index: 8000; }
         #meal-modal { justify-content: center; align-items: flex-end; z-index: 11000; }
+        #add-meal-choice-modal { display: none; position: fixed; inset: 0; width: 100%; height: 100%; z-index: 11100; align-items: flex-end; justify-content: center; background: rgba(247,245,239,.62); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
         .bottom-modal { position: relative; z-index: 11001; width: 100%; padding: 30px 25px; border-radius: 34px 34px 0 0; background: rgba(255,255,255,.88); animation: slideUp .24s ease-out; }
         .modal-btn { width: 100%; min-height: 58px; padding: 18px; border-radius: 16px; margin-bottom: 12px; text-align: left; color: var(--text-main); font-size: 16px; font-weight: 900; }
+        .add-meal-choice-sheet { max-width: 430px; padding: 24px 18px max(18px, env(safe-area-inset-bottom)); background: rgba(255,255,255,.94); box-shadow: 0 -18px 54px rgba(82,73,58,.14), inset 0 1px 0 rgba(255,255,255,.82); }
+        .add-meal-choice-title { margin: 0; color: var(--text-main); font-size: 22px; line-height: 1.08; font-weight: 940; }
+        .add-meal-choice-subtitle { margin: 6px 0 16px; color: var(--text-muted); font-size: 13px; line-height: 1.35; font-weight: 620; }
+        .add-meal-choice-btn { display: grid; grid-template-columns: 42px minmax(0,1fr); align-items: center; gap: 12px; min-height: 66px; padding: 13px; background: rgba(250,248,242,.72); border: 1px solid rgba(82,73,58,.08); box-shadow: inset 0 1px 0 rgba(255,255,255,.78), 0 8px 18px rgba(82,73,58,.045); }
+        .add-meal-choice-icon { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 15px; background: rgba(95,143,122,.10); color: #557d6c; font-size: 20px; }
+        .add-meal-choice-btn b { display: block; font-size: 15px; line-height: 1.1; font-weight: 900; }
+        .add-meal-choice-btn small { display: block; margin-top: 4px; color: var(--text-muted); font-size: 12px; line-height: 1.25; font-weight: 650; }
+        .add-meal-choice-cancel { min-height: 46px; padding: 12px; margin: 4px 0 0; text-align: center; background: transparent; border: 0; color: var(--text-muted); box-shadow: none; }
         #full-calendar-modal { justify-content: center; align-items: center; padding: 20px; z-index: 9000; }
         .full-cal-content { width: 100%; max-width: 360px; padding: 25px; border-radius: 24px; background: rgba(255,255,255,.88); }
         .full-cal-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
@@ -1847,6 +1856,533 @@
         .portion-meal-option { min-height: 32px; border-radius: 11px; background: rgba(250,248,242,.62); color: var(--text-muted); border: 1px solid rgba(82,73,58,.07); font-size: 11.5px; font-weight: 690; box-shadow: none; }
         .portion-meal-option.active { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); border-color: rgba(95,143,122,.18); }
         #portion-ingredients { padding-bottom: 86px; }
+
+        .manual-meal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 12100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: rgba(247,245,239,.62);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            overflow-x: hidden;
+        }
+
+        .manual-meal-overlay.active { display: flex; }
+
+        .manual-meal-sheet {
+            width: min(520px, 100%);
+            max-height: min(calc(var(--app-viewport-height, 100vh) - 20px), 700px);
+            overflow-y: auto;
+            padding: 16px 16px 0;
+            border-radius: 26px;
+            background: rgba(255,255,255,.95);
+            border: 1px solid rgba(82,73,58,.10);
+            box-shadow: 0 24px 70px rgba(82,73,58,.18), inset 0 1px 0 rgba(255,255,255,.82);
+            animation: slideUp .22s ease-out both;
+        }
+
+        .manual-meal-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .manual-meal-title {
+            color: var(--text-main);
+            font-size: 22px;
+            line-height: 1.08;
+            font-weight: 950;
+        }
+
+        .manual-meal-subtitle {
+            margin-top: 4px;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.32;
+            font-weight: 600;
+        }
+
+        .manual-meal-error {
+            display: none;
+            margin: 0 0 9px;
+            padding: 8px 10px;
+            border-radius: 13px;
+            color: #9a5d4f;
+            background: rgba(255,235,226,.72);
+            border: 1px solid rgba(201,128,114,.18);
+            font-size: 12px;
+            line-height: 1.35;
+            font-weight: 760;
+        }
+
+        .manual-meal-error.active { display: block; }
+
+        .manual-products-block {
+            margin: 0 0 13px;
+            padding: 12px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(250,248,242,.82), rgba(245,251,247,.58));
+            border: 1px solid rgba(82,73,58,.075);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+        }
+
+        .manual-products-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+
+        .manual-products-title {
+            color: var(--text-main);
+            font-size: 14px;
+            line-height: 1.12;
+            font-weight: 940;
+        }
+
+        .manual-products-subtitle {
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 11.5px;
+            line-height: 1.3;
+            font-weight: 650;
+        }
+
+        .manual-products-all {
+            flex: 0 0 auto;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(95,143,122,.18);
+            background: rgba(255,255,255,.62);
+            color: #557d6c;
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+        }
+
+        .manual-products-all[hidden] {
+            display: none;
+        }
+
+        .manual-products-empty {
+            padding: 11px 12px;
+            border-radius: 15px;
+            background: rgba(255,255,255,.66);
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.35;
+            font-weight: 720;
+        }
+
+        .manual-product-card {
+            width: 100%;
+            min-width: 0;
+            display: grid;
+            grid-template-columns: minmax(0,1fr);
+            align-items: center;
+            border-radius: 16px;
+            border: 1px solid rgba(82,73,58,.075);
+            background: rgba(255,255,255,.70);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.74);
+            text-align: left;
+            transition: transform .16s ease, border-color .16s ease, background .16s ease;
+        }
+
+        .manual-product-card:not(.compact) {
+            grid-template-columns: minmax(0,1fr) 34px;
+            gap: 6px;
+            padding-right: 7px;
+        }
+
+        .manual-product-card:active {
+            transform: scale(.99);
+        }
+
+        .manual-product-card.active {
+            border-color: rgba(95,143,122,.34);
+            background: rgba(245,251,247,.92);
+        }
+
+        .manual-product-select {
+            min-width: 0;
+            display: block;
+            width: 100%;
+            padding: 10px 11px;
+            border: 0;
+            background: transparent;
+            color: inherit;
+            text-align: left;
+            box-shadow: none;
+        }
+
+        .manual-product-copy {
+            min-width: 0;
+            display: grid;
+            gap: 4px;
+        }
+
+        .manual-product-card b {
+            min-width: 0;
+            color: var(--text-main);
+            font-size: 13px;
+            line-height: 1.15;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .manual-product-copy > span {
+            min-width: 0;
+            color: #6f8277;
+            font-size: 11px;
+            line-height: 1.25;
+            font-weight: 720;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .manual-product-delete {
+            width: 30px;
+            height: 30px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(154,93,79,.14);
+            border-radius: 11px;
+            background: rgba(255,235,226,.54);
+            color: #9a5d4f;
+            font-size: 18px;
+            line-height: 1;
+            font-weight: 900;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.70);
+        }
+
+        .manual-products-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 12200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            background: rgba(247,245,239,.68);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            overflow-x: hidden;
+        }
+
+        .manual-products-overlay.active { display: flex; }
+
+        .manual-products-sheet {
+            width: min(500px, 100%);
+            max-height: min(84vh, 650px);
+            display: grid;
+            grid-template-rows: auto auto minmax(0,1fr);
+            gap: 12px;
+            padding: 18px;
+            border-radius: 28px;
+            background: rgba(255,255,255,.96);
+            border: 1px solid rgba(82,73,58,.10);
+            box-shadow: 0 24px 70px rgba(82,73,58,.18), inset 0 1px 0 rgba(255,255,255,.82);
+            animation: slideUp .22s ease-out both;
+        }
+
+        .manual-products-library-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .manual-products-library-title {
+            color: var(--text-main);
+            font-size: 22px;
+            line-height: 1.08;
+            font-weight: 950;
+        }
+
+        .manual-products-library-subtitle {
+            margin-top: 5px;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.34;
+            font-weight: 650;
+        }
+
+        .manual-product-search {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .manual-product-search span {
+            color: var(--text-muted);
+            font-size: 10.5px;
+            line-height: 1.1;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .045em;
+        }
+
+        .manual-product-search input {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid rgba(82,73,58,.09);
+            border-radius: 15px;
+            background: rgba(250,248,242,.72);
+            color: var(--text-main);
+            padding: 0 12px;
+            font-size: 14px;
+            font-weight: 760;
+            outline: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.76);
+        }
+
+        .manual-products-library-list {
+            min-height: 0;
+            display: grid;
+            align-content: start;
+            gap: 8px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding-right: 2px;
+        }
+
+        .manual-meal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap: 7px;
+        }
+
+        .manual-meal-grid-4 {
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            margin-top: 7px;
+        }
+
+        .manual-meal-field {
+            display: grid;
+            gap: 4px;
+            min-width: 0;
+            margin-bottom: 7px;
+        }
+
+        .manual-meal-field-wide { margin-bottom: 8px; }
+
+        .manual-meal-field span {
+            color: var(--text-muted);
+            font-size: 10.5px;
+            line-height: 1.1;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: .045em;
+        }
+
+        .manual-meal-field input,
+        .manual-meal-field select {
+            width: 100%;
+            min-height: 40px;
+            border: 1px solid rgba(82,73,58,.09);
+            border-radius: 13px;
+            background: rgba(250,248,242,.72);
+            color: var(--text-main);
+            padding: 0 11px;
+            font-size: 13.5px;
+            font-weight: 760;
+            outline: none;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.76);
+        }
+
+        .manual-meal-field select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, #7a827c 50%), linear-gradient(135deg, #7a827c 50%, transparent 50%);
+            background-position: calc(100% - 18px) 18px, calc(100% - 12px) 18px;
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 36px;
+        }
+
+        .manual-meal-total-card {
+            margin: 0 0 9px;
+            padding: 9px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(250,248,242,.78), rgba(245,251,247,.68));
+            border: 1px solid rgba(82,73,58,.075);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+        }
+
+        .manual-meal-total-title {
+            color: #557d6c;
+            font-size: 12px;
+            font-weight: 920;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            margin-bottom: 6px;
+        }
+
+        .manual-meal-total-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0,1fr));
+            gap: 5px;
+        }
+
+        .manual-meal-total-grid div {
+            min-width: 0;
+            padding: 6px 4px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.68);
+            text-align: center;
+        }
+
+        .manual-meal-total-grid b {
+            display: block;
+            color: var(--text-main);
+            font-size: 13px;
+            line-height: 1;
+            font-weight: 930;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .manual-meal-total-grid span {
+            display: block;
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 8.8px;
+            line-height: 1;
+            font-weight: 850;
+            text-transform: uppercase;
+        }
+
+        .manual-meal-actions {
+            position: sticky;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+            gap: 8px;
+            margin: 0 -16px;
+            padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+            background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.97) 28%, rgba(255,255,255,.99));
+            border-top: 1px solid rgba(82,73,58,.075);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .manual-meal-actions button {
+            min-height: 42px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .manual-meal-cancel {
+            color: #69736c;
+            background: rgba(250,248,242,.86);
+            border: 1px solid rgba(82,73,58,.08);
+        }
+
+        .manual-meal-submit {
+            color: #fff;
+            background: linear-gradient(180deg, #86b39e, #6f9d88);
+            box-shadow: 0 12px 24px rgba(95,143,122,.16);
+        }
+
+        .manual-meal-submit:disabled {
+            opacity: .62;
+            pointer-events: none;
+        }
+
+        @media (max-width: 360px) {
+            .manual-meal-sheet {
+                padding: 14px 14px 0;
+                border-radius: 24px;
+            }
+
+            .manual-meal-title {
+                font-size: 20px;
+            }
+
+            .manual-products-block {
+                padding: 10px;
+                border-radius: 18px;
+            }
+
+            .manual-products-all {
+                min-height: 28px;
+                padding-inline: 9px;
+                font-size: 10.5px;
+            }
+
+            .manual-product-card b {
+                font-size: 12.5px;
+            }
+
+            .manual-product-copy > span {
+                font-size: 10.5px;
+            }
+
+            .manual-product-select {
+                padding: 9px 10px;
+            }
+
+            .manual-products-sheet {
+                max-height: min(86vh, 620px);
+                padding: 16px;
+                border-radius: 26px;
+            }
+
+            .manual-products-library-title {
+                font-size: 20px;
+            }
+
+            .manual-meal-grid {
+                gap: 7px;
+            }
+
+            .manual-meal-field input,
+            .manual-meal-field select {
+                min-height: 39px;
+                padding-inline: 10px;
+                font-size: 13px;
+            }
+
+            .manual-meal-total-grid {
+                gap: 5px;
+            }
+
+            .manual-meal-total-grid div {
+                padding: 5px 3px;
+            }
+
+            .manual-meal-total-grid b {
+                font-size: 12px;
+            }
+
+            .manual-meal-total-grid span {
+                font-size: 8.3px;
+            }
+
+            .manual-meal-actions {
+                margin: 0 -14px;
+                padding: 9px 14px calc(11px + env(safe-area-inset-bottom));
+            }
+
+            .manual-meal-actions button {
+                min-height: 40px;
+                font-size: 12.5px;
+            }
+        }
         .portion-ingredient { display: grid; grid-template-columns: minmax(0,1fr) 88px; gap: 14px; align-items: end; padding: 15px 0; border-top: 1px solid rgba(82,73,58,.075); }
         .portion-ingredient-main b { display: block; color: var(--text-main); font-size: 13px; line-height: 1.25; font-weight: 860; }
         .portion-ingredient select, .portion-ingredient input { width: 100%; min-height: 40px; border: 1px solid rgba(82,73,58,.085); border-radius: 12px; background: rgba(255,255,255,.78); color: var(--text-main); padding: 0 10px; font: inherit; font-size: 13px; text-align: right; }
