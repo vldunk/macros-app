@@ -1352,7 +1352,10 @@
             const isToday = toISOLocal(currentDate) === toISOLocal(new Date());
 
             updateCoachAvatar();
-            setText('coach-greeting-title', getDayPart() + ', ' + name);
+            const greetingTitle = document.getElementById('coach-greeting-title');
+            if (greetingTitle) {
+                greetingTitle.innerHTML = '<span class="coach-title-prefix">' + escapeHTML(getDayPart() + ',') + '</span> <span class="coach-title-name">' + escapeHTML(name) + '</span>';
+            }
             setText('coach-greeting-subtitle', isToday ? ('Сегодня цель — ' + (targetKcal || 0) + ' ккал. ' + goal.tone + '.') : ('Смотрим день: ' + (document.getElementById('cal-date-label')?.textContent || 'выбранная дата') + '.'));
 
             const goalBadge = document.getElementById('goal-status-badge');
@@ -1412,20 +1415,32 @@
             setText('daily-carbs-summary', Math.round(stats.carbs) + ' / ' + (Number(userProfile.target_carbs) || 0) + ' г');
             setText('daily-water-summary', (Math.round((Number(dailyWater) || 0) / 100) / 10) + ' / ' + (Math.round((Number(userProfile.target_water) || 2000) / 100) / 10) + ' л');
             const dailyKcalPct = getPct(stats.kcal, userProfile.target_kcal);
-            const dailyProteinPct = getPct(stats.protein, userProfile.target_protein);
-            const dailyFatPct = getPct(stats.fat, userProfile.target_fat);
-            const dailyCarbsPct = getPct(stats.carbs, userProfile.target_carbs);
+            const targetProteinNorm = Number(userProfile.target_protein) || Number(DEMO_PROFILE.target_protein) || 0;
+            const targetFatNorm = Number(userProfile.target_fat) || Number(DEMO_PROFILE.target_fat) || 0;
+            const targetCarbsNorm = Number(userProfile.target_carbs) || Number(DEMO_PROFILE.target_carbs) || 0;
+            const dailyProteinPct = getPct(stats.protein, targetProteinNorm);
+            const dailyFatPct = getPct(stats.fat, targetFatNorm);
+            const dailyCarbsPct = getPct(stats.carbs, targetCarbsNorm);
             const dailyWaterPct = getPct(dailyWater, userProfile.target_water || 2000);
             const dailyKcalBar = document.getElementById('daily-kcal-bar');
             const dailyProteinBar = document.getElementById('daily-protein-bar');
             const dailyFatBar = document.getElementById('daily-fat-bar');
             const dailyCarbsBar = document.getElementById('daily-carbs-bar');
             const dailyWaterBar = document.getElementById('daily-water-bar');
+            setText('daily-norm-protein-value', Math.round(stats.protein) + ' / ' + targetProteinNorm + ' г');
+            setText('daily-norm-fat-value', Math.round(stats.fat) + ' / ' + targetFatNorm + ' г');
+            setText('daily-norm-carbs-value', Math.round(stats.carbs) + ' / ' + targetCarbsNorm + ' г');
+            const normProteinBar = document.getElementById('daily-norm-protein-bar');
+            const normFatBar = document.getElementById('daily-norm-fat-bar');
+            const normCarbsBar = document.getElementById('daily-norm-carbs-bar');
             if (dailyKcalBar) dailyKcalBar.style.width = dailyKcalPct + '%';
             if (dailyProteinBar) dailyProteinBar.style.width = dailyProteinPct + '%';
             if (dailyFatBar) dailyFatBar.style.width = dailyFatPct + '%';
             if (dailyCarbsBar) dailyCarbsBar.style.width = dailyCarbsPct + '%';
             if (dailyWaterBar) dailyWaterBar.style.width = dailyWaterPct + '%';
+            if (normProteinBar) normProteinBar.style.width = dailyProteinPct + '%';
+            if (normFatBar) normFatBar.style.width = dailyFatPct + '%';
+            if (normCarbsBar) normCarbsBar.style.width = dailyCarbsPct + '%';
             setRingProgress('macro-carbs-ring', dailyCarbsPct);
             setRingProgress('macro-fat-ring', dailyFatPct);
             setRingProgress('macro-protein-ring', dailyProteinPct);
