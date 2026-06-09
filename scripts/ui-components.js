@@ -34,10 +34,12 @@ function renderRecipeCard(item, favs, compact = false) {
             const id = String(r.id);
             const idArg = JSON.stringify(id);
             const img = safeImageUrl(r.image_url);
-            const cardClass = item.personalScore > 0 ? 'recipe-card recipe-personal-match' : 'recipe-card';
+            const hasStableImage = !!img && !(compact && /source\.unsplash\.com/i.test(img));
+            const cardClass = 'recipe-card' + (compact ? ' recipe-card-compact' : '') + (hasStableImage ? ' recipe-has-image' : ' recipe-no-image') + (item.personalScore > 0 ? ' recipe-personal-match' : '');
             return '<div class="' + cardClass + '" role="button" tabindex="0" onclick="if(event.target.closest(\'.recipe-add-btn,.fav-btn\')) return; openRecipeDetails(' + escapeAttr(idArg) + ')" onkeydown="if((event.key===\'Enter\'||event.key===\' \')&&!event.target.closest(\'.recipe-add-btn,.fav-btn\')){event.preventDefault();openRecipeDetails(' + escapeAttr(idArg) + ')}">' +
-                '<div class="recipe-image" style="' + (img ? 'background-image: url(&quot;' + escapeAttr(img) + '&quot;)' : '') + '">' +
-                '<div class="fav-btn" style="color: ' + (favs.map(String).includes(String(r.id)) ? '#ff3b30' : '#ffffff') + ';" onclick="toggleFavorite(event, ' + escapeAttr(idArg) + ')">' + (favs.map(String).includes(String(r.id)) ? '❤️' : '🤍') + '</div></div>' +
+                '<div class="recipe-image" style="' + (hasStableImage ? 'background-image: url(&quot;' + escapeAttr(img) + '&quot;)' : '') + '">' +
+                (!hasStableImage ? '<span class="recipe-image-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v16"></path><path d="M11 4v6a4 4 0 0 1-8 0V4"></path><path d="M17 4v16"></path><path d="M17 4c3 2 4 5 4 8h-4"></path></svg></span>' : '') +
+                '<div class="fav-btn" style="color: ' + (favs.map(String).includes(String(r.id)) ? '#d85f5a' : '#b79a64') + ';" onclick="toggleFavorite(event, ' + escapeAttr(idArg) + ')">' + (favs.map(String).includes(String(r.id)) ? '♥' : '♡') + '</div></div>' +
                 '<div class="recipe-content"><div class="recipe-title">' + escapeHTML(r.title) + '</div>' +
                 '<div class="recipe-kbju-line">На 100 г: ' + Math.round(nutrition.kcal) + ' ккал · Б ' + Math.round(nutrition.protein) + ' г · Ж ' + Math.round(nutrition.fat) + ' г · У ' + Math.round(nutrition.carbs) + ' г</div>' +
                 '<div class="recipe-time-line">' + getRecipeTime(r) + ' мин</div>' +
