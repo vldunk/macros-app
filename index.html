@@ -255,8 +255,158 @@
                 <span class="add-meal-choice-icon">✎</span>
                 <span><b>Добавить вручную</b><small>Название, вес и КБЖУ на 100 г</small></span>
             </button>
+            <button class="modal-btn add-meal-choice-btn" type="button" onclick="openMyRecipesModal()">
+                <span class="add-meal-choice-icon">📖</span>
+                <span><b>Мои рецепты</b><small>Созданные тобой блюда</small></span>
+            </button>
             <button class="modal-btn add-meal-choice-cancel" type="button" onclick="closeAddMealChoice()">Отмена</button>
         </div>
+    </div>
+
+    <div class="my-recipes-overlay" id="my-recipes-modal" onclick="closeMyRecipesModal()">
+        <section class="my-recipes-sheet" onclick="event.stopPropagation()" aria-labelledby="my-recipes-title">
+            <div class="my-recipes-head">
+                <div>
+                    <div class="my-recipes-title" id="my-recipes-title">Мои рецепты</div>
+                    <div class="my-recipes-subtitle">Создавай свои блюда и добавляй их в дневник по граммам.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeMyRecipesModal()">×</button>
+            </div>
+            <div class="my-recipes-view" id="my-recipes-empty-view">
+                <div class="my-recipes-empty">
+                    <div class="my-recipes-empty-icon">🍲</div>
+                    <div class="my-recipes-empty-title">Пока нет собственных рецептов.</div>
+                    <button class="my-recipes-create-btn" type="button" onclick="openMyRecipeCreateForm()">Создать рецепт</button>
+                </div>
+            </div>
+            <div class="my-recipes-view" id="my-recipes-list-view" hidden>
+                <div class="my-recipes-list" id="my-recipes-list"></div>
+                <button class="my-recipes-create-btn" type="button" onclick="openMyRecipeCreateForm()">Создать рецепт</button>
+            </div>
+            <form class="my-recipe-form" id="my-recipe-form" onsubmit="submitMyRecipeCreateForm(event)" hidden>
+                <div class="my-recipe-form-error" id="my-recipe-form-error" role="alert"></div>
+                <label class="my-recipe-field my-recipe-field-wide">
+                    <span>Название рецепта</span>
+                    <input id="my-recipe-title-input" type="text" maxlength="90" placeholder="Например, курица с рисом" autocomplete="off">
+                </label>
+                <div class="my-recipe-grid">
+                    <label class="my-recipe-field">
+                        <span>Категория</span>
+                        <select id="my-recipe-category-input">
+                            <option value="Завтрак">Завтрак</option>
+                            <option value="Обед">Обед</option>
+                            <option value="Ужин">Ужин</option>
+                            <option value="Перекус">Перекус</option>
+                        </select>
+                    </label>
+                    <label class="my-recipe-field">
+                        <span>Вес блюда, г</span>
+                        <input id="my-recipe-weight-input" type="number" inputmode="decimal" min="1" step="1" placeholder="800" oninput="updateMyRecipeCalculation()">
+                    </label>
+                </div>
+                <label class="my-recipe-field my-recipe-field-wide">
+                    <span>Количество порций</span>
+                    <input id="my-recipe-servings-input" type="number" inputmode="decimal" min="1" step="1" placeholder="4" oninput="updateMyRecipeCalculation()">
+                </label>
+                <label class="my-recipe-field my-recipe-field-wide">
+                    <span>Описание приготовления</span>
+                    <textarea id="my-recipe-description-input" rows="3" maxlength="500" placeholder="Необязательно"></textarea>
+                </label>
+                <section class="my-recipe-ingredients">
+                    <div class="my-recipe-ingredients-head">
+                        <div>
+                            <div class="my-recipe-ingredients-title">Ингредиенты</div>
+                            <div class="my-recipe-ingredients-subtitle">Добавь продукты и укажи КБЖУ на 100 г — расчёт рецепта появится на следующем этапе.</div>
+                        </div>
+                    </div>
+                    <div class="my-recipe-ingredients-list" id="my-recipe-ingredients-list"></div>
+                    <button class="my-recipe-add-ingredient-btn" type="button" onclick="addMyRecipeIngredient()">Добавить ингредиент</button>
+                </section>
+                <section class="my-recipe-calculation" aria-live="polite">
+                    <div class="my-recipe-calculation-head">
+                        <div>
+                            <div class="my-recipe-calculation-title">Расчёт рецепта</div>
+                            <div class="my-recipe-calculation-hint" id="my-recipe-weight-hint">Для точного расчёта укажи вес готового блюда после приготовления.</div>
+                        </div>
+                    </div>
+                    <div class="my-recipe-calculation-grid">
+                        <div class="my-recipe-calc-card">
+                            <b>Всего</b>
+                            <div class="my-recipe-calc-values">
+                                <span><strong id="my-recipe-total-kcal">0</strong><small>ккал</small></span>
+                                <span><strong id="my-recipe-total-protein">0.0</strong><small>белки</small></span>
+                                <span><strong id="my-recipe-total-fat">0.0</strong><small>жиры</small></span>
+                                <span><strong id="my-recipe-total-carbs">0.0</strong><small>углеводы</small></span>
+                            </div>
+                        </div>
+                        <div class="my-recipe-calc-card">
+                            <b>На 100 г</b>
+                            <div class="my-recipe-calc-values">
+                                <span><strong id="my-recipe-per100-kcal">0</strong><small>ккал</small></span>
+                                <span><strong id="my-recipe-per100-protein">0.0</strong><small>белки</small></span>
+                                <span><strong id="my-recipe-per100-fat">0.0</strong><small>жиры</small></span>
+                                <span><strong id="my-recipe-per100-carbs">0.0</strong><small>углеводы</small></span>
+                            </div>
+                        </div>
+                        <div class="my-recipe-calc-card">
+                            <b>На порцию</b>
+                            <div class="my-recipe-serving-hint" id="my-recipe-serving-hint">Укажите количество порций.</div>
+                            <div class="my-recipe-calc-values" id="my-recipe-serving-values" hidden>
+                                <span><strong id="my-recipe-serving-kcal">0</strong><small>ккал</small></span>
+                                <span><strong id="my-recipe-serving-protein">0.0</strong><small>белки</small></span>
+                                <span><strong id="my-recipe-serving-fat">0.0</strong><small>жиры</small></span>
+                                <span><strong id="my-recipe-serving-carbs">0.0</strong><small>углеводы</small></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <div class="my-recipe-form-actions">
+                    <button class="my-recipe-back-btn" type="button" onclick="showMyRecipesEmptyView()">Назад</button>
+                    <button class="my-recipe-next-btn" type="submit">Сохранить рецепт</button>
+                </div>
+            </form>
+        </section>
+    </div>
+
+    <div class="my-recipe-add-overlay" id="my-recipe-add-modal" onclick="closeMyRecipeAddModal()">
+        <form class="my-recipe-add-sheet" onclick="event.stopPropagation()" onsubmit="submitMyRecipeDiaryAdd(event)">
+            <div class="my-recipe-add-head">
+                <div>
+                    <div class="my-recipe-add-title">Добавить рецепт</div>
+                    <div class="my-recipe-add-subtitle" id="my-recipe-add-name">Рецепт</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeMyRecipeAddModal()">×</button>
+            </div>
+            <div class="my-recipe-add-error" id="my-recipe-add-error" role="alert"></div>
+            <div class="my-recipe-grid">
+                <label class="my-recipe-field">
+                    <span>Приём пищи</span>
+                    <select id="my-recipe-add-meal-type">
+                        <option value="Завтрак">Завтрак</option>
+                        <option value="Обед">Обед</option>
+                        <option value="Ужин">Ужин</option>
+                        <option value="Перекус">Перекус</option>
+                    </select>
+                </label>
+                <label class="my-recipe-field">
+                    <span>Сколько съел, г</span>
+                    <input id="my-recipe-add-grams" type="number" inputmode="decimal" min="1" step="1" placeholder="200" oninput="updateMyRecipeAddTotals()">
+                </label>
+            </div>
+            <div class="my-recipe-add-total-card" aria-live="polite">
+                <div class="my-recipe-add-total-title">Итого за порцию</div>
+                <div class="my-recipe-add-total-grid">
+                    <div><b id="my-recipe-add-total-kcal">0</b><span>ккал</span></div>
+                    <div><b id="my-recipe-add-total-protein">0.0 г</b><span>белки</span></div>
+                    <div><b id="my-recipe-add-total-fat">0.0 г</b><span>жиры</span></div>
+                    <div><b id="my-recipe-add-total-carbs">0.0 г</b><span>углеводы</span></div>
+                </div>
+            </div>
+            <div class="my-recipe-add-actions">
+                <button class="my-recipe-add-cancel" type="button" onclick="closeMyRecipeAddModal()">Отмена</button>
+                <button class="my-recipe-add-submit" type="submit">Добавить в дневник</button>
+            </div>
+        </form>
     </div>
 
     <div class="manual-meal-overlay" id="manual-meal-modal">
