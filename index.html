@@ -324,40 +324,15 @@
                 </section>
                 <section class="my-recipe-calculation" aria-live="polite">
                     <div class="my-recipe-calculation-head">
-                        <div>
-                            <div class="my-recipe-calculation-title">Расчёт рецепта</div>
-                            <div class="my-recipe-calculation-hint" id="my-recipe-weight-hint">Для точного расчёта укажи вес готового блюда после приготовления.</div>
-                        </div>
+                        <div class="my-recipe-calculation-title">Итог рецепта</div>
+                        <div class="my-recipe-calculation-subtitle">КБЖУ на 100 г готового блюда</div>
+                        <div class="my-recipe-calculation-hint" id="my-recipe-weight-hint">Для точного расчёта укажи вес готового блюда после приготовления.</div>
                     </div>
-                    <div class="my-recipe-calculation-grid">
-                        <div class="my-recipe-calc-card">
-                            <b>Всего</b>
-                            <div class="my-recipe-calc-values">
-                                <span><strong id="my-recipe-total-kcal">0</strong><small>ккал</small></span>
-                                <span><strong id="my-recipe-total-protein">0.0</strong><small>белки</small></span>
-                                <span><strong id="my-recipe-total-fat">0.0</strong><small>жиры</small></span>
-                                <span><strong id="my-recipe-total-carbs">0.0</strong><small>углеводы</small></span>
-                            </div>
-                        </div>
-                        <div class="my-recipe-calc-card">
-                            <b>На 100 г</b>
-                            <div class="my-recipe-calc-values">
-                                <span><strong id="my-recipe-per100-kcal">0</strong><small>ккал</small></span>
-                                <span><strong id="my-recipe-per100-protein">0.0</strong><small>белки</small></span>
-                                <span><strong id="my-recipe-per100-fat">0.0</strong><small>жиры</small></span>
-                                <span><strong id="my-recipe-per100-carbs">0.0</strong><small>углеводы</small></span>
-                            </div>
-                        </div>
-                        <div class="my-recipe-calc-card">
-                            <b>На порцию</b>
-                            <div class="my-recipe-serving-hint" id="my-recipe-serving-hint">Укажите количество порций.</div>
-                            <div class="my-recipe-calc-values" id="my-recipe-serving-values" hidden>
-                                <span><strong id="my-recipe-serving-kcal">0</strong><small>ккал</small></span>
-                                <span><strong id="my-recipe-serving-protein">0.0</strong><small>белки</small></span>
-                                <span><strong id="my-recipe-serving-fat">0.0</strong><small>жиры</small></span>
-                                <span><strong id="my-recipe-serving-carbs">0.0</strong><small>углеводы</small></span>
-                            </div>
-                        </div>
+                    <div class="my-recipe-calc-values">
+                        <span><strong id="my-recipe-active-kcal">0</strong><small>ккал</small></span>
+                        <span><strong id="my-recipe-active-protein">0.0</strong><small>белки</small></span>
+                        <span><strong id="my-recipe-active-fat">0.0</strong><small>жиры</small></span>
+                        <span><strong id="my-recipe-active-carbs">0.0</strong><small>углеводы</small></span>
                     </div>
                 </section>
                 <div class="my-recipe-form-actions">
@@ -407,6 +382,40 @@
                 <button class="my-recipe-add-submit" type="submit">Добавить в дневник</button>
             </div>
         </form>
+    </div>
+
+    <div class="my-recipe-details-overlay" id="my-recipe-details-modal" onclick="closeMyRecipeDetailsModal()">
+        <section class="my-recipe-details-sheet" onclick="event.stopPropagation()" aria-labelledby="my-recipe-details-title">
+            <div class="my-recipe-details-head">
+                <div>
+                    <div class="my-recipe-details-kicker">Детали рецепта</div>
+                    <div class="my-recipe-details-title" id="my-recipe-details-title">Рецепт</div>
+                    <div class="my-recipe-details-meta" id="my-recipe-details-meta"></div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeMyRecipeDetailsModal()">×</button>
+            </div>
+            <section class="my-recipe-details-section">
+                <div class="my-recipe-details-section-title">КБЖУ на 100 г</div>
+                <div class="my-recipe-details-macros">
+                    <div><b id="my-recipe-details-kcal">0</b><span>ккал</span></div>
+                    <div><b id="my-recipe-details-protein">0.0</b><span>белки</span></div>
+                    <div><b id="my-recipe-details-fat">0.0</b><span>жиры</span></div>
+                    <div><b id="my-recipe-details-carbs">0.0</b><span>углеводы</span></div>
+                </div>
+            </section>
+            <section class="my-recipe-details-section">
+                <div class="my-recipe-details-section-title">Ингредиенты</div>
+                <div class="my-recipe-details-ingredients" id="my-recipe-details-ingredients"></div>
+            </section>
+            <section class="my-recipe-details-section">
+                <div class="my-recipe-details-section-title">Описание приготовления</div>
+                <div class="my-recipe-details-description" id="my-recipe-details-description">Описание приготовления не добавлено.</div>
+            </section>
+            <div class="my-recipe-details-actions">
+                <button class="my-recipe-details-close" type="button" onclick="closeMyRecipeDetailsModal()">Закрыть</button>
+                <button class="my-recipe-details-add" type="button" onclick="addMyRecipeFromDetails()">Добавить в дневник</button>
+            </div>
+        </section>
     </div>
 
     <div class="manual-meal-overlay" id="manual-meal-modal">
