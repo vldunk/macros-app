@@ -2147,6 +2147,92 @@
             padding-right: 36px;
         }
 
+        .barcode-camera-open {
+            width: 100%;
+            min-height: 42px;
+            margin: -4px 0 10px;
+            border-radius: 16px;
+            color: #557d6c;
+            background: rgba(95,143,122,.09);
+            border: 1px solid rgba(95,143,122,.13);
+            font-size: 14px;
+            font-weight: 900;
+            box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
+        .barcode-camera-placeholder {
+            display: grid;
+            gap: 9px;
+            margin: 0 0 12px;
+            padding: 12px;
+            border-radius: 20px;
+            background: rgba(250,248,242,.76);
+            border: 1px solid rgba(82,73,58,.08);
+            box-shadow: 0 10px 24px rgba(82,73,58,.045), inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
+        .barcode-camera-placeholder[hidden] { display: none !important; }
+
+        .barcode-camera-placeholder-title {
+            color: var(--text-main);
+            font-size: 14px;
+            line-height: 1.18;
+            font-weight: 920;
+        }
+
+        .barcode-camera-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            max-height: 220px;
+            overflow: hidden;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(95,143,122,.10), rgba(82,73,58,.06));
+            border: 1px solid rgba(82,73,58,.09);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
+        .barcode-camera-frame::after {
+            content: "";
+            position: absolute;
+            left: 12%;
+            right: 12%;
+            top: 50%;
+            height: 2px;
+            border-radius: 999px;
+            background: rgba(95,143,122,.72);
+            box-shadow: 0 0 18px rgba(95,143,122,.24);
+            pointer-events: none;
+        }
+
+        .barcode-camera-frame video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: rgba(255,255,255,.52);
+        }
+
+        .barcode-camera-placeholder-text {
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.38;
+            font-weight: 650;
+        }
+
+        .barcode-camera-close {
+            justify-self: start;
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 13px;
+            color: #557d6c;
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(95,143,122,.14);
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.72);
+        }
+
         .barcode-meal-actions {
             position: sticky;
             bottom: 0;

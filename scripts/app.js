@@ -92,7 +92,7 @@
         const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
         const LOADING_TIMEOUT_MS = 22000;
@@ -1277,6 +1277,71 @@
             setTimeout(() => input?.focus?.(), 60);
         }
 
+        function setBarcodeCameraStatus(message = '') {
+            const status = document.getElementById('barcode-camera-status');
+            if (status) status.textContent = message;
+        }
+
+        function stopBarcodeCamera() {
+            if (barcodeCameraStream) {
+                barcodeCameraStream.getTracks().forEach(track => track.stop());
+                barcodeCameraStream = null;
+            }
+            const video = document.getElementById('barcode-camera-video');
+            if (video) {
+                video.pause?.();
+                video.srcObject = null;
+            }
+        }
+
+        async function openBarcodeCameraPlaceholder() {
+            const panel = document.getElementById('barcode-camera-placeholder');
+            panel?.removeAttribute('hidden');
+            setBarcodeCameraStatus('Наведите камеру на штрихкод');
+            const video = document.getElementById('barcode-camera-video');
+            if (!navigator.mediaDevices?.getUserMedia) {
+                setBarcodeCameraStatus('Камера недоступна на этом устройстве. Введите штрихкод вручную.');
+                console.warn('[barcode camera] getUserMedia is not supported');
+                return;
+            }
+            stopBarcodeCamera();
+            try {
+                let stream;
+                try {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                } catch (environmentError) {
+                    console.warn('[barcode camera] Environment camera unavailable, trying any camera:', environmentError);
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                }
+                barcodeCameraStream = stream;
+                if (video) {
+                    video.srcObject = stream;
+                    await video.play().catch(error => console.warn('[barcode camera] Video play failed:', error));
+                }
+                setBarcodeCameraStatus('Наведите камеру на штрихкод');
+            } catch (error) {
+                stopBarcodeCamera();
+                console.warn('[barcode camera] Camera start failed:', error);
+                if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+                    setBarcodeCameraStatus('Доступ к камере запрещён. Разрешите доступ или введите штрихкод вручную.');
+                    return;
+                }
+                if (error?.name === 'NotFoundError' || error?.name === 'OverconstrainedError' || error?.name === 'NotReadableError') {
+                    setBarcodeCameraStatus('Камера недоступна на этом устройстве. Введите штрихкод вручную.');
+                    return;
+                }
+                setBarcodeCameraStatus('Не удалось запустить камеру. Попробуйте позже или введите код вручную.');
+            }
+        }
+
+        function closeBarcodeCameraPlaceholder(options = {}) {
+            stopBarcodeCamera();
+            const panel = document.getElementById('barcode-camera-placeholder');
+            panel?.setAttribute('hidden', '');
+            setBarcodeCameraStatus('Наведите камеру на штрихкод');
+            if (options.focusInput !== false) document.getElementById('barcode-meal-input')?.focus?.();
+        }
+
         function normalizeBarcode(value) {
             return String(value || '').trim().replace(/\s+/g, '');
         }
@@ -1296,6 +1361,7 @@
             if (input) input.value = '';
             const result = document.getElementById('barcode-meal-result');
             if (result) result.innerHTML = '';
+            closeBarcodeCameraPlaceholder({ focusInput: false });
         }
 
         function openBarcodeMealModal() {
@@ -1310,6 +1376,7 @@
             barcodeProductDraft = null;
             setBarcodeMealError('');
             setBarcodeMealLoading(false);
+            closeBarcodeCameraPlaceholder({ focusInput: false });
         }
 
         function getOpenFoodFactsNumber(product, key) {
@@ -1431,6 +1498,7 @@
                 resetBarcodeSearchResult({ clearInput: true });
                 return;
             }
+            closeBarcodeCameraPlaceholder({ focusInput: false });
             const input = document.getElementById('barcode-meal-input');
             const barcode = normalizeBarcode(input?.value || '');
             if (input) input.value = barcode;

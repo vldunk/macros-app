@@ -281,6 +281,15 @@
                 <span>Штрихкод продукта</span>
                 <input id="barcode-meal-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="32" placeholder="Например, 4601234567890" autocomplete="off">
             </label>
+            <button class="barcode-camera-open" type="button" onclick="openBarcodeCameraPlaceholder()">Сканировать камерой</button>
+            <section class="barcode-camera-placeholder" id="barcode-camera-placeholder" hidden aria-live="polite">
+                <div class="barcode-camera-placeholder-title">Сканирование камерой</div>
+                <div class="barcode-camera-frame">
+                    <video id="barcode-camera-video" playsinline muted autoplay></video>
+                </div>
+                <div class="barcode-camera-placeholder-text" id="barcode-camera-status">Наведите камеру на штрихкод</div>
+                <button class="barcode-camera-close" type="button" onclick="closeBarcodeCameraPlaceholder()">Остановить сканирование</button>
+            </section>
             <div class="barcode-meal-result" id="barcode-meal-result" aria-live="polite"></div>
             <div class="barcode-meal-actions">
                 <button class="barcode-meal-cancel" type="button" onclick="closeBarcodeMealModal()">Отмена</button>
