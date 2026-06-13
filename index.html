@@ -578,28 +578,30 @@
 
     <div class="portion-overlay" id="recipe-portion-overlay">
         <div class="portion-sheet">
-            <div class="portion-head">
-                <div>
-                    <div class="portion-title" id="portion-title">Выбранная порция</div>
-                    <div class="portion-subtitle" id="portion-editor-subtitle">Настрой рецепт и граммовки ингредиентов.</div>
+            <div class="portion-scroll">
+                <div class="portion-head">
+                    <div>
+                        <div class="portion-title" id="portion-title">Выбранная порция</div>
+                        <div class="portion-subtitle" id="portion-editor-subtitle">Настрой рецепт и граммовки ингредиентов.</div>
+                    </div>
+                    <button class="portion-reset-btn" type="button" title="Сбросить рецепт" aria-label="Сбросить рецепт к стандартным граммовкам" onclick="resetRecipePortionDraft()">↻</button>
                 </div>
-                <button class="portion-reset-btn" type="button" title="Сбросить рецепт" aria-label="Сбросить рецепт к стандартным граммовкам" onclick="resetRecipePortionDraft()">↻</button>
-            </div>
-            <div class="portion-total" id="portion-total"></div>
-            <label class="portion-eaten-field" id="portion-eaten-field">
-                <span>Съеденная порция, г</span>
-                <input id="portion-eaten-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="setPortionEatenGrams(this.value)">
-            </label>
-            <div class="portion-meal-section" id="portion-meal-section">
-                <div class="portion-subtitle">Прием пищи</div>
-                <div class="portion-meal-options" id="portion-meal-options">
-                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Завтрак')">Завтрак</button>
-                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Обед')">Обед</button>
-                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Ужин')">Ужин</button>
-                    <button class="portion-meal-option" type="button" onclick="setPortionMealType('Перекус')">Перекус</button>
+                <div class="portion-total" id="portion-total"></div>
+                <label class="portion-eaten-field" id="portion-eaten-field">
+                    <span>Съеденная порция, г</span>
+                    <input id="portion-eaten-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="setPortionEatenGrams(this.value)">
+                </label>
+                <div class="portion-meal-section" id="portion-meal-section">
+                    <div class="portion-subtitle">Прием пищи</div>
+                    <div class="portion-meal-options" id="portion-meal-options">
+                        <button class="portion-meal-option" type="button" onclick="setPortionMealType('Завтрак')">Завтрак</button>
+                        <button class="portion-meal-option" type="button" onclick="setPortionMealType('Обед')">Обед</button>
+                        <button class="portion-meal-option" type="button" onclick="setPortionMealType('Ужин')">Ужин</button>
+                        <button class="portion-meal-option" type="button" onclick="setPortionMealType('Перекус')">Перекус</button>
+                    </div>
                 </div>
+                <div id="portion-ingredients"></div>
             </div>
-            <div id="portion-ingredients"></div>
             <div class="portion-actions">
                 <button class="light-action-btn" type="button" onclick="closeRecipePortionEditor()">Отмена</button>
                 <button class="detail-add-btn" id="portion-confirm-btn" type="button" onclick="confirmRecipePortion()">Добавить</button>
@@ -766,53 +768,6 @@
             </div>
         </section>
 
-        <section class="daily-norm-card" id="profile-display" onclick="openChartModal()">
-            <div class="daily-norm-header">
-                <div class="daily-block-title">
-                    <span class="daily-title-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24"><path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"></path></svg>
-                    </span>
-                    <span>Ежедневная норма</span>
-                </div>
-                <span class="daily-norm-goal" id="daily-goal-caption">Поддержание</span>
-            </div>
-            <div class="daily-norm-body">
-                <div class="daily-norm-copy">
-                    <div class="daily-norm-percent" id="intake-pct">0%</div>
-                    <div class="daily-norm-label">выполнено</div>
-                    <div class="daily-norm-status" id="home-kcal-left">Осталось 0 ккал</div>
-                </div>
-                <div class="daily-norm-gauge" aria-label="Прогресс калорий">
-                    <svg class="daily-gauge-svg" viewBox="0 0 120 72" aria-hidden="true">
-                        <path d="M 18 60 A 42 42 0 0 1 102 60"></path>
-                        <path id="gauge-path" d="M 18 60 A 42 42 0 0 1 102 60"></path>
-                    </svg>
-                    <div class="daily-gauge-center">
-                        <strong id="gauge-cur">0</strong>
-                        <span id="gauge-max">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="daily-norm-macro-grid" aria-label="Сводка КБЖУ">
-                <div class="daily-norm-macro-card daily-norm-macro-card--protein">
-                    <span class="daily-norm-macro-label">Белки</span>
-                    <strong class="daily-norm-macro-value" id="daily-norm-protein-value">0 / 120 г</strong>
-                    <span class="daily-norm-macro-bar"><span id="daily-norm-protein-bar"></span></span>
-                </div>
-                <div class="daily-norm-macro-card daily-norm-macro-card--fat">
-                    <span class="daily-norm-macro-label">Жиры</span>
-                    <strong class="daily-norm-macro-value" id="daily-norm-fat-value">0 / 55 г</strong>
-                    <span class="daily-norm-macro-bar"><span id="daily-norm-fat-bar"></span></span>
-                </div>
-                <div class="daily-norm-macro-card daily-norm-macro-card--carbs">
-                    <span class="daily-norm-macro-label">Углеводы</span>
-                    <strong class="daily-norm-macro-value" id="daily-norm-carbs-value">0 / 180 г</strong>
-                    <span class="daily-norm-macro-bar"><span id="daily-norm-carbs-bar"></span></span>
-                </div>
-            </div>
-            <span class="daily-hidden-summary" id="daily-kcal-summary">0 / 0</span>
-        </section>
-
         <section class="macro-summary-card">
             <div class="daily-block-title macro-summary-title">
                 <span class="daily-title-icon" aria-hidden="true">
@@ -821,11 +776,17 @@
                 <span>Макронутриенты</span>
             </div>
             <div class="macro-grid">
-                <div class="macro-mini-card carbs">
-                    <div class="macro-ring" id="macro-carbs-ring" style="--pct:0"><span id="macro-carbs-pct">0%</span></div>
-                    <div class="macro-mini-name">Углеводы</div>
-                    <div class="macro-mini-value" id="daily-carbs-summary">0 / 0 г</div>
-                    <div class="macro-mini-bar"><span id="daily-carbs-bar"></span></div>
+                <div class="macro-mini-card kcal">
+                    <div class="macro-ring" id="macro-kcal-ring" style="--pct:0"><span id="macro-kcal-pct">0%</span></div>
+                    <div class="macro-mini-name">Ккал</div>
+                    <div class="macro-mini-value" id="daily-kcal-summary">0 / 0</div>
+                    <div class="macro-mini-bar"><span id="daily-kcal-bar"></span></div>
+                </div>
+                <div class="macro-mini-card protein">
+                    <div class="macro-ring" id="macro-protein-ring" style="--pct:0"><span id="macro-protein-pct">0%</span></div>
+                    <div class="macro-mini-name">Белки</div>
+                    <div class="macro-mini-value" id="daily-protein-summary">0 / 0 г</div>
+                    <div class="macro-mini-bar"><span id="daily-protein-bar"></span></div>
                 </div>
                 <div class="macro-mini-card fat">
                     <div class="macro-ring" id="macro-fat-ring" style="--pct:0"><span id="macro-fat-pct">0%</span></div>
@@ -833,11 +794,11 @@
                     <div class="macro-mini-value" id="daily-fat-summary">0 / 0 г</div>
                     <div class="macro-mini-bar"><span id="daily-fat-bar"></span></div>
                 </div>
-                <div class="macro-mini-card protein">
-                    <div class="macro-ring" id="macro-protein-ring" style="--pct:0"><span id="macro-protein-pct">0%</span></div>
-                    <div class="macro-mini-name">Белки</div>
-                    <div class="macro-mini-value" id="daily-protein-summary">0 / 0 г</div>
-                    <div class="macro-mini-bar"><span id="daily-protein-bar"></span></div>
+                <div class="macro-mini-card carbs">
+                    <div class="macro-ring" id="macro-carbs-ring" style="--pct:0"><span id="macro-carbs-pct">0%</span></div>
+                    <div class="macro-mini-name">Углеводы</div>
+                    <div class="macro-mini-value" id="daily-carbs-summary">0 / 0 г</div>
+                    <div class="macro-mini-bar"><span id="daily-carbs-bar"></span></div>
                 </div>
             </div>
             <div class="macro-water-card">
@@ -856,8 +817,6 @@
                 </div>
             </div>
         </section>
-
-        <button class="daily-add-meal-btn home-primary-cta" type="button" onclick="openAddMealAction(event)"><span>+</span>Добавить приём пищи</button>
 
         <section class="coach-feedback-card smart home-smart-card" role="button" tabindex="0" onclick="openSmartTipPopup()" onkeydown="handleSmartTipKey(event)">
             <div class="home-smart-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.7 5.1L19 10l-5.3 1.9L12 17l-1.7-5.1L5 10l5.3-1.9L12 3Z"></path><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"></path></svg></div>

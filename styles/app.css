@@ -3418,6 +3418,77 @@
         }
         .app-toast { bottom: max(20px, calc(12px + env(safe-area-inset-bottom))); }
 
+        /* Recipe modals: keep inputs and footers stable when the mobile keyboard changes viewport height. */
+        #recipe-details-modal,
+        .portion-overlay {
+            align-items: flex-end;
+            justify-content: center;
+            height: 100dvh;
+            max-height: 100dvh;
+            height: var(--app-viewport-height);
+            max-height: var(--app-viewport-height);
+            padding-top: max(10px, env(safe-area-inset-top));
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            overflow: hidden !important;
+        }
+
+        .recipe-details-content,
+        .portion-sheet {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 100% !important;
+            max-width: min(560px, calc(100vw - 20px)) !important;
+            max-height: min(92dvh, calc(var(--app-viewport-height) - max(20px, env(safe-area-inset-top)) - max(20px, env(safe-area-inset-bottom)))) !important;
+            height: auto !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .recipe-details-content {
+            padding-bottom: 0 !important;
+        }
+
+        .detail-body,
+        .portion-scroll {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+        }
+
+        .detail-body {
+            padding-bottom: 18px !important;
+        }
+
+        .portion-scroll {
+            padding: 22px 20px 10px;
+        }
+
+        .detail-sticky-cta,
+        .portion-actions {
+            position: relative !important;
+            bottom: auto !important;
+            flex: 0 0 auto;
+            z-index: 5;
+        }
+
+        .detail-sticky-cta {
+            margin: 0 !important;
+            padding: 12px 18px max(14px, env(safe-area-inset-bottom)) !important;
+        }
+
+        .portion-actions {
+            margin: 0 !important;
+            padding: 10px 20px max(14px, env(safe-area-inset-bottom)) !important;
+            background: linear-gradient(180deg, rgba(255,255,255,.82), rgba(255,255,255,.98));
+        }
+
+        #portion-ingredients {
+            padding-bottom: 12px !important;
+        }
+
         /* Home premium wellness redesign. Image files can be replaced in assets/images/home/*.png. */
         .coach-hero {
             grid-template-columns: minmax(0, 1fr) minmax(118px, 40%);
@@ -7066,7 +7137,7 @@
         }
 
         .macro-summary-card {
-            margin: 0 0 10px;
+            margin: 12px 0 10px;
             padding: 13px;
             border-radius: 26px;
         }
@@ -7081,12 +7152,24 @@
 
         .macro-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-auto-flow: column;
+            grid-auto-columns: minmax(92px, 1fr);
+            grid-template-columns: none;
             gap: 8px;
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+            scroll-snap-type: x proximity;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+            margin-bottom: -2px;
+        }
+
+        .macro-grid::-webkit-scrollbar {
+            display: none;
         }
 
         .macro-mini-card {
-            min-width: 0;
+            min-width: 92px;
             min-height: 126px;
             display: grid;
             justify-items: center;
@@ -7097,6 +7180,7 @@
             background: rgba(255,255,255,.56);
             border: 1px solid rgba(112,96,70,.08);
             box-shadow: inset 0 1px 0 rgba(255,255,255,.78);
+            scroll-snap-align: start;
         }
 
         .macro-ring {
@@ -7122,6 +7206,7 @@
         .macro-mini-card.carbs .macro-ring { --ring-color: #d9a48f; }
         .macro-mini-card.fat .macro-ring { --ring-color: #e2b047; }
         .macro-mini-card.protein .macro-ring { --ring-color: #6ca47d; }
+        .macro-mini-card.kcal .macro-ring { --ring-color: #c9a35f; }
 
         .macro-mini-name {
             color: #4f4b53;
@@ -7162,6 +7247,7 @@
         .macro-mini-card.carbs .macro-mini-bar span { background: #d9a48f; }
         .macro-mini-card.fat .macro-mini-bar span { background: #e2b047; }
         .macro-mini-card.protein .macro-mini-bar span { background: #6ca47d; }
+        .macro-mini-card.kcal .macro-mini-bar span { background: #c9a35f; }
 
         .macro-water-card {
             margin-top: 9px;
@@ -10670,5 +10756,490 @@
             .home-bottom-nav .home-bottom-nav-add span {
                 width: 54px !important;
                 height: 54px !important;
+            }
+        }
+
+        /* Final summary calorie card: fresh structure, no legacy gauge/footer layout. */
+        .daily-norm-card .summary-calorie-card {
+            min-width: 0 !important;
+            height: 136px !important;
+            min-height: 136px !important;
+            max-height: 136px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0 !important;
+            padding: 10px 10px 12px !important;
+            border-radius: 20px !important;
+            background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(244,249,245,.72)) !important;
+            border: 1px solid rgba(82,73,58,.075) !important;
+            box-shadow: 0 8px 20px rgba(82,73,58,.06), inset 0 1px 0 rgba(255,255,255,.84) !important;
+            overflow: visible !important;
+        }
+
+        .daily-norm-card .summary-calorie-gauge {
+            position: relative !important;
+            width: min(156px, 100%) !important;
+            height: 76px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex: 0 0 76px !important;
+            min-width: 0 !important;
+        }
+
+        .daily-norm-card .summary-calorie-gauge-svg {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            overflow: visible !important;
+        }
+
+        .daily-norm-card .summary-calorie-gauge-svg path {
+            fill: none !important;
+            stroke-linecap: round !important;
+            stroke-width: 13 !important;
+            stroke-dasharray: 100 !important;
+        }
+
+        .daily-norm-card .summary-calorie-gauge-track {
+            stroke: rgba(30,38,34,.10) !important;
+        }
+
+        .daily-norm-card .summary-calorie-gauge-progress {
+            stroke: #6f9d88 !important;
+            stroke-dashoffset: 100;
+            transition: stroke-dashoffset .45s var(--ease-soft) !important;
+        }
+
+        .daily-norm-card .summary-calorie-percent {
+            position: relative !important;
+            z-index: 2 !important;
+            margin-top: 16px !important;
+            max-width: 100% !important;
+            color: var(--text-main) !important;
+            font-size: 24px !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+            letter-spacing: 0 !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .daily-norm-card .summary-calorie-values {
+            width: 100% !important;
+            min-width: 0 !important;
+            margin-top: 8px !important;
+            color: var(--text-main) !important;
+            font-size: 15px !important;
+            line-height: 1.1 !important;
+            font-weight: 800 !important;
+            letter-spacing: 0 !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        @media (max-width: 360px) {
+            .daily-norm-card .summary-calorie-card {
+                height: 126px !important;
+                min-height: 126px !important;
+                max-height: 126px !important;
+                gap: 0 !important;
+                padding: 9px 8px 11px !important;
+                border-radius: 18px !important;
+            }
+
+            .daily-norm-card .summary-calorie-gauge {
+                width: min(136px, 100%) !important;
+                height: 70px !important;
+                flex-basis: 70px !important;
+            }
+
+            .daily-norm-card .summary-calorie-gauge-svg path {
+                stroke-width: 12 !important;
+            }
+
+            .daily-norm-card .summary-calorie-percent {
+                margin-top: 16px !important;
+                font-size: 22px !important;
+            }
+
+            .daily-norm-card .summary-calorie-values {
+                margin-top: 8px !important;
+                font-size: 13.5px !important;
+            }
+        }
+
+        /* Compact daily summary: calories arc + BJU rows. */
+        .daily-norm-card {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 8px 0 10px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            cursor: pointer !important;
+        }
+
+        .daily-norm-card .daily-norm-header {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) 18px !important;
+            align-items: center !important;
+            gap: 8px !important;
+            padding: 0 7px !important;
+            min-width: 0 !important;
+        }
+
+        .daily-norm-card .daily-block-title {
+            min-width: 0 !important;
+            color: var(--text-main) !important;
+            font-size: 14px !important;
+            line-height: 1 !important;
+            font-weight: 920 !important;
+            letter-spacing: 0 !important;
+            text-transform: none !important;
+        }
+
+        .daily-summary-info {
+            width: 17px !important;
+            height: 17px !important;
+            display: grid !important;
+            place-items: center !important;
+            border-radius: 999px !important;
+            border: 1.5px solid rgba(82,73,58,.32) !important;
+            color: rgba(82,73,58,.70) !important;
+            background: rgba(255,255,255,.42) !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            font-family: ui-serif, Georgia, serif !important;
+            font-weight: 800 !important;
+        }
+
+        .daily-norm-card .daily-norm-body {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr) !important;
+            align-items: stretch !important;
+            gap: 8px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 136px !important;
+        }
+
+        .daily-norm-card .daily-norm-gauge,
+        .daily-norm-card .daily-norm-macro-grid {
+            min-width: 0 !important;
+            height: 136px !important;
+            min-height: 136px !important;
+            max-height: 136px !important;
+            border-radius: 20px !important;
+            background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(244,249,245,.72)) !important;
+            border: 1px solid rgba(82,73,58,.075) !important;
+            box-shadow: 0 8px 20px rgba(82,73,58,.06), inset 0 1px 0 rgba(255,255,255,.84) !important;
+            overflow: hidden !important;
+        }
+
+        .daily-norm-card .daily-norm-gauge {
+            display: grid !important;
+            grid-template-rows: minmax(0, 78px) auto !important;
+            align-content: center !important;
+            justify-items: center !important;
+            gap: 6px !important;
+            justify-self: stretch !important;
+            align-self: stretch !important;
+            width: auto !important;
+            padding: 12px 12px 13px !important;
+            transform: none !important;
+        }
+
+        .daily-gauge-arc {
+            position: relative !important;
+            width: 100% !important;
+            max-width: 144px !important;
+            height: 78px !important;
+            min-width: 0 !important;
+            overflow: visible !important;
+        }
+
+        .daily-norm-card .daily-gauge-svg {
+            position: absolute !important;
+            left: 50% !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: 72px !important;
+            overflow: visible !important;
+            transform: translateX(-50%) !important;
+        }
+
+        .daily-norm-card .daily-gauge-svg path {
+            fill: none !important;
+            stroke-linecap: round !important;
+            stroke-width: 12 !important;
+            stroke-dasharray: 125.66 !important;
+        }
+
+        .daily-norm-card .daily-gauge-svg path:first-child {
+            stroke: rgba(82,73,58,.14) !important;
+        }
+
+        .daily-norm-card .daily-gauge-svg #gauge-path {
+            stroke: #6f9d88 !important;
+            filter: none !important;
+            transition: stroke-dashoffset .45s var(--ease-soft) !important;
+        }
+
+        .daily-norm-card .daily-gauge-center {
+            position: absolute !important;
+            left: 8px !important;
+            right: 8px !important;
+            top: 42px !important;
+            display: grid !important;
+            place-items: center !important;
+            gap: 0 !important;
+            transform: none !important;
+            text-align: center !important;
+        }
+
+        .daily-norm-card .daily-gauge-center strong {
+            max-width: 100% !important;
+            color: var(--text-main) !important;
+            font-size: 27px !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+            letter-spacing: 0 !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+
+        .daily-norm-card .daily-gauge-center strong::after,
+        .daily-norm-card .daily-gauge-center span,
+        .daily-norm-card .daily-gauge-center span::before,
+        .daily-norm-card .daily-gauge-center span::after {
+            content: none !important;
+            display: none !important;
+        }
+
+        .daily-gauge-total {
+            position: static !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            color: var(--text-main) !important;
+            font-size: 18px !important;
+            line-height: 1 !important;
+            font-weight: 760 !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-grid {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+            align-content: stretch !important;
+            gap: 0 !important;
+            width: auto !important;
+            max-width: none !important;
+            margin: 0 !important;
+            padding: 12px 13px !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-row {
+            min-width: 0 !important;
+            display: grid !important;
+            align-content: center !important;
+            gap: 7px !important;
+            padding: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            box-shadow: none !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-head {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) auto !important;
+            align-items: baseline !important;
+            gap: 8px !important;
+            min-width: 0 !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-label {
+            min-width: 0 !important;
+            color: var(--text-main) !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+            letter-spacing: 0 !important;
+            text-transform: none !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-value {
+            min-width: 0 !important;
+            color: var(--text-muted) !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            font-weight: 820 !important;
+            letter-spacing: 0 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-bar {
+            display: block !important;
+            width: 100% !important;
+            height: 3px !important;
+            overflow: hidden !important;
+            border-radius: 999px !important;
+            background: rgba(82,73,58,.105) !important;
+            box-shadow: inset 0 1px 1px rgba(82,73,58,.04) !important;
+        }
+
+        .daily-norm-card .daily-norm-macro-bar span {
+            display: block !important;
+            width: 0%;
+            height: 100% !important;
+            border-radius: inherit !important;
+            background: #6f9d88 !important;
+            box-shadow: none !important;
+            transition: width .45s var(--ease-soft) !important;
+        }
+
+        .daily-norm-card .daily-hidden-summary {
+            display: none !important;
+        }
+
+        @media (max-width: 360px) {
+            .daily-norm-card {
+                margin-top: 7px !important;
+            }
+
+            .daily-norm-card .daily-norm-header {
+                padding-inline: 6px !important;
+            }
+
+            .daily-norm-card .daily-block-title {
+                font-size: 13px !important;
+            }
+
+            .daily-norm-card .daily-norm-body {
+                gap: 6px !important;
+                min-height: 126px !important;
+            }
+
+            .daily-norm-card .daily-norm-gauge,
+            .daily-norm-card .daily-norm-macro-grid {
+                height: 126px !important;
+                min-height: 126px !important;
+                max-height: 126px !important;
+                border-radius: 18px !important;
+            }
+
+            .daily-norm-card .daily-norm-gauge {
+                grid-template-rows: minmax(0, 72px) auto !important;
+                gap: 5px !important;
+                padding: 11px 10px 12px !important;
+            }
+
+            .daily-gauge-arc {
+                max-width: 124px !important;
+                height: 72px !important;
+            }
+
+            .daily-norm-card .daily-gauge-svg {
+                top: 0 !important;
+                width: 100% !important;
+                height: 66px !important;
+            }
+
+            .daily-norm-card .daily-gauge-center {
+                left: 7px !important;
+                right: 7px !important;
+                top: 38px !important;
+            }
+
+            .daily-norm-card .daily-gauge-center strong {
+                font-size: 23px !important;
+            }
+
+            .daily-gauge-total {
+                font-size: 15px !important;
+            }
+
+            .daily-norm-card .daily-norm-macro-label,
+            .daily-norm-card .daily-norm-macro-value {
+                font-size: 9.6px !important;
+            }
+
+            .daily-norm-card .daily-norm-macro-grid {
+                padding: 11px 10px !important;
+            }
+
+            .daily-norm-card .daily-norm-macro-row {
+                gap: 6px !important;
+            }
+        }
+
+        /* Keep the rebuilt calorie card independent from legacy daily gauge rules. */
+        .daily-norm-card .summary-calorie-card {
+            height: 136px !important;
+            min-height: 136px !important;
+            max-height: 136px !important;
+        }
+
+        @media (max-width: 360px) {
+            .daily-norm-card .summary-calorie-card {
+                height: 126px !important;
+                min-height: 126px !important;
+                max-height: 126px !important;
+            }
+        }
+
+        /* Macro cards: keep four cards readable with row-local horizontal scroll. */
+        .macro-summary-card .macro-grid {
+            display: grid !important;
+            grid-auto-flow: column !important;
+            grid-auto-columns: minmax(92px, 1fr) !important;
+            grid-template-columns: none !important;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            overscroll-behavior-x: contain !important;
+            scroll-snap-type: x proximity !important;
+            scrollbar-width: none !important;
+        }
+
+        .macro-summary-card .macro-grid::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        .macro-summary-card .macro-mini-card {
+            min-width: 92px !important;
+            scroll-snap-align: start !important;
+        }
+
+        @media (max-width: 360px) {
+            .macro-summary-card .macro-grid {
+                grid-auto-columns: minmax(86px, 1fr) !important;
+            }
+
+            .macro-summary-card .macro-mini-card {
+                min-width: 86px !important;
             }
         }
