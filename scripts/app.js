@@ -92,7 +92,7 @@
         const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
         const LOADING_TIMEOUT_MS = 22000;
@@ -1294,6 +1294,14 @@
 
         function stopBarcodeCamera() {
             stopBarcodeScanLoop();
+            if (barcodeZxingControls?.stop) {
+                try { barcodeZxingControls.stop(); } catch (error) { console.warn('[barcode camera] ZXing stop failed:', error); }
+            }
+            barcodeZxingControls = null;
+            if (barcodeZxingReader?.reset) {
+                try { barcodeZxingReader.reset(); } catch (error) { console.warn('[barcode camera] ZXing reset failed:', error); }
+            }
+            barcodeZxingReader = null;
             if (barcodeCameraStream) {
                 barcodeCameraStream.getTracks().forEach(track => track.stop());
                 barcodeCameraStream = null;
@@ -1303,6 +1311,13 @@
                 video.pause?.();
                 video.srcObject = null;
             }
+        }
+
+        function getZxingBrowser() {
+            if (window.ZXingBrowser?.BrowserMultiFormatReader) return window.ZXingBrowser;
+            if (window.ZXing?.BrowserMultiFormatReader) return window.ZXing;
+            if (window.ZXing?.browser?.BrowserMultiFormatReader) return window.ZXing.browser;
+            return null;
         }
 
         function createBarcodeDetector() {
@@ -1371,14 +1386,73 @@
             barcodeScanFrameId = requestAnimationFrame(scan);
         }
 
+        function createZxingReader() {
+            const zxing = getZxingBrowser();
+            if (!zxing?.BrowserMultiFormatReader) return null;
+            try {
+                return new zxing.BrowserMultiFormatReader();
+            } catch (error) {
+                console.warn('[barcode camera] ZXing reader init failed:', error);
+                return null;
+            }
+        }
+
+        async function startZxingScanner(video) {
+            const zxing = getZxingBrowser();
+            barcodeZxingReader = barcodeZxingReader || createZxingReader();
+            if (!zxing || !barcodeZxingReader) {
+                setBarcodeCameraStatus('Сканирование недоступно на этом устройстве. Введите штрихкод вручную.');
+                console.warn('[barcode camera] ZXing library is not loaded');
+                return;
+            }
+            if (isBarcodeScanning) return;
+            isBarcodeScanning = true;
+            isBarcodeProcessing = false;
+            const constraints = { video: { facingMode: { ideal: 'environment' } }, audio: false };
+            try {
+                const callback = async (result, error, controls) => {
+                    if (controls && !barcodeZxingControls) barcodeZxingControls = controls;
+                    if (!isBarcodeScanning || isBarcodeProcessing) return;
+                    if (result?.getText) {
+                        const handled = await handleDetectedBarcode(result.getText());
+                        if (handled) return;
+                    }
+                    if (error && error.name && error.name !== 'NotFoundException') {
+                        console.warn('[barcode camera] ZXing decode failed:', error);
+                        setBarcodeCameraStatus('Не удалось считать штрихкод. Попробуйте ещё раз или введите код вручную.');
+                    } else {
+                        setBarcodeCameraStatus('Наведите камеру на штрихкод.');
+                    }
+                };
+                if (barcodeZxingReader.decodeFromConstraints) {
+                    barcodeZxingControls = await barcodeZxingReader.decodeFromConstraints(constraints, video, callback);
+                } else {
+                    barcodeZxingControls = await barcodeZxingReader.decodeFromVideoDevice(null, video, callback);
+                }
+                setBarcodeCameraStatus('Наведите камеру на штрихкод.');
+            } catch (error) {
+                stopBarcodeCamera();
+                console.warn('[barcode camera] ZXing start failed:', error);
+                if (error?.name === 'NotAllowedError' || error?.name === 'SecurityError') {
+                    setBarcodeCameraStatus('Доступ к камере запрещён. Разрешите доступ или введите штрихкод вручную.');
+                    return;
+                }
+                if (error?.name === 'NotFoundError' || error?.name === 'OverconstrainedError' || error?.name === 'NotReadableError') {
+                    setBarcodeCameraStatus('Сканирование недоступно на этом устройстве. Введите штрихкод вручную.');
+                    return;
+                }
+                setBarcodeCameraStatus('Не удалось считать штрихкод. Попробуйте ещё раз или введите код вручную.');
+            }
+        }
+
         async function openBarcodeCameraPlaceholder() {
             const panel = document.getElementById('barcode-camera-placeholder');
             panel?.removeAttribute('hidden');
             setBarcodeCameraStatus('Наведите камеру на штрихкод.');
             const video = document.getElementById('barcode-camera-video');
             if (!('BarcodeDetector' in window)) {
-                setBarcodeCameraStatus('Сканирование камерой недоступно на этом устройстве. Введите штрихкод вручную.');
-                console.warn('[barcode camera] BarcodeDetector is not supported');
+                console.warn('[barcode camera] BarcodeDetector is not supported, using ZXing fallback');
+                await startZxingScanner(video);
                 return;
             }
             if (!navigator.mediaDevices?.getUserMedia) {
