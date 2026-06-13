@@ -255,12 +255,38 @@
                 <span class="add-meal-choice-icon">✎</span>
                 <span><b>Добавить вручную</b><small>Название, вес и КБЖУ на 100 г</small></span>
             </button>
+            <button class="modal-btn add-meal-choice-btn" type="button" onclick="openBarcodeMealModal()">
+                <span class="add-meal-choice-icon">▦</span>
+                <span><b>Сканировать штрихкод</b><small>Найти продукт по штрихкоду</small></span>
+            </button>
             <button class="modal-btn add-meal-choice-btn" type="button" onclick="openMyRecipesModal()">
                 <span class="add-meal-choice-icon">📖</span>
                 <span><b>Мои рецепты</b><small>Созданные тобой блюда</small></span>
             </button>
             <button class="modal-btn add-meal-choice-cancel" type="button" onclick="closeAddMealChoice()">Отмена</button>
         </div>
+    </div>
+
+    <div class="barcode-meal-overlay" id="barcode-meal-modal" onclick="closeBarcodeMealModal()">
+        <form class="barcode-meal-sheet" onclick="event.stopPropagation()" onsubmit="findBarcodeProduct(event)">
+            <div class="barcode-meal-head">
+                <div>
+                    <div class="barcode-meal-title">Поиск по штрихкоду</div>
+                    <div class="barcode-meal-subtitle">Введите цифры с упаковки. Камера пока не используется.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeBarcodeMealModal()">×</button>
+            </div>
+            <div class="barcode-meal-error" id="barcode-meal-error" role="alert"></div>
+            <label class="barcode-meal-field barcode-meal-field-wide">
+                <span>Штрихкод продукта</span>
+                <input id="barcode-meal-input" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="32" placeholder="Например, 4601234567890" autocomplete="off">
+            </label>
+            <div class="barcode-meal-result" id="barcode-meal-result" aria-live="polite"></div>
+            <div class="barcode-meal-actions">
+                <button class="barcode-meal-cancel" type="button" onclick="closeBarcodeMealModal()">Отмена</button>
+                <button class="barcode-meal-submit" id="barcode-meal-find-btn" type="submit">Найти продукт</button>
+            </div>
+        </form>
     </div>
 
     <div class="my-recipes-overlay" id="my-recipes-modal" onclick="closeMyRecipesModal()">
@@ -384,15 +410,15 @@
         </form>
     </div>
 
-    <div class="my-recipe-details-overlay" id="my-recipe-details-modal" onclick="closeMyRecipeDetailsModal()">
-        <section class="my-recipe-details-sheet" onclick="event.stopPropagation()" aria-labelledby="my-recipe-details-title">
+    <div class="my-recipe-details-overlay" id="my-recipe-details-modal" hidden aria-hidden="true">
+        <section class="my-recipe-details-sheet" aria-labelledby="my-recipe-details-title">
             <div class="my-recipe-details-head">
                 <div>
                     <div class="my-recipe-details-kicker">Детали рецепта</div>
                     <div class="my-recipe-details-title" id="my-recipe-details-title">Рецепт</div>
                     <div class="my-recipe-details-meta" id="my-recipe-details-meta"></div>
                 </div>
-                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeMyRecipeDetailsModal()">×</button>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" data-my-recipe-details-close>×</button>
             </div>
             <section class="my-recipe-details-section">
                 <div class="my-recipe-details-section-title">КБЖУ на 100 г</div>
@@ -411,10 +437,31 @@
                 <div class="my-recipe-details-section-title">Описание приготовления</div>
                 <div class="my-recipe-details-description" id="my-recipe-details-description">Описание приготовления не добавлено.</div>
             </section>
-            <div class="my-recipe-details-actions">
-                <button class="my-recipe-details-close" type="button" onclick="closeMyRecipeDetailsModal()">Закрыть</button>
-                <button class="my-recipe-details-add" type="button" onclick="addMyRecipeFromDetails()">Добавить в дневник</button>
+            <div class="my-recipe-details-manage">
+                <button class="my-recipe-details-edit" type="button" data-my-recipe-details-edit>Редактировать</button>
+                <button class="my-recipe-details-delete" type="button" data-my-recipe-details-delete>Удалить</button>
             </div>
+            <div class="my-recipe-details-actions">
+                <button class="my-recipe-details-close" type="button" data-my-recipe-details-close>Закрыть</button>
+                <button class="my-recipe-details-add" type="button" data-my-recipe-details-add>Добавить в дневник</button>
+            </div>
+        </section>
+    </div>
+
+    <div class="my-recipe-product-picker-overlay" id="my-recipe-product-picker-modal" hidden aria-hidden="true">
+        <section class="my-recipe-product-picker-sheet" aria-labelledby="my-recipe-product-picker-title">
+            <div class="my-recipe-product-picker-head">
+                <div>
+                    <div class="my-recipe-product-picker-title" id="my-recipe-product-picker-title">Мои продукты</div>
+                    <div class="my-recipe-product-picker-subtitle">Выбери продукт — КБЖУ заполнится в текущем ингредиенте.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" data-my-recipe-product-picker-close>×</button>
+            </div>
+            <label class="my-recipe-product-picker-search">
+                <span>Найти продукт</span>
+                <input id="my-recipe-product-picker-search" type="search" placeholder="Например, творог" autocomplete="off">
+            </label>
+            <div class="my-recipe-product-picker-list" id="my-recipe-product-picker-list"></div>
         </section>
     </div>
 

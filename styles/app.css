@@ -1317,10 +1317,30 @@
         .my-recipe-details-ingredient-name { min-width: 0; color: var(--text-main); font-size: 13px; line-height: 1.18; font-weight: 900; overflow-wrap: anywhere; }
         .my-recipe-details-ingredient-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 5px; color: var(--text-muted); font-size: 10.5px; line-height: 1.22; font-weight: 760; }
         .my-recipe-details-description { color: var(--text-muted); font-size: 12px; line-height: 1.38; font-weight: 680; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .my-recipe-details-manage { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+        .my-recipe-details-manage button { min-height: 38px; border-radius: 14px; font-size: 12px; font-weight: 900; }
+        .my-recipe-details-edit { color: #557d6c; background: rgba(245,251,247,.82); border: 1px solid rgba(95,143,122,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.78); }
+        .my-recipe-details-delete { color: #9a5d4f; background: rgba(255,235,226,.56); border: 1px solid rgba(201,128,114,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.72); }
         .my-recipe-details-actions { position: sticky; bottom: 0; display: grid; grid-template-columns: minmax(0,.82fr) minmax(0,1.18fr); gap: 8px; margin: 0 -18px; padding: 10px 18px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.97) 28%, rgba(255,255,255,.99)); border-top: 1px solid rgba(82,73,58,.075); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
         .my-recipe-details-actions button { min-height: 42px; border-radius: 14px; font-size: 13px; font-weight: 900; }
         .my-recipe-details-close { color: #69736c; background: rgba(250,248,242,.86); border: 1px solid rgba(82,73,58,.08); }
         .my-recipe-details-add { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); box-shadow: 0 12px 24px rgba(95,143,122,.16); }
+        .my-recipe-product-picker-overlay { position: fixed; inset: 0; z-index: 12320; display: none; align-items: flex-start; justify-content: center; padding: 14px; background: rgba(247,245,239,.68); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); overflow-x: hidden; }
+        .my-recipe-product-picker-overlay.active { display: flex; }
+        .my-recipe-product-picker-sheet { width: min(440px, 100%); max-height: min(calc(var(--app-viewport-height, 100vh) - 28px), 620px); display: grid; grid-template-rows: auto auto minmax(0,1fr); gap: 12px; padding: 18px; border-radius: 28px; background: rgba(255,255,255,.96); border: 1px solid rgba(82,73,58,.10); box-shadow: 0 24px 70px rgba(82,73,58,.18), inset 0 1px 0 rgba(255,255,255,.82); animation: slideUp .22s ease-out both; }
+        .my-recipe-product-picker-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+        .my-recipe-product-picker-head > div { min-width: 0; }
+        .my-recipe-product-picker-title { color: var(--text-main); font-size: 22px; line-height: 1.08; font-weight: 950; }
+        .my-recipe-product-picker-subtitle { margin-top: 5px; color: var(--text-muted); font-size: 12px; line-height: 1.34; font-weight: 650; }
+        .my-recipe-product-picker-search { display: grid; gap: 6px; min-width: 0; }
+        .my-recipe-product-picker-search span { color: var(--text-muted); font-size: 10.5px; line-height: 1.1; font-weight: 900; text-transform: uppercase; letter-spacing: .045em; }
+        .my-recipe-product-picker-search input { width: 100%; min-height: 44px; border: 1px solid rgba(82,73,58,.09); border-radius: 15px; background: rgba(250,248,242,.72); color: var(--text-main); padding: 0 12px; font-size: 14px; font-weight: 760; outline: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.76); }
+        .my-recipe-product-picker-list { min-height: 0; display: grid; align-content: start; gap: 8px; overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
+        .my-recipe-product-picker-card { display: grid; gap: 5px; width: 100%; padding: 12px; border-radius: 17px; background: linear-gradient(180deg, rgba(250,248,242,.78), rgba(245,251,247,.64)); border: 1px solid rgba(82,73,58,.075); box-shadow: inset 0 1px 0 rgba(255,255,255,.78); color: inherit; text-align: left; }
+        .my-recipe-product-picker-card:active { transform: scale(.992); }
+        .my-recipe-product-picker-card b { min-width: 0; color: var(--text-main); font-size: 14px; line-height: 1.15; font-weight: 930; overflow-wrap: anywhere; }
+        .my-recipe-product-picker-card span { color: var(--text-muted); font-size: 11.5px; line-height: 1.32; font-weight: 720; }
+        .my-recipe-product-picker-empty { padding: 14px; border-radius: 18px; background: rgba(250,248,242,.70); border: 1px solid rgba(82,73,58,.075); color: var(--text-muted); font-size: 12.5px; line-height: 1.38; font-weight: 720; text-align: center; }
         .my-recipes-view[hidden],
         .my-recipe-form[hidden] { display: none; }
         .my-recipe-form { display: grid; gap: 8px; padding-bottom: 2px; }
@@ -1392,8 +1412,17 @@
             .my-recipe-details-macros span { font-size: 7.8px; }
             .my-recipe-details-ingredients { max-height: 190px; }
             .my-recipe-details-ingredient-grid { grid-template-columns: repeat(2, minmax(0,1fr)); font-size: 10px; }
+            .my-recipe-details-manage { gap: 7px; }
+            .my-recipe-details-manage button { min-height: 36px; font-size: 11.5px; }
             .my-recipe-details-actions { margin: 0 -16px; padding: 9px 16px calc(11px + env(safe-area-inset-bottom)); }
             .my-recipe-details-actions button { min-height: 40px; font-size: 12.5px; }
+            .my-recipe-product-picker-sheet { padding: 16px; border-radius: 26px; }
+            .my-recipe-product-picker-title { font-size: 20px; }
+            .my-recipe-product-picker-subtitle { font-size: 11.5px; }
+            .my-recipe-product-picker-search input { min-height: 40px; font-size: 13px; }
+            .my-recipe-product-picker-card { padding: 10px; border-radius: 15px; }
+            .my-recipe-product-picker-card b { font-size: 13px; }
+            .my-recipe-product-picker-card span { font-size: 11px; }
             .my-recipe-grid { gap: 7px; }
             .my-recipe-field input,
             .my-recipe-field select { min-height: 40px; padding-inline: 10px; font-size: 13px; }
@@ -2004,6 +2033,307 @@
         .portion-meal-option { min-height: 32px; border-radius: 11px; background: rgba(250,248,242,.62); color: var(--text-muted); border: 1px solid rgba(82,73,58,.07); font-size: 11.5px; font-weight: 690; box-shadow: none; }
         .portion-meal-option.active { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); border-color: rgba(95,143,122,.18); }
         #portion-ingredients { padding-bottom: 86px; }
+
+        .barcode-meal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 12120;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            height: var(--app-viewport-height);
+            max-height: var(--app-viewport-height);
+            padding: 10px;
+            background: rgba(247,245,239,.62);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        .barcode-meal-overlay.active { display: flex; }
+
+        .barcode-meal-sheet {
+            width: min(520px, 100%);
+            max-height: min(calc(var(--app-viewport-height, 100vh) - 20px), 720px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            padding: 16px 16px 0;
+            border-radius: 26px;
+            background: rgba(255,255,255,.96);
+            border: 1px solid rgba(82,73,58,.10);
+            box-shadow: 0 24px 70px rgba(82,73,58,.18), inset 0 1px 0 rgba(255,255,255,.82);
+            animation: slideUp .22s ease-out both;
+        }
+
+        .barcode-meal-head,
+        .barcode-product-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+        }
+
+        .barcode-meal-head { margin-bottom: 10px; }
+
+        .barcode-meal-title {
+            color: var(--text-main);
+            font-size: 22px;
+            line-height: 1.08;
+            font-weight: 950;
+        }
+
+        .barcode-meal-subtitle,
+        .barcode-product-brand {
+            margin-top: 4px;
+            color: var(--text-muted);
+            font-size: 12px;
+            line-height: 1.32;
+            font-weight: 600;
+        }
+
+        .barcode-meal-error {
+            display: none;
+            margin: 0 0 9px;
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: rgba(201,108,97,.10);
+            border: 1px solid rgba(201,108,97,.16);
+            color: #9a5a51;
+            font-size: 12px;
+            line-height: 1.35;
+            font-weight: 800;
+        }
+
+        .barcode-meal-error.active { display: block; }
+
+        .barcode-meal-field {
+            display: grid;
+            gap: 6px;
+            min-width: 0;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .barcode-meal-field-wide { margin-bottom: 12px; }
+
+        .barcode-meal-field input,
+        .barcode-meal-field select {
+            width: 100%;
+            min-width: 0;
+            min-height: 44px;
+            border: 1px solid rgba(82,73,58,.10);
+            border-radius: 16px;
+            background: rgba(250,248,242,.72);
+            color: var(--text-main);
+            padding: 0 12px;
+            font-size: 15px;
+            font-weight: 800;
+            outline: none;
+        }
+
+        .barcode-meal-field select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, #7a827c 50%), linear-gradient(135deg, #7a827c 50%, transparent 50%);
+            background-position: calc(100% - 18px) 19px, calc(100% - 12px) 19px;
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 36px;
+        }
+
+        .barcode-meal-actions {
+            position: sticky;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 8px;
+            margin: 12px -16px 0;
+            padding: 10px 16px max(14px, env(safe-area-inset-bottom));
+            background: linear-gradient(180deg, rgba(255,255,255,.70), rgba(255,255,255,.98) 38%, rgba(255,255,255,.98));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .barcode-meal-sheet.barcode-has-result .barcode-meal-actions {
+            display: none;
+        }
+
+        .barcode-meal-cancel,
+        .barcode-meal-submit,
+        .barcode-add-btn,
+        .barcode-manual-btn,
+        .barcode-reset-btn {
+            width: 100%;
+            min-height: 44px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 900;
+            box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.70);
+        }
+
+        .barcode-meal-cancel {
+            color: var(--text-muted);
+            background: rgba(250,248,242,.78);
+            border: 1px solid rgba(82,73,58,.08);
+        }
+
+        .barcode-meal-submit,
+        .barcode-add-btn,
+        .barcode-manual-btn {
+            color: #fff;
+            background: linear-gradient(180deg, #86b39e, #6f9d88);
+            border: 1px solid rgba(95,143,122,.20);
+        }
+
+        .barcode-meal-submit.is-secondary {
+            color: #557d6c;
+            background: rgba(255,255,255,.78);
+            border-color: rgba(95,143,122,.16);
+            box-shadow: var(--shadowControl), inset 0 1px 0 rgba(255,255,255,.74);
+        }
+
+        .barcode-meal-submit:disabled,
+        .barcode-add-btn:disabled {
+            opacity: .62;
+        }
+
+        .barcode-card-actions {
+            display: grid;
+            grid-template-columns: 1.25fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .barcode-card-actions .barcode-add-btn { margin-top: 0; }
+
+        .barcode-reset-btn {
+            color: #557d6c;
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(95,143,122,.16);
+        }
+
+        .barcode-loading-card,
+        .barcode-empty-card,
+        .barcode-product-card {
+            margin-top: 10px;
+            padding: 14px;
+            border-radius: 22px;
+            background: rgba(250,248,242,.70);
+            border: 1px solid rgba(82,73,58,.08);
+            box-shadow: 0 10px 24px rgba(82,73,58,.055), inset 0 1px 0 rgba(255,255,255,.70);
+        }
+
+        .barcode-loading-card,
+        .barcode-empty-title {
+            color: var(--text-soft);
+            font-size: 13px;
+            line-height: 1.4;
+            font-weight: 760;
+        }
+
+        .barcode-empty-card { display: grid; gap: 10px; }
+
+        .barcode-product-title {
+            min-width: 0;
+            color: var(--text-main);
+            font-size: 17px;
+            line-height: 1.18;
+            font-weight: 920;
+            overflow-wrap: anywhere;
+        }
+
+        .barcode-product-badge {
+            flex: 0 0 auto;
+            padding: 7px 9px;
+            border-radius: 999px;
+            color: #557d6c;
+            background: rgba(95,143,122,.10);
+            border: 1px solid rgba(95,143,122,.13);
+            font-size: 11px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .barcode-macro-line {
+            margin-top: 10px;
+            color: #557d6c;
+            font-size: 12px;
+            line-height: 1.4;
+            font-weight: 820;
+            overflow-wrap: anywhere;
+        }
+
+        .barcode-meal-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .barcode-total-card {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.74);
+            border: 1px solid rgba(82,73,58,.07);
+        }
+
+        .barcode-total-title {
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .barcode-total-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+        }
+
+        .barcode-total-grid div {
+            min-width: 0;
+            padding: 9px 6px;
+            border-radius: 14px;
+            background: rgba(250,248,242,.70);
+            text-align: center;
+        }
+
+        .barcode-total-grid b {
+            display: block;
+            color: var(--text-main);
+            font-size: 15px;
+            line-height: 1.1;
+            font-weight: 920;
+            overflow-wrap: anywhere;
+        }
+
+        .barcode-total-grid span {
+            display: block;
+            margin-top: 4px;
+            color: var(--text-muted);
+            font-size: 10px;
+            font-weight: 850;
+        }
+
+        .barcode-add-btn { margin-top: 12px; }
+
+        @media (max-width: 360px) {
+            .barcode-meal-grid,
+            .barcode-meal-actions,
+            .barcode-card-actions {
+                grid-template-columns: 1fr;
+            }
+            .barcode-total-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
 
         .manual-meal-overlay {
             position: fixed;
@@ -2748,6 +3078,7 @@
         .info-sheet-overlay,
         .my-recipes-overlay,
         .my-recipe-details-overlay,
+        .my-recipe-product-picker-overlay,
         .my-recipe-add-overlay,
         .portion-overlay {
             background: var(--ui-overlay);
@@ -2760,6 +3091,7 @@
         .confirm-overlay,
         .my-recipes-overlay,
         .my-recipe-details-overlay,
+        .my-recipe-product-picker-overlay,
         .my-recipe-add-overlay,
         .portion-overlay {
             padding-bottom: max(14px, env(safe-area-inset-bottom));
@@ -2774,6 +3106,7 @@
         .confirm-sheet,
         .my-recipes-sheet,
         .my-recipe-details-sheet,
+        .my-recipe-product-picker-sheet,
         .my-recipe-add-sheet,
         .portion-sheet {
             border-radius: var(--ui-sheet-radius);
@@ -2819,6 +3152,7 @@
         body.app-scroll-locked .info-sheet-overlay,
         body.app-scroll-locked .my-recipes-overlay,
         body.app-scroll-locked .my-recipe-details-overlay,
+        body.app-scroll-locked .my-recipe-product-picker-overlay,
         body.app-scroll-locked .my-recipe-add-overlay,
         body.app-scroll-locked .portion-overlay {
             pointer-events: auto;
@@ -2834,6 +3168,7 @@
         .info-sheet-overlay,
         .my-recipes-overlay,
         .my-recipe-details-overlay,
+        .my-recipe-product-picker-overlay,
         .my-recipe-add-overlay,
         .portion-overlay {
             height: var(--app-viewport-height);
@@ -2850,6 +3185,7 @@
         #recipe-details-modal { z-index: var(--layer-details); }
         .my-recipes-overlay { z-index: var(--layer-details); }
         .my-recipe-details-overlay { z-index: var(--layer-info); }
+        .my-recipe-product-picker-overlay { z-index: var(--layer-info); }
         .my-recipe-add-overlay { z-index: var(--layer-info); }
         .info-sheet-overlay { z-index: var(--layer-info); }
         .meal-picker-overlay,

@@ -92,7 +92,7 @@
         const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
         const LOADING_TIMEOUT_MS = 22000;
@@ -486,6 +486,39 @@
             products.unshift(product);
             saveManualProducts(products);
             return product;
+        }
+
+        function upsertBarcodeManualProduct(product) {
+            if (!product?.barcode) return null;
+            const now = new Date().toISOString();
+            const products = loadManualProducts().filter(isValidManualProduct);
+            const existingIndex = products.findIndex(item => String(item.barcode || '') === String(product.barcode));
+            const savedProduct = {
+                name: product.name,
+                brand: product.brand || '',
+                barcode: product.barcode,
+                caloriesPer100: normalizeManualProductNumber(product.kcal100),
+                proteinPer100: normalizeManualProductNumber(product.protein100),
+                fatPer100: normalizeManualProductNumber(product.fat100),
+                carbsPer100: normalizeManualProductNumber(product.carbs100),
+                type: 'barcode-product',
+                source: 'open-food-facts',
+                updatedAt: now
+            };
+            if (!isValidManualProduct(savedProduct)) return null;
+            if (existingIndex >= 0) {
+                products[existingIndex] = { ...products[existingIndex], ...savedProduct };
+                saveManualProducts(products);
+                return products[existingIndex];
+            }
+            const created = {
+                id: 'barcode_product_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                ...savedProduct,
+                createdAt: now
+            };
+            products.unshift(created);
+            saveManualProducts(products);
+            return created;
         }
 
         function getSortedManualProducts() {
@@ -1207,6 +1240,358 @@
             document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        function setBarcodeMealError(message = '') {
+            const el = document.getElementById('barcode-meal-error');
+            if (!el) return;
+            el.textContent = message;
+            el.classList.toggle('active', Boolean(message));
+        }
+
+        function setBarcodeMealLoading(isLoading) {
+            const btn = document.getElementById('barcode-meal-find-btn');
+            if (!btn) return;
+            btn.disabled = Boolean(isLoading);
+            btn.textContent = isLoading ? 'Ищу...' : (btn.dataset.mode === 'reset' ? 'Найти другой продукт' : 'Найти продукт');
+        }
+
+        function setBarcodeSearchMode(mode = 'search') {
+            const btn = document.getElementById('barcode-meal-find-btn');
+            const sheet = document.querySelector('.barcode-meal-sheet');
+            const isReset = mode === 'reset';
+            sheet?.classList.toggle('barcode-has-result', isReset);
+            if (!btn) return;
+            btn.dataset.mode = isReset ? 'reset' : 'search';
+            btn.type = isReset ? 'button' : 'submit';
+            btn.textContent = btn.dataset.mode === 'reset' ? 'Найти другой продукт' : 'Найти продукт';
+            btn.classList.toggle('is-secondary', btn.dataset.mode === 'reset');
+        }
+
+        function resetBarcodeSearchResult(options = {}) {
+            barcodeProductDraft = null;
+            setBarcodeMealError('');
+            setBarcodeSearchMode('search');
+            const result = document.getElementById('barcode-meal-result');
+            if (result) result.innerHTML = '';
+            const input = document.getElementById('barcode-meal-input');
+            if (options.clearInput && input) input.value = '';
+            setTimeout(() => input?.focus?.(), 60);
+        }
+
+        function normalizeBarcode(value) {
+            return String(value || '').trim().replace(/\s+/g, '');
+        }
+
+        function validateBarcodeValue(barcode) {
+            if (!barcode) return 'Введите штрихкод продукта.';
+            if (!/^\d+$/.test(barcode) || barcode.length < 6 || barcode.length > 32) return 'Штрихкод должен содержать только цифры.';
+            return '';
+        }
+
+        function resetBarcodeMealForm() {
+            barcodeProductDraft = null;
+            setBarcodeMealError('');
+            setBarcodeMealLoading(false);
+            setBarcodeSearchMode('search');
+            const input = document.getElementById('barcode-meal-input');
+            if (input) input.value = '';
+            const result = document.getElementById('barcode-meal-result');
+            if (result) result.innerHTML = '';
+        }
+
+        function openBarcodeMealModal() {
+            closeAddMealChoice();
+            resetBarcodeMealForm();
+            setLockedLayer('barcode-meal', document.getElementById('barcode-meal-modal'), true);
+            setTimeout(() => document.getElementById('barcode-meal-input')?.focus?.(), 120);
+        }
+
+        function closeBarcodeMealModal() {
+            setLockedLayer('barcode-meal', document.getElementById('barcode-meal-modal'), false);
+            barcodeProductDraft = null;
+            setBarcodeMealError('');
+            setBarcodeMealLoading(false);
+        }
+
+        function getOpenFoodFactsNumber(product, key) {
+            const nutriments = product?.nutriments || {};
+            const value = nutriments[key];
+            const number = Number(value);
+            return Number.isFinite(number) && number >= 0 ? number : null;
+        }
+
+        function getOpenFoodFactsKcal(product) {
+            const kcal = getOpenFoodFactsNumber(product, 'energy-kcal_100g');
+            if (kcal !== null) return kcal;
+            const nutriments = product?.nutriments || {};
+            const kj = Number(nutriments.energy_100g);
+            return Number.isFinite(kj) && kj >= 0 ? kj / 4.184 : null;
+        }
+
+        function normalizeOpenFoodFactsProduct(data, barcode) {
+            if (!data || Number(data.status) !== 1 || !data.product) return { error: 'not-found' };
+            const product = data.product;
+            const name = String(product.product_name || product.product_name_ru || '').trim();
+            if (!name) return { error: 'missing-name' };
+            const kcal100 = getOpenFoodFactsKcal(product);
+            const protein100 = getOpenFoodFactsNumber(product, 'proteins_100g');
+            const fat100 = getOpenFoodFactsNumber(product, 'fat_100g');
+            const carbs100 = getOpenFoodFactsNumber(product, 'carbohydrates_100g');
+            const hasKbju = [kcal100, protein100, fat100, carbs100].every(value => Number.isFinite(Number(value)));
+            if (!hasKbju) return { error: 'missing-kbju' };
+            return {
+                product: {
+                    barcode,
+                    name,
+                    brand: String(product.brands || '').split(',')[0].trim(),
+                    kcal100,
+                    protein100,
+                    fat100,
+                    carbs100,
+                    hasKbju: true
+                }
+            };
+        }
+
+        function getBarcodeMealNumber(id) {
+            const raw = document.getElementById(id)?.value;
+            if (raw === '' || raw === null || raw === undefined) return 0;
+            return Number(String(raw).replace(',', '.'));
+        }
+
+        function calculateBarcodeMealTotals() {
+            const product = barcodeProductDraft;
+            const grams = getBarcodeMealNumber('barcode-meal-grams');
+            const ratio = grams > 0 ? grams / 100 : 0;
+            return {
+                grams,
+                kcal: (Number(product?.kcal100) || 0) * ratio,
+                protein: (Number(product?.protein100) || 0) * ratio,
+                fat: (Number(product?.fat100) || 0) * ratio,
+                carbs: (Number(product?.carbs100) || 0) * ratio
+            };
+        }
+
+        function updateBarcodeMealTotals() {
+            const totals = calculateBarcodeMealTotals();
+            setText('barcode-total-kcal', String(Math.round(Math.max(0, totals.kcal || 0))));
+            setText('barcode-total-protein', (Math.max(0, totals.protein || 0)).toFixed(1) + ' г');
+            setText('barcode-total-fat', (Math.max(0, totals.fat || 0)).toFixed(1) + ' г');
+            setText('barcode-total-carbs', (Math.max(0, totals.carbs || 0)).toFixed(1) + ' г');
+        }
+
+        function renderBarcodeNotFound(barcode) {
+            const result = document.getElementById('barcode-meal-result');
+            if (!result) return;
+            result.innerHTML = '<div class="barcode-empty-card">' +
+                '<div class="barcode-empty-title">Продукт не найден в базе. Можно добавить его вручную.</div>' +
+                '<button class="barcode-manual-btn" type="button" onclick="openManualMealFromBarcode(' + escapeAttr(JSON.stringify(barcode)) + ')">Добавить вручную</button>' +
+                '</div>';
+        }
+
+        function renderBarcodeManualFallback(barcode) {
+            const result = document.getElementById('barcode-meal-result');
+            if (!result) return;
+            result.innerHTML = '<div class="barcode-empty-card">' +
+                '<button class="barcode-manual-btn" type="button" onclick="openManualMealFromBarcode(' + escapeAttr(JSON.stringify(barcode)) + ')">Добавить вручную</button>' +
+                '</div>';
+        }
+
+        function renderBarcodeProductCard(product) {
+            const result = document.getElementById('barcode-meal-result');
+            if (!result) return;
+            const mealType = ['Завтрак','Обед','Ужин','Перекус'].includes(currentMealFilter) ? currentMealFilter : 'Завтрак';
+            result.innerHTML = '<section class="barcode-product-card">' +
+                '<div class="barcode-product-head"><div><div class="barcode-product-title">' + escapeHTML(product.name) + '</div>' +
+                (product.brand ? '<div class="barcode-product-brand">' + escapeHTML(product.brand) + '</div>' : '') +
+                '</div><div class="barcode-product-badge">OFF</div></div>' +
+                '<div class="barcode-macro-line">КБЖУ на 100 г: ' + Math.round(product.kcal100) + ' ккал · Б ' + Number(product.protein100).toFixed(1) + ' г · Ж ' + Number(product.fat100).toFixed(1) + ' г · У ' + Number(product.carbs100).toFixed(1) + ' г</div>' +
+                '<div class="barcode-meal-grid">' +
+                    '<label class="barcode-meal-field"><span>Вес порции, г</span><input id="barcode-meal-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="updateBarcodeMealTotals()"></label>' +
+                    '<label class="barcode-meal-field"><span>Приём пищи</span><select id="barcode-meal-type"><option value="Завтрак">Завтрак</option><option value="Обед">Обед</option><option value="Ужин">Ужин</option><option value="Перекус">Перекус</option></select></label>' +
+                '</div>' +
+                '<div class="barcode-total-card"><div class="barcode-total-title">Итого за порцию</div><div class="barcode-total-grid">' +
+                    '<div><b id="barcode-total-kcal">0</b><span>ккал</span></div>' +
+                    '<div><b id="barcode-total-protein">0.0 г</b><span>белки</span></div>' +
+                    '<div><b id="barcode-total-fat">0.0 г</b><span>жиры</span></div>' +
+                    '<div><b id="barcode-total-carbs">0.0 г</b><span>углеводы</span></div>' +
+                '</div></div>' +
+                '<div class="barcode-card-actions">' +
+                    '<button class="barcode-add-btn" id="barcode-meal-add-btn" type="button" onclick="addBarcodeProductToDiary()">Добавить в дневник</button>' +
+                    '<button class="barcode-reset-btn" type="button" onclick="resetBarcodeSearchResult({ clearInput: true })">Найти другой продукт</button>' +
+                '</div>' +
+                '</section>';
+            const select = document.getElementById('barcode-meal-type');
+            if (select) select.value = mealType;
+            updateBarcodeMealTotals();
+        }
+
+        async function findBarcodeProduct(event) {
+            event?.preventDefault?.();
+            if (document.getElementById('barcode-meal-find-btn')?.dataset.mode === 'reset') {
+                resetBarcodeSearchResult({ clearInput: true });
+                return;
+            }
+            const input = document.getElementById('barcode-meal-input');
+            const barcode = normalizeBarcode(input?.value || '');
+            if (input) input.value = barcode;
+            const validationError = validateBarcodeValue(barcode);
+            if (validationError) {
+                barcodeProductDraft = null;
+                const result = document.getElementById('barcode-meal-result');
+                if (result) result.innerHTML = '';
+                setBarcodeMealError(validationError);
+                return;
+            }
+            barcodeProductDraft = null;
+            setBarcodeMealError('');
+            setBarcodeMealLoading(true);
+            const result = document.getElementById('barcode-meal-result');
+            if (result) result.innerHTML = '<div class="barcode-loading-card">Ищу продукт в Open Food Facts...</div>';
+            let timeoutId = null;
+            try {
+                const url = 'https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(barcode) + '.json';
+                console.log('[barcode] Open Food Facts request URL:', url);
+                const controller = new AbortController();
+                timeoutId = setTimeout(() => controller.abort(), 12000);
+                const response = await fetch(url, { signal: controller.signal });
+                console.log('[barcode] HTTP status:', response.status);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        console.warn('[barcode] Product not found in Open Food Facts:', { barcode, httpStatus: response.status });
+                        setBarcodeMealError('Продукт не найден в базе. Можно добавить его вручную.');
+                        renderBarcodeNotFound(barcode);
+                        return;
+                    }
+                    console.warn('[barcode] Open Food Facts HTTP error:', response.status, response.statusText);
+                    throw new Error('open-food-facts-http');
+                }
+                const data = await response.json();
+                const sourceProduct = data?.product || null;
+                console.log('[barcode] data.status:', data?.status);
+                console.log('[barcode] product_name:', sourceProduct?.product_name || sourceProduct?.product_name_ru || '');
+                console.log('[barcode] nutriments:', sourceProduct?.nutriments || null);
+                const parsed = normalizeOpenFoodFactsProduct(data, barcode);
+                if (parsed.error === 'not-found') {
+                    console.warn('[barcode] Product not found in Open Food Facts:', { barcode, status: data?.status });
+                    setBarcodeMealError('Продукт не найден в базе. Можно добавить его вручную.');
+                    renderBarcodeNotFound(barcode);
+                    return;
+                }
+                if (parsed.error === 'missing-name') {
+                    console.warn('[barcode] Product found without product_name/product_name_ru:', { barcode, product: sourceProduct });
+                    barcodeProductDraft = null;
+                    setBarcodeMealError('Продукт найден, но в базе нет названия. Добавьте данные вручную.');
+                    renderBarcodeManualFallback(barcode);
+                    return;
+                }
+                if (parsed.error === 'missing-kbju') {
+                    console.warn('[barcode] Product found without full per-100g nutrition:', { barcode, nutriments: sourceProduct?.nutriments || null });
+                    barcodeProductDraft = null;
+                    setBarcodeMealError('Продукт найден, но в базе нет полного КБЖУ. Добавьте данные вручную.');
+                    renderBarcodeManualFallback(barcode);
+                    return;
+                }
+                const product = parsed.product;
+                barcodeProductDraft = product;
+                renderBarcodeProductCard(product);
+                setBarcodeSearchMode('reset');
+            } catch (error) {
+                console.warn('[barcode] Search failed:', error);
+                barcodeProductDraft = null;
+                if (result) result.innerHTML = '';
+                setBarcodeSearchMode('search');
+                setBarcodeMealError('Не удалось подключиться к базе продуктов. Проверьте интернет и попробуйте снова.');
+            } finally {
+                if (timeoutId) clearTimeout(timeoutId);
+                setBarcodeMealLoading(false);
+            }
+        }
+
+        function openManualMealFromBarcode(barcode = '') {
+            closeBarcodeMealModal();
+            openManualMealModal({ barcode });
+        }
+
+        async function addBarcodeProductToDiary() {
+            if (isAddingMeal) return;
+            const product = barcodeProductDraft;
+            if (!product) return setBarcodeMealError('Сначала найдите продукт по штрихкоду.');
+            if (!product.hasKbju) return setBarcodeMealError('У продукта нет полного КБЖУ на 100 г.');
+            const mealType = document.getElementById('barcode-meal-type')?.value || 'Перекус';
+            const totals = calculateBarcodeMealTotals();
+            if (!Number.isFinite(totals.grams) || totals.grams <= 0) return setBarcodeMealError('Вес порции должен быть больше 0 г.');
+            const btn = document.getElementById('barcode-meal-add-btn');
+            isAddingMeal = true;
+            if (btn) btn.disabled = true;
+            setBarcodeMealError('');
+            try {
+                const createdAt = selectedDateTimeISO();
+                const payload = {
+                    type: 'barcode-product-entry',
+                    manual: true,
+                    name: product.name,
+                    recipe_title: product.name,
+                    mealType,
+                    grams: totals.grams,
+                    barcode: product.barcode,
+                    brand: product.brand || '',
+                    calories_per_100: product.kcal100,
+                    protein_per_100: product.protein100,
+                    fat_per_100: product.fat100,
+                    carbs_per_100: product.carbs100,
+                    recipe_id: null,
+                    calories: totals.kcal,
+                    kcal: totals.kcal,
+                    protein: totals.protein,
+                    fat: totals.fat,
+                    carbs: totals.carbs,
+                    meal_type: mealType,
+                    createdAt,
+                    created_at: createdAt,
+                    ingredients: []
+                };
+                await callServer('addMeal', payload);
+                upsertBarcodeManualProduct(product);
+                closeBarcodeMealModal();
+                await refreshAllData();
+                document.getElementById('history-list')?.classList.add('success-flash');
+                setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
+                showToast('Добавлено в дневник');
+            } catch (error) {
+                console.error('Ошибка добавления продукта по штрихкоду:', error);
+                if (isTelegramMiniApp) {
+                    const fallbackMeal = addManualLocalMeal({
+                        type: 'barcode-product-entry',
+                        name: product.name,
+                        recipe_title: product.name,
+                        grams: totals.grams,
+                        barcode: product.barcode,
+                        brand: product.brand || '',
+                        calories_per_100: product.kcal100,
+                        protein_per_100: product.protein100,
+                        fat_per_100: product.fat100,
+                        carbs_per_100: product.carbs100,
+                        kcal: totals.kcal,
+                        protein: totals.protein,
+                        fat: totals.fat,
+                        carbs: totals.carbs,
+                        meal_type: mealType,
+                        created_at: selectedDateTimeISO()
+                    });
+                    upsertBarcodeManualProduct(product);
+                    console.warn('Продукт по штрихкоду сохранён локально:', fallbackMeal);
+                    closeBarcodeMealModal();
+                    await refreshAllData();
+                    showToast('Добавлено локально');
+                } else {
+                    setBarcodeMealError('Не удалось добавить продукт: ' + error.message);
+                }
+            } finally {
+                isAddingMeal = false;
+                if (btn) btn.disabled = false;
+            }
+        }
+
         function openMyRecipesModal() {
             closeAddMealChoice();
             showMyRecipesEmptyView();
@@ -1215,6 +1600,7 @@
 
         function closeMyRecipesModal() {
             closeMyRecipeDetailsModal();
+            closeMyRecipeProductPicker();
             setLockedLayer('my-recipes', document.getElementById('my-recipes-modal'), false);
             showMyRecipesEmptyView();
         }
@@ -1264,11 +1650,11 @@
                 const recipeId = escapeAttr(JSON.stringify(String(recipe.id || '')));
                 const servings = Number(recipe.servings) > 0 ? ' · ' + (Number(recipe.servings) || 0) + ' порц.' : '';
                 const meta = escapeHTML((recipe.category || 'Обед') + ' · ' + Math.round(Number(recipe.cookedWeight) || 0) + ' г' + servings);
-                return '<article class="my-recipe-card is-clickable" role="button" tabindex="0" onclick="openMyRecipeDetailsModal(' + recipeId + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openMyRecipeDetailsModal(' + recipeId + ')}">' +
+                return '<article class="my-recipe-card is-clickable" role="button" tabindex="0" data-my-recipe-id="' + escapeAttr(String(recipe.id || '')) + '">' +
                     '<div class="my-recipe-card-title">' + escapeHTML(recipe.name) + '</div>' +
                     '<div class="my-recipe-card-meta">' + meta + '</div>' +
                     '<div class="my-recipe-card-macros">На 100 г: ' + escapeHTML(formatMyRecipeMacroLine(recipe.per100Nutrition)) + '</div>' +
-                    '<button class="my-recipe-card-add-btn" type="button" onclick="event.stopPropagation(); openMyRecipeAddModal(' + recipeId + ')">Добавить в дневник</button>' +
+                    '<button class="my-recipe-card-add-btn" type="button" data-my-recipe-add-id="' + escapeAttr(String(recipe.id || '')) + '">Добавить в дневник</button>' +
                     '</article>';
             }).join('');
         }
@@ -1277,6 +1663,8 @@
         let myRecipeIngredientIds = [];
         let selectedMyRecipeForDiary = null;
         let selectedMyRecipeDetailsId = null;
+        let myRecipeProductPickerIngredientId = null;
+        let editingMyRecipeId = null;
 
         function renderMyRecipeDetailsIngredients(recipe) {
             const ingredients = Array.isArray(recipe?.ingredients) ? recipe.ingredients : [];
@@ -1314,11 +1702,17 @@
             const ingredients = document.getElementById('my-recipe-details-ingredients');
             if (ingredients) ingredients.innerHTML = renderMyRecipeDetailsIngredients(recipe);
             setText('my-recipe-details-description', String(recipe.description || '').trim() || 'Описание приготовления не добавлено.');
-            setLockedLayer('my-recipe-details', document.getElementById('my-recipe-details-modal'), true);
+            const modal = document.getElementById('my-recipe-details-modal');
+            modal?.removeAttribute('hidden');
+            modal?.setAttribute('aria-hidden', 'false');
+            setLockedLayer('my-recipe-details', modal, true);
         }
 
         function closeMyRecipeDetailsModal() {
-            setLockedLayer('my-recipe-details', document.getElementById('my-recipe-details-modal'), false);
+            const modal = document.getElementById('my-recipe-details-modal');
+            setLockedLayer('my-recipe-details', modal, false);
+            modal?.setAttribute('hidden', '');
+            modal?.setAttribute('aria-hidden', 'true');
             selectedMyRecipeDetailsId = null;
         }
 
@@ -1328,6 +1722,200 @@
             closeMyRecipeDetailsModal();
             openMyRecipeAddModal(recipeId);
         }
+
+        function editMyRecipeFromDetails() {
+            const recipeId = selectedMyRecipeDetailsId;
+            if (!recipeId) return showToast('Выберите рецепт');
+            closeMyRecipeDetailsModal();
+            openMyRecipeEditForm(recipeId);
+        }
+
+        async function deleteMyRecipeFromDetails() {
+            const recipeId = selectedMyRecipeDetailsId;
+            if (!recipeId) return showToast('Выберите рецепт');
+            const confirmed = await showConfirm('Рецепт исчезнет из списка, но уже добавленные записи в дневнике останутся.', 'Удалить', 'Удалить рецепт?');
+            if (!confirmed) return;
+            saveManualRecipes(loadManualRecipes().filter(recipe => String(recipe.id) !== String(recipeId)));
+            closeMyRecipeDetailsModal();
+            showMyRecipesEmptyView();
+            showToast('Рецепт удалён');
+        }
+
+        function formatMyRecipeProductPickerMacros(product) {
+            return Math.round(Number(product.caloriesPer100) || 0) + ' ккал / 100 г · Б ' +
+                (Number(product.proteinPer100) || 0).toFixed(1) + ' г · Ж ' +
+                (Number(product.fatPer100) || 0).toFixed(1) + ' г · У ' +
+                (Number(product.carbsPer100) || 0).toFixed(1) + ' г';
+        }
+
+        function renderMyRecipeProductPicker() {
+            const list = document.getElementById('my-recipe-product-picker-list');
+            if (!list) return;
+            const products = getSortedManualProducts();
+            const query = normalizeManualProductName(document.getElementById('my-recipe-product-picker-search')?.value || '');
+            const filtered = query ? products.filter(product => normalizeManualProductName(product.name).includes(query)) : products;
+            if (!products.length) {
+                list.innerHTML = '<div class="my-recipe-product-picker-empty">Пока нет сохранённых продуктов. Добавь продукт вручную — он появится здесь.</div>';
+                return;
+            }
+            if (!filtered.length) {
+                list.innerHTML = '<div class="my-recipe-product-picker-empty">Ничего не найдено.</div>';
+                return;
+            }
+            list.innerHTML = filtered.map(product => {
+                const productId = escapeAttr(JSON.stringify(String(product.id || '')));
+                return '<button class="my-recipe-product-picker-card" type="button" data-product-id="' + escapeAttr(String(product.id || '')) + '">' +
+                    '<b>' + escapeHTML(product.name) + '</b>' +
+                    '<span>' + escapeHTML(formatMyRecipeProductPickerMacros(product)) + '</span>' +
+                    '</button>';
+            }).join('');
+        }
+
+        function openMyRecipeProductPicker(ingredientId) {
+            if (!myRecipeIngredientIds.includes(Number(ingredientId))) return;
+            myRecipeProductPickerIngredientId = Number(ingredientId);
+            const search = document.getElementById('my-recipe-product-picker-search');
+            if (search) search.value = '';
+            renderMyRecipeProductPicker();
+            const modal = document.getElementById('my-recipe-product-picker-modal');
+            modal?.removeAttribute('hidden');
+            modal?.setAttribute('aria-hidden', 'false');
+            setLockedLayer('my-recipe-product-picker', modal, true);
+            setTimeout(() => search?.focus?.(), 120);
+        }
+
+        function closeMyRecipeProductPicker() {
+            const modal = document.getElementById('my-recipe-product-picker-modal');
+            setLockedLayer('my-recipe-product-picker', modal, false);
+            modal?.setAttribute('hidden', '');
+            modal?.setAttribute('aria-hidden', 'true');
+            myRecipeProductPickerIngredientId = null;
+        }
+
+        function setMyRecipeIngredientInputValue(ingredientId, field, value) {
+            const el = document.getElementById('my-recipe-ingredient-' + ingredientId + '-' + field);
+            if (el) el.value = value;
+        }
+
+        function selectMyRecipeIngredientProduct(productId) {
+            const ingredientId = myRecipeProductPickerIngredientId;
+            const product = loadManualProducts().find(item => String(item.id) === String(productId));
+            if (!ingredientId || !product || !isValidManualProduct(product)) return;
+            setMyRecipeIngredientInputValue(ingredientId, 'name', product.name);
+            setMyRecipeIngredientInputValue(ingredientId, 'kcal100', product.caloriesPer100);
+            setMyRecipeIngredientInputValue(ingredientId, 'protein100', product.proteinPer100);
+            setMyRecipeIngredientInputValue(ingredientId, 'fat100', product.fatPer100);
+            setMyRecipeIngredientInputValue(ingredientId, 'carbs100', product.carbsPer100);
+            closeMyRecipeProductPicker();
+            updateMyRecipeCalculation();
+            document.getElementById('my-recipe-ingredient-' + ingredientId + '-grams')?.focus?.();
+        }
+
+        function bindMyRecipeModalEvents() {
+            const list = document.getElementById('my-recipes-list');
+            if (list && !list.dataset.myRecipeEventsBound) {
+                list.dataset.myRecipeEventsBound = '1';
+                list.addEventListener('click', event => {
+                    const addButton = event.target.closest('[data-my-recipe-add-id]');
+                    if (addButton) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openMyRecipeAddModal(addButton.dataset.myRecipeAddId);
+                        return;
+                    }
+                    const card = event.target.closest('[data-my-recipe-id]');
+                    if (card) openMyRecipeDetailsModal(card.dataset.myRecipeId);
+                });
+                list.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    if (event.target.closest('button')) return;
+                    const card = event.target.closest('[data-my-recipe-id]');
+                    if (!card) return;
+                    event.preventDefault();
+                    openMyRecipeDetailsModal(card.dataset.myRecipeId);
+                });
+            }
+
+            const form = document.getElementById('my-recipe-form');
+            if (form && !form.dataset.myRecipeProductEventsBound) {
+                form.dataset.myRecipeProductEventsBound = '1';
+                form.addEventListener('click', event => {
+                    const button = event.target.closest('[data-my-recipe-product-picker-id]');
+                    if (!button) return;
+                    event.preventDefault();
+                    openMyRecipeProductPicker(button.dataset.myRecipeProductPickerId);
+                });
+            }
+
+            const detailsModal = document.getElementById('my-recipe-details-modal');
+            if (detailsModal && !detailsModal.dataset.myRecipeEventsBound) {
+                detailsModal.dataset.myRecipeEventsBound = '1';
+                detailsModal.addEventListener('click', event => {
+                    if (event.target === detailsModal || event.target.closest('[data-my-recipe-details-close]')) {
+                        event.preventDefault();
+                        closeMyRecipeDetailsModal();
+                        return;
+                    }
+                    if (event.target.closest('[data-my-recipe-details-add]')) {
+                        event.preventDefault();
+                        addMyRecipeFromDetails();
+                        return;
+                    }
+                    if (event.target.closest('[data-my-recipe-details-edit]')) {
+                        event.preventDefault();
+                        editMyRecipeFromDetails();
+                        return;
+                    }
+                    if (event.target.closest('[data-my-recipe-details-delete]')) {
+                        event.preventDefault();
+                        deleteMyRecipeFromDetails();
+                    }
+                });
+            }
+
+            const pickerModal = document.getElementById('my-recipe-product-picker-modal');
+            if (pickerModal && !pickerModal.dataset.myRecipeEventsBound) {
+                pickerModal.dataset.myRecipeEventsBound = '1';
+                pickerModal.addEventListener('click', event => {
+                    if (event.target === pickerModal || event.target.closest('[data-my-recipe-product-picker-close]')) {
+                        event.preventDefault();
+                        closeMyRecipeProductPicker();
+                    }
+                });
+            }
+
+            const pickerSearch = document.getElementById('my-recipe-product-picker-search');
+            if (pickerSearch && !pickerSearch.dataset.myRecipeEventsBound) {
+                pickerSearch.dataset.myRecipeEventsBound = '1';
+                pickerSearch.addEventListener('input', renderMyRecipeProductPicker);
+            }
+
+            const pickerList = document.getElementById('my-recipe-product-picker-list');
+            if (pickerList && !pickerList.dataset.myRecipeEventsBound) {
+                pickerList.dataset.myRecipeEventsBound = '1';
+                pickerList.addEventListener('click', event => {
+                    const product = event.target.closest('[data-product-id]');
+                    if (!product) return;
+                    event.preventDefault();
+                    selectMyRecipeIngredientProduct(product.dataset.productId);
+                });
+            }
+        }
+
+        bindMyRecipeModalEvents();
+
+        Object.assign(window, {
+            openMyRecipeDetailsModal,
+            closeMyRecipeDetailsModal,
+            addMyRecipeFromDetails,
+            editMyRecipeFromDetails,
+            deleteMyRecipeFromDetails,
+            openMyRecipeEditForm,
+            renderMyRecipeProductPicker,
+            openMyRecipeProductPicker,
+            closeMyRecipeProductPicker,
+            selectMyRecipeIngredientProduct
+        });
 
         function setMyRecipeAddError(message = '') {
             const error = document.getElementById('my-recipe-add-error');
@@ -1526,7 +2114,7 @@
                     '<label class="my-recipe-field"><span>Жиры / 100 г</span><input id="my-recipe-ingredient-' + id + '-fat100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" value="' + escapeAttr(ingredient.fat100 || '') + '" oninput="updateMyRecipeCalculation()"></label>' +
                     '<label class="my-recipe-field"><span>Углеводы / 100 г</span><input id="my-recipe-ingredient-' + id + '-carbs100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" value="' + escapeAttr(ingredient.carbs100 || '') + '" oninput="updateMyRecipeCalculation()"></label>' +
                     '</div>' +
-                    '<button class="my-recipe-products-stub-btn" type="button" onclick="showMyRecipeProductsStub()">Выбрать из моих продуктов</button>' +
+                    '<button class="my-recipe-products-stub-btn" type="button" data-my-recipe-product-picker-id="' + id + '">Выбрать из моих продуктов</button>' +
                     '</section>';
             }).join('');
             updateMyRecipeCalculation();
@@ -1555,12 +2143,11 @@
             updateMyRecipeCalculation();
         }
 
-        function showMyRecipeProductsStub() {
-            showToast('Выбор из моих продуктов будет добавлен на следующем этапе');
-        }
-
         function resetMyRecipeCreateForm() {
             setMyRecipeFormError('');
+            editingMyRecipeId = null;
+            const submit = document.querySelector('.my-recipe-next-btn');
+            if (submit) submit.textContent = 'Сохранить рецепт';
             ['my-recipe-title-input','my-recipe-weight-input','my-recipe-servings-input','my-recipe-description-input'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
@@ -1571,7 +2158,48 @@
             updateMyRecipeCalculation();
         }
 
+        function setMyRecipeFormInputValue(id, value) {
+            const el = document.getElementById(id);
+            if (el) el.value = value ?? '';
+        }
+
+        function formatMyRecipeEditableNumber(value) {
+            const number = Number(value);
+            return Number.isFinite(number) ? String(number) : '';
+        }
+
+        function populateMyRecipeForm(recipe) {
+            setMyRecipeFormError('');
+            editingMyRecipeId = String(recipe.id || '');
+            setMyRecipeFormInputValue('my-recipe-title-input', recipe.name || '');
+            const category = document.getElementById('my-recipe-category-input');
+            if (category) category.value = ['Завтрак','Обед','Ужин','Перекус'].includes(recipe.category) ? recipe.category : 'Обед';
+            setMyRecipeFormInputValue('my-recipe-weight-input', formatMyRecipeEditableNumber(recipe.cookedWeight));
+            setMyRecipeFormInputValue('my-recipe-servings-input', Number(recipe.servings) > 0 ? formatMyRecipeEditableNumber(recipe.servings) : '');
+            setMyRecipeFormInputValue('my-recipe-description-input', recipe.description || '');
+            const ingredients = (Array.isArray(recipe.ingredients) && recipe.ingredients.length ? recipe.ingredients : [{}]).map(ingredient => {
+                myRecipeIngredientSeq += 1;
+                return {
+                    id: myRecipeIngredientSeq,
+                    name: ingredient.name || '',
+                    grams: formatMyRecipeEditableNumber(ingredient.grams),
+                    kcal100: formatMyRecipeEditableNumber(ingredient.caloriesPer100),
+                    protein100: formatMyRecipeEditableNumber(ingredient.proteinPer100),
+                    fat100: formatMyRecipeEditableNumber(ingredient.fatPer100),
+                    carbs100: formatMyRecipeEditableNumber(ingredient.carbsPer100)
+                };
+            });
+            myRecipeIngredientIds = ingredients.map(item => item.id);
+            renderMyRecipeIngredients(ingredients);
+            const submit = document.querySelector('.my-recipe-next-btn');
+            if (submit) submit.textContent = 'Сохранить изменения';
+            updateMyRecipeCalculation();
+        }
+
         function showMyRecipesEmptyView() {
+            editingMyRecipeId = null;
+            const submit = document.querySelector('.my-recipe-next-btn');
+            if (submit) submit.textContent = 'Сохранить рецепт';
             renderMyRecipesList();
             document.getElementById('my-recipe-form')?.setAttribute('hidden', '');
             setMyRecipeFormError('');
@@ -1579,6 +2207,16 @@
 
         function openMyRecipeCreateForm() {
             resetMyRecipeCreateForm();
+            document.getElementById('my-recipes-empty-view')?.setAttribute('hidden', '');
+            document.getElementById('my-recipes-list-view')?.setAttribute('hidden', '');
+            document.getElementById('my-recipe-form')?.removeAttribute('hidden');
+            setTimeout(() => document.getElementById('my-recipe-title-input')?.focus?.(), 120);
+        }
+
+        function openMyRecipeEditForm(recipeId) {
+            const recipe = loadManualRecipes().find(item => String(item.id) === String(recipeId));
+            if (!recipe) return showToast('Рецепт не найден');
+            populateMyRecipeForm(recipe);
             document.getElementById('my-recipes-empty-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipes-list-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipe-form')?.removeAttribute('hidden');
@@ -1626,7 +2264,7 @@
             return '';
         }
 
-        function buildManualRecipeFromForm() {
+        function buildManualRecipeFromForm(existingRecipe = null) {
             const now = new Date().toISOString();
             const calc = calculateMyRecipeNutrition();
             const servingsRaw = document.getElementById('my-recipe-servings-input')?.value || '';
@@ -1640,7 +2278,7 @@
                 carbsPer100: parseMyRecipeNumber(ingredient.carbs100)
             }));
             return {
-                id: 'manual_recipe_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                id: existingRecipe?.id || 'manual_recipe_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
                 type: 'manual-recipe',
                 name: (document.getElementById('my-recipe-title-input')?.value || '').trim(),
                 category: document.getElementById('my-recipe-category-input')?.value || 'Обед',
@@ -1666,7 +2304,7 @@
                     fat: calc.serving.fat,
                     carbs: calc.serving.carbs
                 } : null,
-                createdAt: now,
+                createdAt: existingRecipe?.createdAt || now,
                 updatedAt: now
             };
         }
@@ -1681,6 +2319,19 @@
             setMyRecipeFormError('');
             updateMyRecipeCalculation();
             const recipes = loadManualRecipes();
+            if (editingMyRecipeId) {
+                const index = recipes.findIndex(recipe => String(recipe.id) === String(editingMyRecipeId));
+                if (index < 0) {
+                    setMyRecipeFormError('Рецепт не найден. Закрой форму и попробуй снова.');
+                    return;
+                }
+                recipes[index] = buildManualRecipeFromForm(recipes[index]);
+                saveManualRecipes(recipes);
+                editingMyRecipeId = null;
+                showMyRecipesEmptyView();
+                showToast('Изменения сохранены');
+                return;
+            }
             recipes.unshift(buildManualRecipeFromForm());
             saveManualRecipes(recipes);
             showMyRecipesEmptyView();
@@ -1800,16 +2451,30 @@
                 const el = document.getElementById(id);
                 if (el) el.value = '';
             });
+            const nameInput = document.getElementById('manual-meal-name');
+            if (nameInput) {
+                nameInput.placeholder = 'Например, творог 5%';
+                delete nameInput.dataset.barcode;
+            }
             const mealType = document.getElementById('manual-meal-type');
             if (mealType) mealType.value = ['Завтрак','Обед','Ужин','Перекус'].includes(currentMealFilter) ? currentMealFilter : 'Завтрак';
             renderManualProductsList();
             updateManualMealTotals();
         }
 
-        function openManualMealModal() {
+        function openManualMealModal(options = {}) {
             closeAddMealChoice();
             resetManualMealForm();
             setLockedLayer('manual-meal', document.getElementById('manual-meal-modal'), true);
+            const barcode = normalizeBarcode(options?.barcode || '');
+            if (barcode) {
+                const nameInput = document.getElementById('manual-meal-name');
+                if (nameInput) {
+                    nameInput.placeholder = 'Штрихкод ' + barcode + ': введите название продукта';
+                    nameInput.dataset.barcode = barcode;
+                }
+                setManualMealError('Штрихкод ' + barcode + ' не найден. Заполните продукт вручную.');
+            }
             setTimeout(() => document.getElementById('manual-meal-name')?.focus?.(), 120);
         }
 
