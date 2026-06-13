@@ -589,6 +589,7 @@
                 recipeId: payload.recipeId || null,
                 name: payload.name || payload.recipe_title || 'Свой продукт',
                 grams: Number(payload.grams) || 0,
+                inputMode: payload.inputMode || 'per100',
                 calories_per_100: Number(payload.calories_per_100) || 0,
                 protein_per_100: Number(payload.protein_per_100) || 0,
                 fat_per_100: Number(payload.fat_per_100) || 0,
@@ -2607,19 +2608,44 @@
             return Number(String(raw).replace(',', '.'));
         }
 
+        function getManualMealInputMode() {
+            return document.getElementById('manual-meal-mode-portion')?.classList.contains('active') ? 'portion' : 'per100';
+        }
+
+        function setManualMealInputMode(mode = 'per100') {
+            const inputMode = mode === 'portion' ? 'portion' : 'per100';
+            document.getElementById('manual-meal-mode-per100')?.classList.toggle('active', inputMode === 'per100');
+            document.getElementById('manual-meal-mode-portion')?.classList.toggle('active', inputMode === 'portion');
+            document.getElementById('manual-meal-mode-per100')?.setAttribute('aria-pressed', inputMode === 'per100' ? 'true' : 'false');
+            document.getElementById('manual-meal-mode-portion')?.setAttribute('aria-pressed', inputMode === 'portion' ? 'true' : 'false');
+            setText('manual-meal-kcal-label', inputMode === 'portion' ? 'Ккал за порцию' : 'Ккал / 100 г');
+            setText('manual-meal-protein-label', inputMode === 'portion' ? 'Белки за порцию' : 'Белки / 100 г');
+            setText('manual-meal-fat-label', inputMode === 'portion' ? 'Жиры за порцию' : 'Жиры / 100 г');
+            setText('manual-meal-carbs-label', inputMode === 'portion' ? 'Углеводы за порцию' : 'Углеводы / 100 г');
+            updateManualMealTotals();
+        }
+
         function calculateManualMealTotals() {
             const grams = getManualMealNumber('manual-meal-grams');
+            const inputMode = getManualMealInputMode();
             const ratio = grams > 0 ? grams / 100 : 0;
+            const multiplierTo100 = grams > 0 ? 100 / grams : 0;
+            const kcalInput = getManualMealNumber('manual-meal-kcal100');
+            const proteinInput = getManualMealNumber('manual-meal-protein100');
+            const fatInput = getManualMealNumber('manual-meal-fat100');
+            const carbsInput = getManualMealNumber('manual-meal-carbs100');
+            const fromPortion = inputMode === 'portion';
             return {
+                inputMode,
                 grams,
-                kcal100: getManualMealNumber('manual-meal-kcal100'),
-                protein100: getManualMealNumber('manual-meal-protein100'),
-                fat100: getManualMealNumber('manual-meal-fat100'),
-                carbs100: getManualMealNumber('manual-meal-carbs100'),
-                kcal: getManualMealNumber('manual-meal-kcal100') * ratio,
-                protein: getManualMealNumber('manual-meal-protein100') * ratio,
-                fat: getManualMealNumber('manual-meal-fat100') * ratio,
-                carbs: getManualMealNumber('manual-meal-carbs100') * ratio
+                kcal100: fromPortion ? kcalInput * multiplierTo100 : kcalInput,
+                protein100: fromPortion ? proteinInput * multiplierTo100 : proteinInput,
+                fat100: fromPortion ? fatInput * multiplierTo100 : fatInput,
+                carbs100: fromPortion ? carbsInput * multiplierTo100 : carbsInput,
+                kcal: fromPortion ? kcalInput : kcalInput * ratio,
+                protein: fromPortion ? proteinInput : proteinInput * ratio,
+                fat: fromPortion ? fatInput : fatInput * ratio,
+                carbs: fromPortion ? carbsInput : carbsInput * ratio
             };
         }
 
@@ -2696,6 +2722,7 @@
             const product = loadManualProducts().find(item => String(item.id) === String(productId));
             if (!product || !isValidManualProduct(product)) return;
             closeManualProductsLibrary();
+            setManualMealInputMode('per100');
             setManualMealInputValue('manual-meal-name', product.name);
             setManualMealInputValue('manual-meal-kcal100', product.caloriesPer100);
             setManualMealInputValue('manual-meal-protein100', product.proteinPer100);
@@ -2726,6 +2753,7 @@
             }
             const mealType = document.getElementById('manual-meal-type');
             if (mealType) mealType.value = ['Завтрак','Обед','Ужин','Перекус'].includes(currentMealFilter) ? currentMealFilter : 'Завтрак';
+            setManualMealInputMode('per100');
             renderManualProductsList();
             updateManualMealTotals();
         }
@@ -2761,7 +2789,7 @@
                 ['Углеводы', totals.carbs100]
             ];
             const invalid = fields.find(([, value]) => !Number.isFinite(value) || value < 0);
-            if (invalid) return invalid[0] + ' на 100 г не должны быть отрицательными.';
+            if (invalid) return invalid[0] + ' не должны быть отрицательными.';
             return '';
         }
 
@@ -2792,6 +2820,7 @@
                     mealType,
                     grams: totals.grams,
                     barcode,
+                    inputMode: totals.inputMode,
                     calories_per_100: totals.kcal100,
                     protein_per_100: totals.protein100,
                     fat_per_100: totals.fat100,
@@ -2822,6 +2851,7 @@
                         recipe_title: name,
                         grams: totals.grams,
                         barcode,
+                        inputMode: totals.inputMode,
                         calories_per_100: totals.kcal100,
                         protein_per_100: totals.protein100,
                         fat_per_100: totals.fat100,

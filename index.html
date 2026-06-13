@@ -480,7 +480,7 @@
             <div class="manual-meal-head">
                 <div>
                     <div class="manual-meal-title">Добавить вручную</div>
-                    <div class="manual-meal-subtitle">Укажи вес порции и КБЖУ на 100 г — итог посчитается автоматически.</div>
+                    <div class="manual-meal-subtitle">Укажи вес порции и выбери, как вводишь КБЖУ.</div>
                 </div>
                 <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeManualMealModal()">×</button>
             </div>
@@ -518,21 +518,26 @@
                 </label>
             </div>
 
+            <div class="manual-meal-mode" role="group" aria-label="Режим ввода КБЖУ">
+                <button class="manual-meal-mode-btn active" id="manual-meal-mode-per100" type="button" aria-pressed="true" onclick="setManualMealInputMode('per100')">На 100 г</button>
+                <button class="manual-meal-mode-btn" id="manual-meal-mode-portion" type="button" aria-pressed="false" onclick="setManualMealInputMode('portion')">За порцию</button>
+            </div>
+
             <div class="manual-meal-grid manual-meal-grid-4">
                 <label class="manual-meal-field">
-                    <span>Ккал / 100 г</span>
+                    <span id="manual-meal-kcal-label">Ккал / 100 г</span>
                     <input id="manual-meal-kcal100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
                 </label>
                 <label class="manual-meal-field">
-                    <span>Белки / 100 г</span>
+                    <span id="manual-meal-protein-label">Белки / 100 г</span>
                     <input id="manual-meal-protein100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
                 </label>
                 <label class="manual-meal-field">
-                    <span>Жиры / 100 г</span>
+                    <span id="manual-meal-fat-label">Жиры / 100 г</span>
                     <input id="manual-meal-fat100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
                 </label>
                 <label class="manual-meal-field">
-                    <span>Углеводы / 100 г</span>
+                    <span id="manual-meal-carbs-label">Углеводы / 100 г</span>
                     <input id="manual-meal-carbs100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" oninput="updateManualMealTotals()">
                 </label>
             </div>
