@@ -446,9 +446,10 @@
                 });
         }
 
-        function buildManualProductFromMeal(name, totals) {
+        function buildManualProductFromMeal(name, totals, options = {}) {
             const product = {
                 name: String(name || '').trim(),
+                barcode: normalizeBarcode(options.barcode || ''),
                 caloriesPer100: normalizeManualProductNumber(totals.kcal100),
                 proteinPer100: normalizeManualProductNumber(totals.protein100),
                 fatPer100: normalizeManualProductNumber(totals.fat100),
@@ -466,14 +467,16 @@
                 Number(product.carbsPer100) === Number(candidate.carbsPer100);
         }
 
-        function upsertManualProduct(name, totals) {
-            const candidate = buildManualProductFromMeal(name, totals);
+        function upsertManualProduct(name, totals, options = {}) {
+            const candidate = buildManualProductFromMeal(name, totals, options);
             if (!candidate) return null;
             const now = new Date().toISOString();
             const products = loadManualProducts().filter(isValidManualProduct);
-            const existingIndex = products.findIndex(product => sameManualProduct(product, candidate));
+            const existingIndex = candidate.barcode
+                ? products.findIndex(product => String(product.barcode || '') === String(candidate.barcode))
+                : products.findIndex(product => sameManualProduct(product, candidate));
             if (existingIndex >= 0) {
-                products[existingIndex] = { ...products[existingIndex], updatedAt: now };
+                products[existingIndex] = { ...products[existingIndex], ...candidate, updatedAt: now };
                 saveManualProducts(products);
                 return products[existingIndex];
             }
@@ -501,7 +504,7 @@
                 proteinPer100: normalizeManualProductNumber(product.protein100),
                 fatPer100: normalizeManualProductNumber(product.fat100),
                 carbsPer100: normalizeManualProductNumber(product.carbs100),
-                type: 'barcode-product',
+                type: 'manual-product',
                 source: 'open-food-facts',
                 updatedAt: now
             };
@@ -519,6 +522,30 @@
             products.unshift(created);
             saveManualProducts(products);
             return created;
+        }
+
+        function findManualProductByBarcode(barcode) {
+            const normalized = normalizeBarcode(barcode);
+            if (!normalized) return null;
+            return loadManualProducts()
+                .filter(isValidManualProduct)
+                .find(product => normalizeBarcode(product.barcode || '') === normalized) || null;
+        }
+
+        function mapManualProductToBarcodeProduct(product, barcode) {
+            if (!product || !isValidManualProduct(product)) return null;
+            return {
+                barcode: normalizeBarcode(product.barcode || barcode),
+                name: product.name,
+                brand: product.brand || '',
+                kcal100: Number(product.caloriesPer100) || 0,
+                protein100: Number(product.proteinPer100) || 0,
+                fat100: Number(product.fatPer100) || 0,
+                carbs100: Number(product.carbsPer100) || 0,
+                source: 'manual',
+                sourceLabel: 'Мой продукт',
+                hasKbju: true
+            };
         }
 
         function getSortedManualProducts() {
@@ -1571,6 +1598,8 @@
                     protein100,
                     fat100,
                     carbs100,
+                    source: 'open-food-facts',
+                    sourceLabel: 'OFF',
                     hasKbju: true
                 }
             };
@@ -1607,7 +1636,7 @@
             const result = document.getElementById('barcode-meal-result');
             if (!result) return;
             result.innerHTML = '<div class="barcode-empty-card">' +
-                '<div class="barcode-empty-title">Продукт не найден в базе. Можно добавить его вручную.</div>' +
+                '<div class="barcode-empty-title">Продукт не найден в базе. Добавьте его вручную — в следующий раз приложение найдёт его по этому штрихкоду.</div>' +
                 '<button class="barcode-manual-btn" type="button" onclick="openManualMealFromBarcode(' + escapeAttr(JSON.stringify(barcode)) + ')">Добавить вручную</button>' +
                 '</div>';
         }
@@ -1627,7 +1656,7 @@
             result.innerHTML = '<section class="barcode-product-card">' +
                 '<div class="barcode-product-head"><div><div class="barcode-product-title">' + escapeHTML(product.name) + '</div>' +
                 (product.brand ? '<div class="barcode-product-brand">' + escapeHTML(product.brand) + '</div>' : '') +
-                '</div><div class="barcode-product-badge">OFF</div></div>' +
+                '</div><div class="barcode-product-badge">' + escapeHTML(product.sourceLabel || 'OFF') + '</div></div>' +
                 '<div class="barcode-macro-line">КБЖУ на 100 г: ' + Math.round(product.kcal100) + ' ккал · Б ' + Number(product.protein100).toFixed(1) + ' г · Ж ' + Number(product.fat100).toFixed(1) + ' г · У ' + Number(product.carbs100).toFixed(1) + ' г</div>' +
                 '<div class="barcode-meal-grid">' +
                     '<label class="barcode-meal-field"><span>Вес порции, г</span><input id="barcode-meal-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="updateBarcodeMealTotals()"></label>' +
@@ -1665,6 +1694,15 @@
                 const result = document.getElementById('barcode-meal-result');
                 if (result) result.innerHTML = '';
                 setBarcodeMealError(validationError);
+                return;
+            }
+            const localProduct = mapManualProductToBarcodeProduct(findManualProductByBarcode(barcode), barcode);
+            if (localProduct) {
+                console.log('[barcode] Found local manual product by barcode:', barcode);
+                barcodeProductDraft = localProduct;
+                setBarcodeMealError('');
+                renderBarcodeProductCard(localProduct);
+                setBarcodeSearchMode('reset');
                 return;
             }
             barcodeProductDraft = null;
@@ -2663,6 +2701,11 @@
             setManualMealInputValue('manual-meal-protein100', product.proteinPer100);
             setManualMealInputValue('manual-meal-fat100', product.fatPer100);
             setManualMealInputValue('manual-meal-carbs100', product.carbsPer100);
+            const nameInput = document.getElementById('manual-meal-name');
+            if (nameInput) {
+                const barcode = normalizeBarcode(product.barcode || '');
+                if (barcode) nameInput.dataset.barcode = barcode;
+            }
             document.querySelectorAll('.manual-product-card').forEach(card => {
                 card.classList.toggle('active', String(card.dataset.productId) === String(productId));
             });
@@ -2725,7 +2768,9 @@
         async function submitManualMeal(event) {
             event?.preventDefault?.();
             if (isAddingMeal) return;
-            const name = (document.getElementById('manual-meal-name')?.value || '').trim();
+            const nameInput = document.getElementById('manual-meal-name');
+            const name = (nameInput?.value || '').trim();
+            const barcode = normalizeBarcode(nameInput?.dataset.barcode || '');
             const mealType = document.getElementById('manual-meal-type')?.value || 'Перекус';
             const totals = calculateManualMealTotals();
             const validationError = validateManualMeal(name, totals);
@@ -2746,6 +2791,7 @@
                     recipe_title: name,
                     mealType,
                     grams: totals.grams,
+                    barcode,
                     calories_per_100: totals.kcal100,
                     protein_per_100: totals.protein100,
                     fat_per_100: totals.fat100,
@@ -2762,7 +2808,7 @@
                     ingredients: []
                 };
                 await callServer('addMeal', payload);
-                upsertManualProduct(name, totals);
+                upsertManualProduct(name, totals, { barcode });
                 closeManualMealModal();
                 await refreshAllData();
                 document.getElementById('history-list')?.classList.add('success-flash');
@@ -2775,6 +2821,7 @@
                         name,
                         recipe_title: name,
                         grams: totals.grams,
+                        barcode,
                         calories_per_100: totals.kcal100,
                         protein_per_100: totals.protein100,
                         fat_per_100: totals.fat100,
@@ -2786,7 +2833,7 @@
                         meal_type: mealType,
                         created_at: selectedDateTimeISO()
                     });
-                    upsertManualProduct(name, totals);
+                    upsertManualProduct(name, totals, { barcode });
                     console.warn('Ручной продукт сохранён локально:', fallbackMeal);
                     closeManualMealModal();
                     await refreshAllData();
