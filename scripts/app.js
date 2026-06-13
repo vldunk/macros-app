@@ -2,6 +2,14 @@
             console.error('Ошибка:', e.message, e.error || '');
             const loading = document.getElementById('loading-screen');
             if (loading && loading.style.display !== 'none' && !loading.classList.contains('is-hidden')) {
+                let initState = null;
+                try { initState = appInitState; } catch (_) {}
+                const elapsed = initState?.startedAt ? Date.now() - initState.startedAt : 0;
+                const loadingTimeout = window.Telegram?.WebApp?.initData ? 22000 : 15000;
+                if (initState?.isAppInitializing && elapsed < loadingTimeout) {
+                    console.warn('[app init] runtime error during loading; waiting for init timeout before showing loading error');
+                    return;
+                }
                 showLoadingError('Ошибка загрузки. Проверь подключение и попробуй снова.');
             }
         });
@@ -95,7 +103,11 @@
         let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
-        const LOADING_TIMEOUT_MS = 22000;
+        const LOADING_SLOW_MS = 7000;
+        const LOADING_TIMEOUT_MS = isTelegramMiniApp ? 22000 : 15000;
+        const SERVER_REQUEST_TIMEOUT_MS = isTelegramMiniApp ? 18000 : 12000;
+        const INIT_REQUIRED_DATA_TIMEOUT_MS = isTelegramMiniApp ? 8000 : 6000;
+        const INIT_OPTIONAL_DATA_TIMEOUT_MS = isTelegramMiniApp ? 7000 : 5000;
         let appInitRunId = 0;
         const appInitState = {
             isAppInitializing: true,
@@ -106,7 +118,8 @@
             isFavoritesLoaded: false,
             isStreakLoaded: false,
             startedAt: 0,
-            timeoutId: null
+            timeoutId: null,
+            slowTimeoutId: null
         };
 
         function getLocalUserId() {
@@ -675,7 +688,7 @@
             return true;
         }
 
-        async function callServer(action, payload = {}) {
+        async function callServer(action, payload = {}, options = {}) {
             if (action === 'deleteMeal' && String(payload.id || '').startsWith('manual_')) return deleteManualLocalMeal(payload.id);
             if (!isTelegramMiniApp) {
                 if (action === 'getProfile') return { ...DEMO_PROFILE, ...loadProfileExtras() };
@@ -691,7 +704,8 @@
             }
             if (!tg?.initData) throw new Error('Откройте приложение внутри Telegram, чтобы подтвердить пользователя.');
             const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), 6000);
+            const requestTimeoutMs = Number(options.timeoutMs) || SERVER_REQUEST_TIMEOUT_MS;
+            const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
             try {
                 const response = await fetch(serverApiUrl, {
                     method: 'POST',
@@ -711,17 +725,23 @@
                 if (action === 'clearDay') clearManualMeals(payload);
                 return result.data;
             } catch (e) {
-                if (e.name === 'AbortError') throw new Error('Edge Function не отвечает больше 6 секунд');
+                if (e.name === 'AbortError') throw new Error('Edge Function не отвечает больше ' + Math.round(requestTimeoutMs / 1000) + ' секунд');
                 throw e;
             } finally {
                 clearTimeout(timeout);
             }
         }
         async function loadProfile() {
-            const p = await callServer('getProfile');
             const extras = loadProfileExtras();
-            if (p) userProfile = { ...userProfile, ...p, ...extras };
-            else userProfile = { ...userProfile, ...extras };
+            try {
+                const p = await callServer('getProfile', {}, { timeoutMs: INIT_REQUIRED_DATA_TIMEOUT_MS });
+                if (p) userProfile = { ...userProfile, ...p, ...extras };
+                else userProfile = { ...userProfile, ...extras };
+                console.log('[app init] profile loaded');
+            } catch (error) {
+                console.warn('[app init] profile skipped, using defaults/local extras:', error);
+                userProfile = { ...userProfile, ...extras };
+            }
             currentDietFilter = getDefaultDietFilterForGoal();
             syncRecipeFilterButtons();
         }
@@ -733,6 +753,14 @@
         }
         function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+        function withStartupTimeout(promise, ms, label) {
+            let timeoutId;
+            const timeout = new Promise((_, reject) => {
+                timeoutId = setTimeout(() => reject(new Error(label + ' timed out after ' + Math.round(ms / 1000) + ' seconds')), ms);
+            });
+            return Promise.race([promise, timeout]).finally(() => clearTimeout(timeoutId));
+        }
+
         function resetInitState() {
             appInitState.isAppInitializing = true;
             appInitState.isProfileLoaded = false;
@@ -743,7 +771,9 @@
             appInitState.isStreakLoaded = false;
             appInitState.startedAt = Date.now();
             if (appInitState.timeoutId) clearTimeout(appInitState.timeoutId);
+            if (appInitState.slowTimeoutId) clearTimeout(appInitState.slowTimeoutId);
             appInitState.timeoutId = null;
+            appInitState.slowTimeoutId = null;
         }
 
         function setLoadingStep(text, progress) {
@@ -753,16 +783,31 @@
             if (fill) fill.style.width = Math.max(8, Math.min(progress, 100)) + '%';
         }
 
+        function showLoadingSlow(runId) {
+            if (runId !== appInitRunId || !appInitState.isAppInitializing) return;
+            const loading = document.getElementById('loading-screen');
+            if (loading?.classList.contains('has-error')) return;
+            loading?.classList.add('is-slow');
+            setLoadingStep('Загружаем данные чуть дольше обычного...', 76);
+            console.warn('[app init] slow loading state reached');
+        }
+
         function showLoadingError(message) {
             const loading = document.getElementById('loading-screen');
             const error = document.getElementById('loading-error');
             const status = document.getElementById('loading-status');
             if (appInitState.timeoutId) clearTimeout(appInitState.timeoutId);
+            if (appInitState.slowTimeoutId) clearTimeout(appInitState.slowTimeoutId);
             appInitState.timeoutId = null;
+            appInitState.slowTimeoutId = null;
             appInitState.isAppInitializing = false;
+            console.error('[app init] loading error:', message || 'unknown error');
             if (status) status.textContent = 'Не удалось загрузить данные';
             if (error) error.textContent = message || 'Проверь подключение и попробуй снова.';
-            if (loading) loading.classList.add('has-error');
+            if (loading) {
+                loading.classList.remove('is-slow');
+                loading.classList.add('has-error');
+            }
         }
 
         async function showMainAppWhenReady(runId) {
@@ -772,7 +817,9 @@
             if (elapsed < LOADING_MIN_MS) await wait(LOADING_MIN_MS - elapsed);
             if (runId !== appInitRunId) return;
             if (appInitState.timeoutId) clearTimeout(appInitState.timeoutId);
+            if (appInitState.slowTimeoutId) clearTimeout(appInitState.slowTimeoutId);
             appInitState.timeoutId = null;
+            appInitState.slowTimeoutId = null;
             appInitState.isAppInitializing = false;
             setLoadingStep('Готово', 100);
             if (app) {
@@ -780,9 +827,11 @@
                 requestAnimationFrame(() => app.classList.add('app-ready'));
             }
             if (loading) {
+                loading.classList.remove('is-slow');
                 loading.classList.add('is-hidden');
                 setTimeout(() => { loading.style.display = 'none'; }, 460);
             }
+            console.log('[app init] loading hidden');
         }
 
         function retryAppInit() {
@@ -794,15 +843,17 @@
             }
             if (loading) {
                 loading.style.display = 'flex';
-                loading.classList.remove('is-hidden', 'has-error');
+                loading.classList.remove('is-hidden', 'has-error', 'is-slow');
             }
             setLoadingStep('Повторяем загрузку...', 8);
+            console.log('[app init] retry requested');
             init();
         }
 
         async function init() {
             const runId = ++appInitRunId;
             resetInitState();
+            console.log('[app init] start app init', { runId, isTelegramMiniApp, loadingTimeoutMs: LOADING_TIMEOUT_MS, serverTimeoutMs: SERVER_REQUEST_TIMEOUT_MS });
             const app = document.getElementById('app-content');
             const loading = document.getElementById('loading-screen');
             if (app) {
@@ -816,9 +867,11 @@
 
             appInitState.timeoutId = setTimeout(() => {
                 if (runId === appInitRunId && appInitState.isAppInitializing) {
+                    console.warn('[app init] loading timeout reached', { runId, timeoutMs: LOADING_TIMEOUT_MS });
                     showLoadingError('Не удалось загрузить данные. Проверь подключение и попробуй снова.');
                 }
             }, LOADING_TIMEOUT_MS);
+            appInitState.slowTimeoutId = setTimeout(() => showLoadingSlow(runId), LOADING_SLOW_MS);
 
             try {
                 setLoadingStep(isTelegramMiniApp ? 'Запускаем Telegram Mini App...' : 'Запускаем Browser / Dev mode...', 10);
@@ -830,17 +883,20 @@
                 }
 
                 setLoadingStep(isTelegramMiniApp ? 'Подключаем базу...' : 'Готовим локальные данные...', 18);
-                if (isTelegramMiniApp) {
-                    if (typeof window.supabase === 'undefined') throw new Error('Supabase не загружен');
+                if (isTelegramMiniApp && typeof window.supabase !== 'undefined') {
                     if (!supabaseClient) {
                         supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
                     }
+                    console.log('[app init] Supabase client ready');
+                } else if (isTelegramMiniApp) {
+                    console.warn('[app init] Supabase SDK unavailable, recipes will use local fallback');
                 }
 
                 setLoadingStep('Загружаем настройки...', 28);
                 currentGender = localStorage.getItem('user_gender') || currentGender || 'M';
                 appInitState.isSettingsLoaded = true;
                 appInitState.isFavoritesLoaded = true;
+                console.log('[app init] localStorage loaded');
 
                 setLoadingStep('Загружаем профиль...', 40);
                 await loadProfile();
@@ -849,52 +905,67 @@
                 setLoadingStep('Подбираем рецепты...', 58);
                 try {
                     if (isTelegramMiniApp) {
-                        const supabaseRecipes = await loadRecipesFromSupabase();
+                        const supabaseRecipes = await withStartupTimeout(loadRecipesFromSupabase(), INIT_OPTIONAL_DATA_TIMEOUT_MS, 'recipes');
                         recipesData = supabaseRecipes.length ? supabaseRecipes : prepareRecipeData(STARTER_RECIPES);
                         if (!supabaseRecipes.length) console.warn('Supabase recipes table is empty. Using local starter recipes.');
+                        else console.log('[app init] recipes loaded from Supabase', { count: recipesData.length });
                     } else {
                         recipesData = prepareRecipeData(STARTER_RECIPES);
+                        console.log('[app init] recipes loaded from starter data', { count: recipesData.length });
                     }
                 } catch (recipesError) {
                     console.warn('Не удалось загрузить рецепты из Supabase, использую локальную стартовую базу:', recipesError);
                     recipesData = prepareRecipeData(STARTER_RECIPES);
+                    console.log('[app init] recipes fallback loaded', { count: recipesData.length });
                 }
                 appInitState.isRecipesLoaded = true;
                 renderRecipes();
                 updateMealPrepSummary();
+                console.log('[app init] recipes rendered');
+                console.log('[app init] assets/images skipped for startup; browser onerror fallbacks will handle missing media');
 
                 setLoadingStep('Считаем КБЖУ...', 72);
                 loadWaterData();
                 updateTopDate();
+                console.log('[app init] water/date loaded');
                 try {
-                    await fetchWeekActivity();
+                    const initDataOptions = { timeoutMs: INIT_OPTIONAL_DATA_TIMEOUT_MS };
+                    await Promise.all([fetchWeekActivity(initDataOptions), fetchStatsForDate(initDataOptions)]);
                     appInitState.isStreakLoaded = true;
-                    await fetchStatsForDate();
+                    console.log('[app init] daily stats loaded');
                 } catch (dataError) {
                     console.warn('Дневные данные загрузятся позже:', dataError);
                     stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
                     activeDaysSet.clear();
                 }
                 refreshUI();
+                console.log('[app init] app rendered');
 
-                setLoadingStep('Загружаем дневник...', 86);
-                try {
-                    await updateHistoryUI();
-                    appInitState.isDiaryLoaded = true;
-                } catch (diaryError) {
-                    console.warn('Дневник загрузится позже:', diaryError);
-                    const hList = document.getElementById('history-list');
-                    if (hList) hList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🍽️</div><div style="font-weight:800;color:var(--text-main);margin-bottom:6px;">Дневник загрузится позже</div><div>Проверь подключение или открой приложение внутри Telegram.</div></div>';
-                }
+                setLoadingStep('Готовим главный экран...', 90);
+                const hList = document.getElementById('history-list');
+                if (hList) hList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🍽️</div><div style="font-weight:800;color:var(--text-main);margin-bottom:6px;">Дневник загружается</div><div>Главный экран уже готов, записи появятся чуть позже.</div></div>';
+                updateHistoryUI({ timeoutMs: INIT_OPTIONAL_DATA_TIMEOUT_MS })
+                    .then(() => {
+                        if (runId !== appInitRunId) return;
+                        appInitState.isDiaryLoaded = true;
+                        console.log('[app init] diary loaded');
+                    })
+                    .catch(diaryError => {
+                        if (runId !== appInitRunId) return;
+                        console.warn('Дневник загрузится позже:', diaryError);
+                        const list = document.getElementById('history-list');
+                        if (list) list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🍽️</div><div style="font-weight:800;color:var(--text-main);margin-bottom:6px;">Дневник загрузится позже</div><div>Проверь подключение или открой приложение внутри Telegram.</div></div>';
+                    });
 
                 setLoadingStep('Готовим рекомендации...', 94);
                 buildWeeklyChart().catch(chartError => console.warn('График загрузится позже:', chartError));
+                console.log('[app init] optional chart queued');
 
                 if (runId !== appInitRunId) return;
                 await showMainAppWhenReady(runId);
             } catch (e) {
                 if (runId !== appInitRunId) return;
-                console.error('Ошибка инициализации:', e);
+                console.error('[app init] init error:', e);
                 if (!isTelegramMiniApp) {
                     recipesData = prepareRecipeData(STARTER_RECIPES);
                     userProfile = { ...DEMO_PROFILE, ...loadProfileExtras() };
@@ -929,20 +1000,20 @@
             }
         }
 
-        async function fetchWeekActivity() {
+        async function fetchWeekActivity(options = {}) {
             activeDaysSet.clear();
             let startOfWeek = new Date(currentDate); let day = startOfWeek.getDay() || 7;
             startOfWeek.setDate(startOfWeek.getDate() - day + 1); startOfWeek.setHours(0,0,0,0);
             let endOfWeek = new Date(startOfWeek); endOfWeek.setDate(startOfWeek.getDate() + 6); endOfWeek.setHours(23,59,59,999);
-            const data = await callServer('getMeals', { startDate: startOfWeek.toISOString(), endDate: endOfWeek.toISOString() });
+            const data = await callServer('getMeals', { startDate: startOfWeek.toISOString(), endDate: endOfWeek.toISOString() }, options);
             if (data) data.forEach(m => activeDaysSet.add(toISOLocal(new Date(m.created_at))));
         }
 
-        async function fetchStatsForDate() {
+        async function fetchStatsForDate(options = {}) {
             stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 };
             let startOfDay = new Date(currentDate); startOfDay.setHours(0,0,0,0);
             let endOfDay = new Date(currentDate); endOfDay.setHours(23,59,59,999);
-            const meals = await callServer('getMeals', { startDate: startOfDay.toISOString(), endDate: endOfDay.toISOString() });
+            const meals = await callServer('getMeals', { startDate: startOfDay.toISOString(), endDate: endOfDay.toISOString() }, options);
             stats.kcal = meals ? meals.reduce((s, m) => s + (Number(m.kcal) || 0), 0) : 0;
             stats.protein = meals ? meals.reduce((s, m) => s + (Number(m.protein) || 0), 0) : 0;
             stats.fat = meals ? meals.reduce((s, m) => s + (Number(m.fat) || 0), 0) : 0;
@@ -3252,20 +3323,29 @@
 
         function refreshUI() {
             const getPct = (val, max) => max > 0 ? Math.min((val / max) * 100, 100) : 0;
-            let kcalPct = getPct(stats.kcal, userProfile.target_kcal);
-            document.getElementById('intake-pct').innerText = Math.round(kcalPct) + '%';
+            const consumedCalories = Number(stats.kcal) || 0;
+            const caloriesGoal = Number(userProfile.target_kcal) || Number(DEMO_PROFILE.target_kcal) || 0;
+            let kcalPct = getPct(consumedCalories, caloriesGoal);
+            const intakePct = document.getElementById('intake-pct');
+            if (intakePct) intakePct.innerText = Math.round(kcalPct) + '%';
             const profileDisplay = document.getElementById('profile-display');
             profileDisplay?.style.setProperty('--daily-pct', Math.round(kcalPct) + '%');
-            profileDisplay?.classList.toggle('is-kcal-over', Number(userProfile.target_kcal) > 0 && (Number(stats.kcal) || 0) > Number(userProfile.target_kcal));
-            document.getElementById('gauge-cur').innerText = Math.round(stats.kcal);
-            document.getElementById('gauge-max').innerText = userProfile.target_kcal;
-            document.getElementById('gauge-path').style.strokeDashoffset = 125.66 - (kcalPct / 100) * 125.66;
-            setText('daily-kcal-summary', Math.round(stats.kcal) + ' / ' + (Number(userProfile.target_kcal) || 0));
+            profileDisplay?.classList.toggle('is-kcal-over', caloriesGoal > 0 && consumedCalories > caloriesGoal);
+            const roundedKcal = Math.round(consumedCalories);
+            const roundedGoalKcal = Math.round(caloriesGoal);
+            const kcalNormPct = caloriesGoal > 0
+                ? Math.round((consumedCalories / caloriesGoal) * 100)
+                : 0;
+            setText('gauge-cur', kcalNormPct + '%');
+            setText('daily-summary-kcal-total', roundedKcal + ' / ' + roundedGoalKcal);
+            const gaugePath = document.getElementById('gauge-path');
+            if (gaugePath) gaugePath.style.strokeDashoffset = 100 - kcalPct;
+            setText('daily-kcal-summary', roundedKcal + ' / ' + roundedGoalKcal);
             setText('daily-protein-summary', Math.round(stats.protein) + ' / ' + (Number(userProfile.target_protein) || 0) + ' г');
             setText('daily-fat-summary', Math.round(stats.fat) + ' / ' + (Number(userProfile.target_fat) || 0) + ' г');
             setText('daily-carbs-summary', Math.round(stats.carbs) + ' / ' + (Number(userProfile.target_carbs) || 0) + ' г');
             setText('daily-water-summary', (Math.round((Number(dailyWater) || 0) / 100) / 10) + ' / ' + (Math.round((Number(userProfile.target_water) || 2000) / 100) / 10) + ' л');
-            const dailyKcalPct = getPct(stats.kcal, userProfile.target_kcal);
+            const dailyKcalPct = getPct(consumedCalories, caloriesGoal);
             const targetProteinNorm = Number(userProfile.target_protein) || Number(DEMO_PROFILE.target_protein) || 0;
             const targetFatNorm = Number(userProfile.target_fat) || Number(DEMO_PROFILE.target_fat) || 0;
             const targetCarbsNorm = Number(userProfile.target_carbs) || Number(DEMO_PROFILE.target_carbs) || 0;
@@ -3292,9 +3372,11 @@
             if (normProteinBar) normProteinBar.style.width = dailyProteinPct + '%';
             if (normFatBar) normFatBar.style.width = dailyFatPct + '%';
             if (normCarbsBar) normCarbsBar.style.width = dailyCarbsPct + '%';
+            setRingProgress('macro-kcal-ring', dailyKcalPct);
             setRingProgress('macro-carbs-ring', dailyCarbsPct);
             setRingProgress('macro-fat-ring', dailyFatPct);
             setRingProgress('macro-protein-ring', dailyProteinPct);
+            setText('macro-kcal-pct', Math.round(dailyKcalPct) + '%');
             setText('macro-carbs-pct', Math.round(dailyCarbsPct) + '%');
             setText('macro-fat-pct', Math.round(dailyFatPct) + '%');
             setText('macro-protein-pct', Math.round(dailyProteinPct) + '%');
@@ -4145,10 +4227,10 @@
             recipeDetailPortionDraft.grams = Math.max(1, current + Number(delta || 0));
             renderRecipeDetailPortion();
         }
-        async function updateHistoryUI() {
+        async function updateHistoryUI(options = {}) {
             const hList = document.getElementById('history-list');
             let startOfDay = new Date(currentDate); startOfDay.setHours(0,0,0,0); let endOfDay = new Date(currentDate); endOfDay.setHours(23,59,59,999);
-            const data = await callServer('getMeals', { startDate: startOfDay.toISOString(), endDate: endOfDay.toISOString() });
+            const data = await callServer('getMeals', { startDate: startOfDay.toISOString(), endDate: endOfDay.toISOString() }, options);
             if (!data || data.length === 0) { hList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><div style="font-weight:800;color:var(--text-main);margin-bottom:6px;">Дневник чист</div><div>Добавьте первый прием пищи из рациона.</div></div>'; return; }
             let html = '';
             ['Завтрак', 'Обед', 'Ужин', 'Перекус'].forEach(type => {
