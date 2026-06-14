@@ -100,7 +100,7 @@
         const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, myRecipeReturnToDiaryAfterSave = false, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
         const LOADING_SLOW_MS = 7000;
@@ -648,10 +648,11 @@
 
         function addDemoMeal(payload = {}) {
             const recipe = getRecipeById(payload.recipe_id);
-            const isManual = payload.type === 'manual' || payload.manual === true;
+            const isQuickEntry = payload.type === 'quick-entry';
+            const isManual = isQuickEntry || payload.type === 'manual' || payload.manual === true;
             const meal = {
                 id: Date.now(),
-                type: isManual ? 'manual' : 'recipe',
+                type: isQuickEntry ? 'quick-entry' : isManual ? 'manual' : 'recipe',
                 recipe_id: isManual ? null : payload.recipe_id,
                 name: isManual ? (payload.name || payload.recipe_title || 'Свой продукт') : '',
                 grams: Number(payload.grams) || 0,
@@ -1324,6 +1325,21 @@
             setTimeout(() => document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
         }
 
+        function getValidMealType(mealType, fallback = 'Завтрак') {
+            return ['Завтрак','Обед','Ужин','Перекус'].includes(mealType) ? mealType : fallback;
+        }
+
+        function isDiaryMealScreenOpen() {
+            const screen = document.getElementById('diary-meal-screen');
+            return Boolean(screen && !screen.hasAttribute('hidden'));
+        }
+
+        function getCurrentAddMealType() {
+            return isDiaryMealScreenOpen()
+                ? getValidMealType(currentDiaryMealType, getValidMealType(currentMealFilter, 'Завтрак'))
+                : getValidMealType(currentMealFilter, 'Завтрак');
+        }
+
         function openAddMealAction(event) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
@@ -1620,8 +1636,9 @@
             closeBarcodeCameraPlaceholder({ focusInput: false });
         }
 
-        function openBarcodeMealModal() {
+        function openBarcodeMealModal(options = {}) {
             closeAddMealChoice();
+            if (options?.mealType) currentDiaryMealType = getValidMealType(options.mealType, currentDiaryMealType);
             resetBarcodeMealForm();
             setLockedLayer('barcode-meal', document.getElementById('barcode-meal-modal'), true);
             setTimeout(() => document.getElementById('barcode-meal-input')?.focus?.(), 120);
@@ -1724,7 +1741,7 @@
         function renderBarcodeProductCard(product) {
             const result = document.getElementById('barcode-meal-result');
             if (!result) return;
-            const mealType = ['Завтрак','Обед','Ужин','Перекус'].includes(currentMealFilter) ? currentMealFilter : 'Завтрак';
+            const mealType = getCurrentAddMealType();
             result.innerHTML = '<section class="barcode-product-card">' +
                 '<div class="barcode-product-head"><div><div class="barcode-product-title">' + escapeHTML(product.name) + '</div>' +
                 (product.brand ? '<div class="barcode-product-brand">' + escapeHTML(product.brand) + '</div>' : '') +
@@ -1852,7 +1869,7 @@
             const product = barcodeProductDraft;
             if (!product) return setBarcodeMealError('Сначала найдите продукт по штрихкоду.');
             if (!product.hasKbju) return setBarcodeMealError('У продукта нет полного КБЖУ на 100 г.');
-            const mealType = document.getElementById('barcode-meal-type')?.value || 'Перекус';
+            const mealType = document.getElementById('barcode-meal-type')?.value || getCurrentAddMealType() || 'Перекус';
             const totals = calculateBarcodeMealTotals();
             if (!Number.isFinite(totals.grams) || totals.grams <= 0) return setBarcodeMealError('Вес порции должен быть больше 0 г.');
             const btn = document.getElementById('barcode-meal-add-btn');
@@ -1937,7 +1954,12 @@
             closeMyRecipeDetailsModal();
             closeMyRecipeProductPicker();
             setLockedLayer('my-recipes', document.getElementById('my-recipes-modal'), false);
+            myRecipeReturnToDiaryAfterSave = false;
             showMyRecipesEmptyView();
+        }
+
+        function setMyRecipeFormScreen(isActive) {
+            document.getElementById('my-recipes-modal')?.classList.toggle('is-recipe-form-screen', Boolean(isActive));
         }
 
         function manualRecipesStorageKey() {
@@ -2298,7 +2320,7 @@
             setMyRecipeAddError('');
             setText('my-recipe-add-name', recipe?.name || 'Рецепт');
             const mealType = document.getElementById('my-recipe-add-meal-type');
-            if (mealType) mealType.value = ['Завтрак','Обед','Ужин','Перекус'].includes(recipe?.category) ? recipe.category : 'Обед';
+            if (mealType) mealType.value = isDiaryMealScreenOpen() ? getValidMealType(currentDiaryMealType, 'Обед') : getValidMealType(recipe?.category, 'Обед');
             const grams = document.getElementById('my-recipe-add-grams');
             if (grams) grams.value = '';
             updateMyRecipeAddTotals();
@@ -2533,6 +2555,8 @@
 
         function showMyRecipesEmptyView() {
             editingMyRecipeId = null;
+            myRecipeReturnToDiaryAfterSave = false;
+            setMyRecipeFormScreen(false);
             const submit = document.querySelector('.my-recipe-next-btn');
             if (submit) submit.textContent = 'Сохранить рецепт';
             renderMyRecipesList();
@@ -2540,21 +2564,35 @@
             setMyRecipeFormError('');
         }
 
-        function openMyRecipeCreateForm() {
+        function handleMyRecipeFormBack() {
+            if (myRecipeReturnToDiaryAfterSave && isDiaryMealScreenOpen()) {
+                closeMyRecipesModal();
+                return;
+            }
+            showMyRecipesEmptyView();
+        }
+
+        function openMyRecipeCreateForm(options = {}) {
             resetMyRecipeCreateForm();
+            myRecipeReturnToDiaryAfterSave = Boolean(options.returnToDiary);
+            const category = document.getElementById('my-recipe-category-input');
+            if (category && options?.mealType) category.value = getValidMealType(options.mealType, category.value || 'Обед');
             document.getElementById('my-recipes-empty-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipes-list-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipe-form')?.removeAttribute('hidden');
+            setMyRecipeFormScreen(true);
             setTimeout(() => document.getElementById('my-recipe-title-input')?.focus?.(), 120);
         }
 
         function openMyRecipeEditForm(recipeId) {
+            myRecipeReturnToDiaryAfterSave = false;
             const recipe = loadManualRecipes().find(item => String(item.id) === String(recipeId));
             if (!recipe) return showToast('Рецепт не найден');
             populateMyRecipeForm(recipe);
             document.getElementById('my-recipes-empty-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipes-list-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipe-form')?.removeAttribute('hidden');
+            setMyRecipeFormScreen(true);
             setTimeout(() => document.getElementById('my-recipe-title-input')?.focus?.(), 120);
         }
 
@@ -2669,6 +2707,13 @@
             }
             recipes.unshift(buildManualRecipeFromForm());
             saveManualRecipes(recipes);
+            if (myRecipeReturnToDiaryAfterSave && isDiaryMealScreenOpen()) {
+                myRecipeReturnToDiaryAfterSave = false;
+                closeMyRecipesModal();
+                renderDiaryMealContent();
+                showToast('Рецепт создан');
+                return;
+            }
             showMyRecipesEmptyView();
             showToast('Рецепт сохранён');
         }
@@ -2823,7 +2868,7 @@
                 delete nameInput.dataset.barcode;
             }
             const mealType = document.getElementById('manual-meal-type');
-            if (mealType) mealType.value = ['Завтрак','Обед','Ужин','Перекус'].includes(currentMealFilter) ? currentMealFilter : 'Завтрак';
+            if (mealType) mealType.value = getCurrentAddMealType();
             setManualMealInputMode('per100');
             renderManualProductsList();
             updateManualMealTotals();
@@ -2831,6 +2876,10 @@
 
         function openManualMealModal(options = {}) {
             closeAddMealChoice();
+            if (options?.mealType) {
+                currentDiaryMealType = getValidMealType(options.mealType, currentDiaryMealType);
+                currentMealFilter = currentDiaryMealType;
+            }
             resetManualMealForm();
             setLockedLayer('manual-meal', document.getElementById('manual-meal-modal'), true);
             const barcode = normalizeBarcode(options?.barcode || '');
@@ -2848,6 +2897,123 @@
         function closeManualMealModal() {
             setLockedLayer('manual-meal', document.getElementById('manual-meal-modal'), false);
             setManualMealError('');
+        }
+
+        function getQuickEntryNumber(id) {
+            const raw = document.getElementById(id)?.value;
+            if (raw === '' || raw === null || raw === undefined) return 0;
+            return Number(String(raw).replace(',', '.'));
+        }
+
+        function setQuickEntryError(message = '') {
+            const el = document.getElementById('quick-entry-error');
+            if (!el) return;
+            el.textContent = message;
+            el.classList.toggle('active', Boolean(message));
+        }
+
+        function resetQuickEntryForm() {
+            setQuickEntryError('');
+            ['quick-entry-name','quick-entry-grams','quick-entry-kcal','quick-entry-protein','quick-entry-fat','quick-entry-carbs'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+
+        function openQuickEntryModal(options = {}) {
+            if (options?.mealType) {
+                currentDiaryMealType = getValidMealType(options.mealType, currentDiaryMealType);
+                currentMealFilter = currentDiaryMealType;
+            }
+            resetQuickEntryForm();
+            setLockedLayer('quick-entry', document.getElementById('quick-entry-modal'), true);
+            setTimeout(() => document.getElementById('quick-entry-kcal')?.focus?.(), 120);
+        }
+
+        function closeQuickEntryModal() {
+            setLockedLayer('quick-entry', document.getElementById('quick-entry-modal'), false);
+            setQuickEntryError('');
+        }
+
+        function validateQuickEntry(totals) {
+            const fields = [
+                ['Ккал', totals.kcal],
+                ['Белки', totals.protein],
+                ['Жиры', totals.fat],
+                ['Углеводы', totals.carbs]
+            ];
+            const invalid = fields.find(([, value]) => !Number.isFinite(value) || value < 0);
+            if (invalid) return invalid[0] + ' не должны быть отрицательными.';
+            if (![totals.kcal, totals.protein, totals.fat, totals.carbs].some(value => value > 0)) return 'Введите хотя бы одно значение КБЖУ больше 0.';
+            if (totals.gramsRaw && (!Number.isFinite(totals.grams) || totals.grams <= 0)) return 'Вес должен быть больше 0 г.';
+            return '';
+        }
+
+        async function submitQuickEntry(event) {
+            event?.preventDefault?.();
+            if (isAddingMeal) return;
+            const name = (document.getElementById('quick-entry-name')?.value || '').trim() || 'Быстрый ввод';
+            const gramsRaw = (document.getElementById('quick-entry-grams')?.value || '').trim();
+            const totals = {
+                gramsRaw,
+                grams: gramsRaw ? getQuickEntryNumber('quick-entry-grams') : 0,
+                kcal: getQuickEntryNumber('quick-entry-kcal'),
+                protein: getQuickEntryNumber('quick-entry-protein'),
+                fat: getQuickEntryNumber('quick-entry-fat'),
+                carbs: getQuickEntryNumber('quick-entry-carbs')
+            };
+            const validationError = validateQuickEntry(totals);
+            if (validationError) {
+                setQuickEntryError(validationError);
+                return;
+            }
+            const mealType = getDiaryMealType();
+            const createdAt = selectedDateTimeISO();
+            const payload = {
+                id: 'manual_quick_' + Date.now(),
+                type: 'quick-entry',
+                name,
+                recipe_title: name,
+                mealType,
+                meal_type: mealType,
+                grams: totals.grams,
+                calories: totals.kcal,
+                kcal: totals.kcal,
+                protein: totals.protein,
+                fat: totals.fat,
+                carbs: totals.carbs,
+                recipe_id: null,
+                createdAt,
+                created_at: createdAt,
+                ingredients: []
+            };
+            setQuickEntryError('');
+            isAddingMeal = true;
+            const submitBtn = document.getElementById('quick-entry-submit');
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                await callServer('addMeal', payload);
+                closeQuickEntryModal();
+                await refreshAllData();
+                renderDiaryMealContent();
+                document.getElementById('history-list')?.classList.add('success-flash');
+                setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
+                showToast('Добавлено в ' + mealType);
+            } catch (error) {
+                console.error('Ошибка быстрого ввода:', error);
+                if (isTelegramMiniApp) {
+                    addManualLocalMeal(payload);
+                    closeQuickEntryModal();
+                    await refreshAllData();
+                    renderDiaryMealContent();
+                    showToast('Добавлено в ' + mealType);
+                } else {
+                    setQuickEntryError('Не удалось добавить запись: ' + error.message);
+                }
+            } finally {
+                isAddingMeal = false;
+                if (submitBtn) submitBtn.disabled = false;
+            }
         }
 
         function validateManualMeal(name, totals) {
@@ -4178,7 +4344,7 @@
             const grams = Math.max(1, Number(portionGrams) || total.grams || 100);
             const ratio = total.grams > 0 ? grams / total.grams : 1;
             const mealType = currentMealFilter || recipe.category || 'Перекус';
-            openMealModal(recipe.id, total.kcal * ratio, total.protein * ratio, total.fat * ratio, total.carbs * ratio, scalePortionIngredients(ingredients, ratio), mealType);
+            return openMealModal(recipe.id, total.kcal * ratio, total.protein * ratio, total.fat * ratio, total.carbs * ratio, scalePortionIngredients(ingredients, ratio), mealType);
         }
 
         function openRecipeEditFromDetails(recipeId) {
@@ -4227,11 +4393,351 @@
             recipeDetailPortionDraft.grams = Math.max(1, current + Number(delta || 0));
             renderRecipeDetailPortion();
         }
+        function getDiaryTimelineIcon(type) {
+            if (type === 'Завтрак') {
+                return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h11v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z"></path><path d="M16 10h2.5a2.5 2.5 0 0 1 0 5H16"></path><path d="M7 4v2M11 3v3M15 4v2"></path></svg>';
+            }
+            if (type === 'Обед') {
+                return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14a7 7 0 0 1-14 0Z"></path><path d="M7 17h10"></path><path d="M8 8c2-2 6-2 8 0"></path><path d="M4 10h16"></path></svg>';
+            }
+            if (type === 'Ужин') {
+                return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 13c3-4 8-4 14 0"></path><path d="M4 15c4 3 11 3 16 0"></path><path d="M7 17c2 2 8 2 10 0"></path><path d="M8 11c1-2 3-3 5-3"></path></svg>';
+            }
+            return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 17c4 1 8-3 9-9"></path><path d="M6 15c-1 2 1 4 4 4"></path><path d="M15 6c2 2 3 5 1 8"></path><path d="M6 16c4 1 8-2 10-8"></path></svg>';
+        }
+
+        function syncDiaryMealControls() {
+            const isLibraryTab = diaryMealSourceTab === 'library';
+            document.getElementById('diary-meal-screen')?.classList.toggle('is-create-tab', !isLibraryTab);
+            document.querySelectorAll('[data-diary-meal-library-only]').forEach(el => {
+                el.hidden = !isLibraryTab;
+            });
+            document.querySelectorAll('.diary-meal-bottom-tabs button').forEach(btn => {
+                const isActive = btn.dataset.diaryMealSource === diaryMealSourceTab;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            document.querySelectorAll('.diary-meal-category').forEach(btn => {
+                const isActive = btn.dataset.diaryMealTab === diaryMealActiveTab;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+            document.querySelectorAll('.diary-meal-filter-tabs button').forEach(btn => {
+                const isActive = btn.textContent.trim() === diaryMealActiveFilter;
+                btn.classList.toggle('active', isActive);
+                btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            });
+        }
+
+        function openDiaryMealScreen(mealType, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            currentDiaryMealType = getValidMealType(mealType, currentDiaryMealType || 'Завтрак');
+            currentMealFilter = currentDiaryMealType;
+            diaryMealSourceTab = 'library';
+            diaryMealActiveTab = 'products';
+            diaryMealActiveFilter = 'Недавние';
+            const title = document.getElementById('diary-meal-title');
+            if (title) title.textContent = currentDiaryMealType;
+            const search = document.getElementById('diary-meal-search-input');
+            if (search) search.value = '';
+            syncDiaryMealControls();
+            renderDiaryMealContent();
+            const screen = document.getElementById('diary-meal-screen');
+            screen?.removeAttribute('hidden');
+            screen?.setAttribute('aria-hidden', 'false');
+            setLockedLayer('diary-meal', screen, true);
+        }
+
+        function closeDiaryMealScreen() {
+            const screen = document.getElementById('diary-meal-screen');
+            setLockedLayer('diary-meal', screen, false);
+            screen?.setAttribute('hidden', '');
+            screen?.setAttribute('aria-hidden', 'true');
+        }
+
+        function setDiaryMealTab(tabName) {
+            diaryMealActiveTab = ['products','recipes','estimate'].includes(tabName) ? tabName : 'products';
+            syncDiaryMealControls();
+            renderDiaryMealContent();
+        }
+
+        function setDiaryMealSourceTab(tabName) {
+            diaryMealSourceTab = tabName === 'create' ? 'create' : 'library';
+            currentMealFilter = currentDiaryMealType;
+            syncDiaryMealControls();
+            renderDiaryMealContent();
+        }
+
+        document.addEventListener('click', function(event) {
+            const filterButton = event.target.closest('.diary-meal-filter-tabs button');
+            if (!filterButton) return;
+            diaryMealActiveFilter = filterButton.textContent.trim() || 'Недавние';
+            syncDiaryMealControls();
+            renderDiaryMealContent();
+        });
+
+        function formatDiaryMealProductMacros(product) {
+            return Math.round(Number(product.caloriesPer100) || 0) + ' ккал · Б ' +
+                (Number(product.proteinPer100) || 0).toFixed(1) + ' · Ж ' +
+                (Number(product.fatPer100) || 0).toFixed(1) + ' · У ' +
+                (Number(product.carbsPer100) || 0).toFixed(1) + (Number(product.defaultGrams) > 0 ? ' · ' + Math.round(Number(product.defaultGrams)) + ' г' : '');
+        }
+
+        function renderDiaryMealProductCard(product) {
+            const idArg = escapeAttr(JSON.stringify(String(product.id || '')));
+            return '<article class="diary-meal-product-card">' +
+                '<button class="diary-meal-product-main" type="button" onclick="openDiaryMealProduct(' + idArg + ')">' +
+                    '<b>' + escapeHTML(product.name || 'Продукт') + '</b>' +
+                    '<span>' + escapeHTML(formatDiaryMealProductMacros(product)) + '</span>' +
+                '</button>' +
+                '<button class="diary-meal-product-add" type="button" aria-label="Добавить продукт" onclick="addDiaryMealProduct(event, ' + idArg + ')">+</button>' +
+            '</article>';
+        }
+
+        function getDiaryMealProductList() {
+            const query = normalizeManualProductName(document.getElementById('diary-meal-search-input')?.value || '');
+            const products = getSortedManualProducts();
+            const filtered = query ? products.filter(product => normalizeManualProductName(product.name).includes(query)) : products;
+            if (diaryMealActiveFilter === 'Избранные') return [];
+            if (diaryMealActiveFilter === 'Частые') return filtered.slice(0, 8);
+            return filtered.slice(0, 12);
+        }
+
+        function renderDiaryMealRecipes() {
+            const query = normalizeManualProductName(document.getElementById('diary-meal-search-input')?.value || '');
+            const recipes = getRecommendedRecipes({
+                recipes: recipesData,
+                userGoal: userProfile.goal_type,
+                mealType: currentDiaryMealType,
+                currentMacros: stats
+            })
+                .filter(item => !currentDiaryMealType || item.recipe.category === currentDiaryMealType)
+                .filter(item => !query || normalizeManualProductName(item.recipe.title || '').includes(query))
+                .slice(0, 6);
+            if (!recipes.length) {
+                return '<div class="diary-meal-empty"><b>' + (query ? 'Ничего не найдено' : 'Рецепты будут здесь.') + '</b><span>' + (query ? 'Попробуй изменить запрос.' : 'Пока можно открыть существующий раздел рецептов или добавить продукт вручную.') + '</span></div>';
+            }
+            return '<div class="diary-meal-recipe-list">' + recipes.map(item => {
+                const recipe = item.recipe;
+                const idArg = escapeAttr(JSON.stringify(String(recipe.id)));
+                const nutrition = getRecipeNutrition(recipe);
+                return '<article class="diary-meal-product-card">' +
+                    '<button class="diary-meal-product-main" type="button" onclick="openRecipeDetails(' + idArg + ')">' +
+                        '<b>' + escapeHTML(recipe.title || 'Рецепт') + '</b>' +
+                        '<span>' + escapeHTML(formatMacroLine(nutrition, true)) + '</span>' +
+                    '</button>' +
+                    '<button class="diary-meal-product-add" type="button" aria-label="Добавить рецепт" onclick="addDiaryMealRecipe(event, ' + idArg + ')">+</button>' +
+                '</article>';
+            }).join('') + '</div>';
+        }
+
+        function showDiaryMealCreateStub(message) {
+            showToast(message);
+        }
+
+        function openDiaryMealCreateProduct() {
+            openManualMealModal({ mealType: getDiaryMealType() });
+        }
+
+        function openDiaryMealQuickEntry() {
+            openQuickEntryModal({ mealType: getDiaryMealType() });
+        }
+
+        function openDiaryMealCreateRecipe() {
+            const mealType = getDiaryMealType();
+            currentMealFilter = mealType;
+            openMyRecipesModal();
+            openMyRecipeCreateForm({ mealType, returnToDiary: true });
+        }
+
+        function renderDiaryMealCreateCard({ title, text, icon, message, action }) {
+            const onClick = action === 'manualProduct'
+                ? 'openDiaryMealCreateProduct()'
+                : action === 'quickEntry'
+                    ? 'openDiaryMealQuickEntry()'
+                    : action === 'manualRecipe'
+                        ? 'openDiaryMealCreateRecipe()'
+                : 'showDiaryMealCreateStub(' + escapeAttr(JSON.stringify(message)) + ')';
+            return '<button class="diary-meal-create-card" type="button" onclick="' + onClick + '">' +
+                '<span class="diary-meal-create-icon" aria-hidden="true">' + icon + '</span>' +
+                '<span class="diary-meal-create-copy">' +
+                    '<b>' + escapeHTML(title) + '</b>' +
+                    '<small>' + escapeHTML(text) + '</small>' +
+                '</span>' +
+                '<span class="diary-meal-create-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"></path></svg></span>' +
+            '</button>';
+        }
+
+        function renderDiaryMealCreateOptions() {
+            const quickIcon = '<svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"></rect><path d="M9 7h6"></path><path d="M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 15h.01M12 15h.01M15.5 15h.01"></path></svg>';
+            const productIcon = '<svg viewBox="0 0 24 24"><path d="M7 16c-2.5-3-1.3-7 2.2-7.8C10 5.5 12.2 4 15 4"></path><path d="M9 8c4.8-.6 8 2.3 8 6.3 0 3.6-2.7 5.7-5.8 5.7C8.2 20 6 18.4 6 16.1"></path><path d="M15 4c1.4 1.1 2.4 2.6 3 4.2"></path><path d="M10 5c.7.6 1.4 1.5 1.8 2.5"></path></svg>';
+            const recipeIcon = '<svg viewBox="0 0 24 24"><path d="M7 11.8A4.2 4.2 0 0 1 9.7 4a4.6 4.6 0 0 1 8.7 2.1A3.8 3.8 0 0 1 18 13"></path><path d="M7 13h11l-.8 7H7.8L7 13Z"></path><path d="M9 17h7"></path></svg>';
+            const items = [
+                {
+                    title: 'Быстрый ввод',
+                    text: 'Подсчёт КБЖУ без создания нового продукта',
+                    icon: quickIcon,
+                    action: 'quickEntry',
+                    message: 'Быстрый ввод будет добавлен на следующем этапе.'
+                },
+                {
+                    title: 'Новый продукт',
+                    text: 'Создание нового продукта с заполнением подробной информации',
+                    icon: productIcon,
+                    action: 'manualProduct',
+                    message: 'Создание продукта будет подключено на следующем этапе.'
+                },
+                {
+                    title: 'Новый рецепт',
+                    text: 'Рецепт с возможностью добавить инструкцию приготовления',
+                    icon: recipeIcon,
+                    action: 'manualRecipe',
+                    message: 'Создание рецепта будет подключено на следующем этапе.'
+                }
+            ];
+            return '<div class="diary-meal-create-options">' + items.map(renderDiaryMealCreateCard).join('') + '</div>';
+        }
+
+        function renderDiaryMealContent() {
+            const content = document.getElementById('diary-meal-content');
+            if (!content) return;
+            syncDiaryMealControls();
+            if (diaryMealSourceTab === 'create') {
+                content.innerHTML = renderDiaryMealCreateOptions();
+                return;
+            }
+            if (diaryMealActiveTab === 'recipes') {
+                content.innerHTML = renderDiaryMealRecipes();
+                return;
+            }
+            if (diaryMealActiveTab === 'estimate') {
+                content.innerHTML = '<div class="diary-meal-empty"><b>Быстрое добавление примерно.</b><span>Эта заготовка будет подключена на следующем этапе.</span></div>';
+                return;
+            }
+            const products = getDiaryMealProductList();
+            if (!products.length) {
+                const hasQuery = Boolean(normalizeManualProductName(document.getElementById('diary-meal-search-input')?.value || ''));
+                const title = hasQuery ? 'Ничего не найдено' : 'Мои продукты';
+                const text = hasQuery ? 'Попробуй изменить запрос.' : diaryMealActiveFilter === 'Избранные' ? 'Избранные продукты появятся здесь.' : 'Пока нет сохранённых продуктов. Создай первый продукт вручную.';
+                content.innerHTML = '<div class="diary-meal-empty"><b>' + escapeHTML(title) + '</b><span>' + escapeHTML(text) + '</span></div>';
+                return;
+            }
+            content.innerHTML = '<div class="diary-meal-date">' + new Date(currentDate).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }) + '</div>' +
+                '<div class="diary-meal-product-list">' + products.map(renderDiaryMealProductCard).join('') + '</div>';
+        }
+
+        function getDiaryMealType() {
+            return getValidMealType(currentDiaryMealType, getCurrentAddMealType());
+        }
+
+        function buildDiaryManualProductPayload(product, mealType) {
+            const grams = Math.max(1, Number(product.defaultGrams || product.grams || product.servingGrams) || 100);
+            const ratio = grams / 100;
+            const kcal = (Number(product.caloriesPer100) || 0) * ratio;
+            const protein = (Number(product.proteinPer100) || 0) * ratio;
+            const fat = (Number(product.fatPer100) || 0) * ratio;
+            const carbs = (Number(product.carbsPer100) || 0) * ratio;
+            const createdAt = selectedDateTimeISO();
+            return {
+                id: 'manual_product_entry_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                type: 'manual-product',
+                manual: true,
+                productId: product.id || null,
+                name: product.name || 'Продукт',
+                recipe_title: product.name || 'Продукт',
+                mealType,
+                meal_type: mealType,
+                grams,
+                calories_per_100: Number(product.caloriesPer100) || 0,
+                protein_per_100: Number(product.proteinPer100) || 0,
+                fat_per_100: Number(product.fatPer100) || 0,
+                carbs_per_100: Number(product.carbsPer100) || 0,
+                calories: kcal,
+                kcal,
+                protein,
+                fat,
+                carbs,
+                recipe_id: null,
+                createdAt,
+                created_at: createdAt,
+                ingredients: []
+            };
+        }
+
+        async function addDiaryMealProduct(event, productId) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            if (isAddingMeal) return;
+            const product = loadManualProducts().find(item => String(item.id) === String(productId));
+            if (!product || !isValidManualProduct(product)) return showToast('Продукт не найден');
+            const mealType = getDiaryMealType();
+            const payload = buildDiaryManualProductPayload(product, mealType);
+            isAddingMeal = true;
+            try {
+                await callServer('addMeal', payload);
+                await refreshAllData();
+                renderDiaryMealContent();
+                showToast('Добавлено в ' + mealType);
+            } catch (error) {
+                console.error('Ошибка добавления продукта из дневника:', error);
+                if (isTelegramMiniApp) {
+                    addManualLocalMeal(payload);
+                    await refreshAllData();
+                    renderDiaryMealContent();
+                    showToast('Добавлено в ' + mealType);
+                } else {
+                    showToast('Не удалось добавить продукт');
+                }
+            } finally {
+                isAddingMeal = false;
+            }
+        }
+
+        async function addDiaryMealRecipe(event, recipeId) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            currentMealFilter = getDiaryMealType();
+            await addRecipeToDiary(recipeId);
+            renderDiaryMealContent();
+        }
+
+        function openDiaryMealProduct(productId) {
+            currentMealFilter = currentDiaryMealType;
+            openManualMealModal({ mealType: currentDiaryMealType });
+            selectManualProduct(productId);
+        }
+
+        function openDiaryMealCreate() {
+            setDiaryMealSourceTab('create');
+        }
+
+        function openDiaryMealBarcode() {
+            currentMealFilter = currentDiaryMealType;
+            openBarcodeMealModal({ mealType: currentDiaryMealType });
+        }
+
+        function renderDiaryTimeline() {
+            const mealTypes = ['Завтрак', 'Обед', 'Ужин', 'Перекус'];
+            return '<div class="diary-timeline" aria-label="Таймлайн приемов пищи">' + mealTypes.map(type =>
+                '<div class="diary-timeline-row">' +
+                    '<div class="diary-timeline-marker">' +
+                        '<span class="diary-timeline-icon">' + getDiaryTimelineIcon(type) + '</span>' +
+                    '</div>' +
+                    '<button class="diary-timeline-card" type="button" onclick="openDiaryMealScreen(' + escapeAttr(JSON.stringify(type)) + ', event)" aria-label="Добавить прием пищи: ' + escapeAttr(type) + '">' +
+                        '<span class="diary-timeline-title">' + escapeHTML(type) + '</span>' +
+                        '<span class="diary-timeline-add" aria-hidden="true">+</span>' +
+                    '</button>' +
+                '</div>'
+            ).join('') + '</div>';
+        }
+
         async function updateHistoryUI(options = {}) {
             const hList = document.getElementById('history-list');
             let startOfDay = new Date(currentDate); startOfDay.setHours(0,0,0,0); let endOfDay = new Date(currentDate); endOfDay.setHours(23,59,59,999);
             const data = await callServer('getMeals', { startDate: startOfDay.toISOString(), endDate: endOfDay.toISOString() }, options);
-            if (!data || data.length === 0) { hList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✓</div><div style="font-weight:800;color:var(--text-main);margin-bottom:6px;">Дневник чист</div><div>Добавьте первый прием пищи из рациона.</div></div>'; return; }
+            const timelineHtml = renderDiaryTimeline();
+            if (!data || data.length === 0) { hList.innerHTML = timelineHtml + '<div class="empty-state diary-empty-state"><div class="empty-state-icon">✓</div><div style="font-weight:800;color:var(--text-main);margin-bottom:6px;">Дневник чист</div><div>Добавьте первый прием пищи из рациона.</div></div>'; return; }
             let html = '';
             ['Завтрак', 'Обед', 'Ужин', 'Перекус'].forEach(type => {
                 const typeMeals = data.filter(m => (m.meal_type || 'Перекус') === type); if (typeMeals.length === 0) return;
@@ -4246,7 +4752,7 @@
                     return `<div class="history-item"><div><div style="font-weight:800; font-size: 15px; color: var(--text-main);">${escapeHTML(title)}</div><div style="font-size:12px; color:var(--text-muted); margin-top: 4px;">${escapeHTML(meta)}</div></div><div style="display:flex; align-items:center"><span style="color:#6f9b86; font-weight:800; font-size: 15px;">+${Math.round(Number(m.kcal) || 0)}</span><button class="del-btn" onclick="deleteOneMeal(${escapeAttr(JSON.stringify(String(m.id)))})">×</button></div></div>`;
                 }).join('') + '</div></div>';
             });
-            hList.innerHTML = html;
+            hList.innerHTML = timelineHtml + '<div class="diary-existing-meals">' + html + '</div>';
         }
 
         function toggleMealGroup(el) { const content = el.parentElement.querySelector('.meal-group-content'), chevron = el.querySelector('.chevron'); if (!content) return; const collapsed = content.classList.toggle('collapsed'); if(chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : 'rotate(0deg)'; }
@@ -4356,6 +4862,7 @@
                 await callServer('addMeal', { recipe_id: pendingMeal.rid, kcal: pendingMeal.k, protein: pendingMeal.p, fat: pendingMeal.f, carbs: pendingMeal.c, meal_type: mealType, created_at: createdAt, ingredients: pendingMeal.ingredients });
                 await saveRecipeDiarySnapshot(pendingMeal, mealType).catch(error => console.warn('Не удалось сохранить состав рецепта в diary_entries:', error));
                 closeMealModal(); await refreshAllData(); document.getElementById('history-list')?.classList.add('success-flash'); setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
+                showToast('Добавлено в ' + mealType);
             } catch (e) {
                 console.error('Ошибка добавления приема пищи:', e);
                 showToast('Не удалось добавить прием пищи: ' + e.message);

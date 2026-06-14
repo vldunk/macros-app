@@ -1265,6 +1265,17 @@
         .my-recipes-overlay { position: fixed; inset: 0; z-index: 11200; display: none; align-items: center; justify-content: center; padding: 14px; background: rgba(247,245,239,.66); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); overflow-x: hidden; }
         .my-recipes-overlay.active { display: flex; }
         .my-recipes-sheet { width: min(440px, 100%); max-height: min(calc(var(--app-viewport-height, 100vh) - 28px), 620px); overflow-y: auto; padding: 20px; border-radius: 30px; background: rgba(255,255,255,.95); border: 1px solid rgba(82,73,58,.10); box-shadow: 0 24px 70px rgba(82,73,58,.18), inset 0 1px 0 rgba(255,255,255,.82); animation: slideUp .22s ease-out both; }
+        .my-recipes-overlay.is-recipe-form-screen { align-items: stretch; justify-content: center; padding: 0; background: #f7f3ea; backdrop-filter: none; -webkit-backdrop-filter: none; overflow: hidden; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-sheet { width: 100%; max-width: 480px; height: var(--app-viewport-height, 100dvh); min-height: 100dvh; max-height: none; display: grid; grid-template-rows: auto minmax(0, 1fr); overflow: hidden; padding: max(14px, env(safe-area-inset-top)) 16px 0; border-radius: 0; background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(247,243,234,.98)); border: 0; box-shadow: none; animation: none; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-head { flex: 0 0 auto; display: grid; grid-template-columns: 74px minmax(0, 1fr) 48px; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-head > div { min-width: 0; text-align: center; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-title { font-size: clamp(18px, 5.4vw, 22px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-subtitle { display: none; }
+        .my-recipe-form-top-back { display: none; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-top-back { display: inline-grid; place-items: center; min-height: 42px; padding: 0 14px; border-radius: 999px; color: #40424a; background: rgba(255,255,255,.82); border: 1px solid rgba(104,91,70,.10); box-shadow: 0 10px 22px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.92); font-size: 13px; line-height: 1; font-weight: 900; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form { min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0 0 140px; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form::-webkit-scrollbar { display: none; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { position: sticky; bottom: 0; z-index: 5; margin: 14px -16px 0; padding: 10px 16px calc(14px + env(safe-area-inset-bottom)); }
         .my-recipes-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
         .my-recipes-title { color: var(--text-main); font-size: 24px; line-height: 1.08; font-weight: 950; }
         .my-recipes-subtitle { margin-top: 5px; color: var(--text-muted); font-size: 12.5px; line-height: 1.38; font-weight: 620; }
@@ -1391,6 +1402,11 @@
         .my-recipe-next-btn { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); box-shadow: 0 12px 24px rgba(95,143,122,.16); }
         @media (max-width: 360px) {
             .my-recipes-sheet { padding: 16px; border-radius: 26px; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipes-sheet { padding: max(12px, env(safe-area-inset-top)) 12px 0; border-radius: 0; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipes-head { grid-template-columns: 68px minmax(0, 1fr) 42px; gap: 6px; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-top-back { min-height: 40px; padding-inline: 12px; font-size: 12.5px; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form { padding-bottom: 132px; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { margin: 12px -12px 0; padding: 9px 12px calc(12px + env(safe-area-inset-bottom)); }
             .my-recipes-title { font-size: 21px; }
             .my-recipes-subtitle { font-size: 12px; }
             .my-recipe-card { padding: 11px; border-radius: 16px; }
@@ -3557,6 +3573,21 @@
         .my-recipe-details-overlay {
             padding: 0;
             background: #f7f3ea;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen {
+            padding: 0;
+            background: #f7f3ea;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-sheet {
+            border-radius: 0;
+            border: 0;
+            box-shadow: none;
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
         }

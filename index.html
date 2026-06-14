@@ -351,6 +351,7 @@
     <div class="my-recipes-overlay" id="my-recipes-modal" onclick="closeMyRecipesModal()">
         <section class="my-recipes-sheet" onclick="event.stopPropagation()" aria-labelledby="my-recipes-title">
             <div class="my-recipes-head">
+                <button class="my-recipe-form-top-back" type="button" onclick="handleMyRecipeFormBack()">Назад</button>
                 <div>
                     <div class="my-recipes-title" id="my-recipes-title">Мои рецепты</div>
                     <div class="my-recipes-subtitle">Создавай свои блюда и добавляй их в дневник по граммам.</div>
@@ -421,7 +422,7 @@
                     </div>
                 </section>
                 <div class="my-recipe-form-actions">
-                    <button class="my-recipe-back-btn" type="button" onclick="showMyRecipesEmptyView()">Назад</button>
+                    <button class="my-recipe-back-btn" type="button" onclick="handleMyRecipeFormBack()">Назад</button>
                     <button class="my-recipe-next-btn" type="submit">Сохранить рецепт</button>
                 </div>
             </form>
