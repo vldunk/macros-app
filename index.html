@@ -268,6 +268,55 @@
         </div>
     </div>
 
+    <div class="diary-meal-overlay" id="diary-meal-screen" hidden aria-hidden="true">
+        <section class="diary-meal-screen" aria-labelledby="diary-meal-title">
+            <header class="diary-meal-topbar">
+                <button class="diary-meal-nav-btn" type="button" onclick="closeDiaryMealScreen()">Назад</button>
+                <div class="diary-meal-title" id="diary-meal-title">Обед</div>
+                <button class="diary-meal-done-btn" type="button" onclick="closeDiaryMealScreen()">Готово</button>
+            </header>
+
+            <div class="diary-meal-category-tabs" data-diary-meal-library-only role="tablist" aria-label="Категории добавления">
+                <button class="diary-meal-category active" type="button" data-diary-meal-tab="products" onclick="setDiaryMealTab('products')">
+                    <span class="diary-meal-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4 7 14h5l-1 6 6-11h-5l1-5Z"></path></svg></span>
+                    <b>Продукты</b>
+                </button>
+                <button class="diary-meal-category" type="button" data-diary-meal-tab="recipes" onclick="setDiaryMealTab('recipes')">
+                    <span class="diary-meal-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 20h8"></path><path d="M9 9a3 3 0 0 1 6 0"></path><path d="M6 11h12v9H6z"></path><path d="M8 11V9a4 4 0 0 1 8 0v2"></path></svg></span>
+                    <b>Рецепты</b>
+                </button>
+                <button class="diary-meal-category" type="button" data-diary-meal-tab="estimate" onclick="setDiaryMealTab('estimate')">
+                    <span class="diary-meal-category-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 14 12-8 4 4-8 12-2-6-6-2Z"></path><path d="m14 8 2 2"></path></svg></span>
+                    <b>Примерно</b>
+                </button>
+            </div>
+
+            <div class="diary-meal-filter-tabs" data-diary-meal-library-only role="tablist" aria-label="Фильтры продуктов">
+                <button class="active" type="button">Недавние</button>
+                <button type="button">Частые</button>
+                <button type="button">Избранные</button>
+            </div>
+
+            <main class="diary-meal-content" id="diary-meal-content"></main>
+
+            <footer class="diary-meal-footer">
+                <div class="diary-meal-search-row" data-diary-meal-library-only>
+                    <label class="diary-meal-search">
+                        <span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg></span>
+                        <input id="diary-meal-search-input" type="search" placeholder="Найти продукт" autocomplete="off" oninput="renderDiaryMealContent()">
+                    </label>
+                    <button class="diary-meal-scan-btn" type="button" aria-label="Сканировать штрихкод" onclick="openDiaryMealBarcode()">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5a1 1 0 0 0-1 1v2"></path><path d="M17 4h2a1 1 0 0 1 1 1v2"></path><path d="M7 20H5a1 1 0 0 1-1-1v-2"></path><path d="M17 20h2a1 1 0 0 0 1-1v-2"></path><path d="M8 8v8M11 8v8M14 8v8M17 8v8"></path></svg>
+                    </button>
+                </div>
+                <div class="diary-meal-bottom-tabs" role="tablist" aria-label="Источник добавления">
+                    <button class="active" type="button" data-diary-meal-source="library" onclick="setDiaryMealSourceTab('library')"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v14H5z"></path><path d="M8 5v14M16 5v14"></path></svg></span>Библиотека</button>
+                    <button type="button" data-diary-meal-source="create" onclick="setDiaryMealSourceTab('create')"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h10v16H7z"></path><path d="M10 8h4M10 12h4M12 16h4"></path><path d="M18 17h4M20 15v4"></path></svg></span>Создать</button>
+                </div>
+            </footer>
+        </section>
+    </div>
+
     <div class="barcode-meal-overlay" id="barcode-meal-modal" onclick="closeBarcodeMealModal()">
         <form class="barcode-meal-sheet" onclick="event.stopPropagation()" onsubmit="findBarcodeProduct(event)">
             <div class="barcode-meal-head">
@@ -422,39 +471,45 @@
 
     <div class="my-recipe-details-overlay" id="my-recipe-details-modal" hidden aria-hidden="true">
         <section class="my-recipe-details-sheet" aria-labelledby="my-recipe-details-title">
-            <div class="my-recipe-details-head">
-                <div>
-                    <div class="my-recipe-details-kicker">Детали рецепта</div>
-                    <div class="my-recipe-details-title" id="my-recipe-details-title">Рецепт</div>
-                    <div class="my-recipe-details-meta" id="my-recipe-details-meta"></div>
+            <header class="my-recipe-details-topbar">
+                <button class="my-recipe-details-back" type="button" data-my-recipe-details-close>Назад</button>
+                <div class="my-recipe-details-screen-title">Детали рецепта</div>
+                <span class="my-recipe-details-topbar-spacer" aria-hidden="true"></span>
+            </header>
+            <div class="my-recipe-details-scroll">
+                <div class="my-recipe-details-head">
+                    <div>
+                        <div class="my-recipe-details-kicker">Собственный рецепт</div>
+                        <div class="my-recipe-details-title" id="my-recipe-details-title">Рецепт</div>
+                        <div class="my-recipe-details-meta" id="my-recipe-details-meta"></div>
+                    </div>
                 </div>
-                <button class="portion-reset-btn" type="button" aria-label="Закрыть" data-my-recipe-details-close>×</button>
-            </div>
-            <section class="my-recipe-details-section">
-                <div class="my-recipe-details-section-title">КБЖУ на 100 г</div>
-                <div class="my-recipe-details-macros">
-                    <div><b id="my-recipe-details-kcal">0</b><span>ккал</span></div>
-                    <div><b id="my-recipe-details-protein">0.0</b><span>белки</span></div>
-                    <div><b id="my-recipe-details-fat">0.0</b><span>жиры</span></div>
-                    <div><b id="my-recipe-details-carbs">0.0</b><span>углеводы</span></div>
+                <section class="my-recipe-details-section">
+                    <div class="my-recipe-details-section-title">КБЖУ на 100 г</div>
+                    <div class="my-recipe-details-macros">
+                        <div><b id="my-recipe-details-kcal">0</b><span>ккал</span></div>
+                        <div><b id="my-recipe-details-protein">0.0</b><span>белки</span></div>
+                        <div><b id="my-recipe-details-fat">0.0</b><span>жиры</span></div>
+                        <div><b id="my-recipe-details-carbs">0.0</b><span>углеводы</span></div>
+                    </div>
+                </section>
+                <section class="my-recipe-details-section">
+                    <div class="my-recipe-details-section-title">Ингредиенты</div>
+                    <div class="my-recipe-details-ingredients" id="my-recipe-details-ingredients"></div>
+                </section>
+                <section class="my-recipe-details-section">
+                    <div class="my-recipe-details-section-title">Описание приготовления</div>
+                    <div class="my-recipe-details-description" id="my-recipe-details-description">Описание приготовления не добавлено.</div>
+                </section>
+                <div class="my-recipe-details-manage">
+                    <button class="my-recipe-details-edit" type="button" data-my-recipe-details-edit>Редактировать</button>
+                    <button class="my-recipe-details-delete" type="button" data-my-recipe-details-delete>Удалить</button>
                 </div>
-            </section>
-            <section class="my-recipe-details-section">
-                <div class="my-recipe-details-section-title">Ингредиенты</div>
-                <div class="my-recipe-details-ingredients" id="my-recipe-details-ingredients"></div>
-            </section>
-            <section class="my-recipe-details-section">
-                <div class="my-recipe-details-section-title">Описание приготовления</div>
-                <div class="my-recipe-details-description" id="my-recipe-details-description">Описание приготовления не добавлено.</div>
-            </section>
-            <div class="my-recipe-details-manage">
-                <button class="my-recipe-details-edit" type="button" data-my-recipe-details-edit>Редактировать</button>
-                <button class="my-recipe-details-delete" type="button" data-my-recipe-details-delete>Удалить</button>
             </div>
-            <div class="my-recipe-details-actions">
-                <button class="my-recipe-details-close" type="button" data-my-recipe-details-close>Закрыть</button>
+            <footer class="my-recipe-details-actions">
+                <button class="my-recipe-details-close" type="button" data-my-recipe-details-close>Назад</button>
                 <button class="my-recipe-details-add" type="button" data-my-recipe-details-add>Добавить в дневник</button>
-            </div>
+            </footer>
         </section>
     </div>
 
@@ -555,6 +610,56 @@
             <div class="manual-meal-actions">
                 <button class="manual-meal-cancel" type="button" onclick="closeManualMealModal()">Отмена</button>
                 <button class="manual-meal-submit" id="manual-meal-submit" type="submit">Добавить в дневник</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="quick-entry-overlay" id="quick-entry-modal">
+        <form class="quick-entry-sheet" onsubmit="submitQuickEntry(event)">
+            <div class="quick-entry-head">
+                <div>
+                    <div class="quick-entry-title">Быстрый ввод</div>
+                    <div class="quick-entry-subtitle">Добавь КБЖУ без создания продукта.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeQuickEntryModal()">×</button>
+            </div>
+
+            <div class="quick-entry-error" id="quick-entry-error" role="alert"></div>
+
+            <label class="quick-entry-field quick-entry-field-wide">
+                <span>Название</span>
+                <input id="quick-entry-name" type="text" maxlength="80" placeholder="Необязательно" autocomplete="off">
+            </label>
+
+            <div class="quick-entry-grid">
+                <label class="quick-entry-field">
+                    <span>Ккал</span>
+                    <input id="quick-entry-kcal" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0">
+                </label>
+                <label class="quick-entry-field">
+                    <span>Вес, г</span>
+                    <input id="quick-entry-grams" type="number" inputmode="decimal" min="1" step="1" placeholder="Необязательно">
+                </label>
+            </div>
+
+            <div class="quick-entry-grid quick-entry-grid-3">
+                <label class="quick-entry-field">
+                    <span>Белки</span>
+                    <input id="quick-entry-protein" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0">
+                </label>
+                <label class="quick-entry-field">
+                    <span>Жиры</span>
+                    <input id="quick-entry-fat" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0">
+                </label>
+                <label class="quick-entry-field">
+                    <span>Углеводы</span>
+                    <input id="quick-entry-carbs" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0">
+                </label>
+            </div>
+
+            <div class="quick-entry-actions">
+                <button class="quick-entry-cancel" type="button" onclick="closeQuickEntryModal()">Отмена</button>
+                <button class="quick-entry-submit" id="quick-entry-submit" type="submit">Добавить</button>
             </div>
         </form>
     </div>
