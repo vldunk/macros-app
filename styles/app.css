@@ -1274,10 +1274,10 @@
         .my-recipe-form-top-back { display: none; }
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-top-back { display: inline-grid; place-items: center; min-height: 38px; padding: 0 12px; border-radius: 999px; color: #40424a; background: rgba(255,255,255,.82); border: 1px solid rgba(104,91,70,.10); box-shadow: 0 8px 18px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.92); font-size: 12.5px; line-height: 1; font-weight: 900; }
         .my-recipes-overlay.is-recipe-form-screen .portion-reset-btn { width: 38px; min-height: 38px; font-size: 22px; }
-        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form { min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0 0 max(34px, calc(env(safe-area-inset-bottom) + 16px)); }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form { min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 0; }
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-form::-webkit-scrollbar { display: none; }
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-scroll { min-height: 0; padding: 0; }
-        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { position: static; bottom: auto; z-index: auto; margin: 14px 0 0; padding: 0; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { position: static; bottom: auto; z-index: auto; margin: 14px 0 0; padding: 0 0 max(28px, env(safe-area-inset-bottom)); }
         .my-recipes-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
         .my-recipes-title { color: var(--text-main); font-size: 24px; line-height: 1.08; font-weight: 950; }
         .my-recipes-subtitle { margin-top: 5px; color: var(--text-muted); font-size: 12.5px; line-height: 1.38; font-weight: 620; }
@@ -1419,7 +1419,7 @@
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values span { padding: 6px 3px; }
         .my-recipe-calc-values strong { min-width: 0; color: var(--text-main); font-size: 13px; line-height: 1; font-weight: 930; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .my-recipe-calc-values small { color: var(--text-muted); font-size: 8.2px; line-height: 1; font-weight: 850; text-transform: uppercase; }
-        .my-recipe-form-actions { position: static; display: grid; grid-template-columns: minmax(0,.82fr) minmax(0,1.18fr); gap: 8px; margin: 14px 0 0; padding: 0; background: transparent; border-top: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+        .my-recipe-form-actions { position: static; display: grid; grid-template-columns: minmax(0,.82fr) minmax(0,1.18fr); gap: 8px; margin: 14px 0 0; padding: 0 0 max(28px, env(safe-area-inset-bottom)); background: transparent; border-top: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
         .my-recipe-form-actions button { min-height: 40px; border-radius: 14px; font-size: 13px; font-weight: 900; }
         .my-recipe-back-btn { color: #69736c; background: rgba(250,248,242,.86); border: 1px solid rgba(82,73,58,.08); }
         .my-recipe-next-btn { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); box-shadow: 0 12px 24px rgba(95,143,122,.16); }
@@ -1428,8 +1428,8 @@
             .my-recipes-overlay.is-recipe-form-screen .my-recipes-sheet { padding: max(10px, env(safe-area-inset-top)) 12px 0; border-radius: 0; }
             .my-recipes-overlay.is-recipe-form-screen .my-recipes-head { grid-template-columns: 64px minmax(0, 1fr) 40px; gap: 6px; }
             .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-top-back { min-height: 38px; padding-inline: 11px; font-size: 12.5px; }
-            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form { padding-bottom: max(36px, calc(env(safe-area-inset-bottom) + 18px)); }
-            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { margin: 14px 0 0; padding: 0; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form { padding-bottom: 0; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { margin: 14px 0 0; padding: 0 0 max(28px, env(safe-area-inset-bottom)); }
             .my-recipes-title { font-size: 21px; }
             .my-recipes-subtitle { font-size: 12px; }
             .my-recipe-step-head { padding: 10px; border-radius: 18px; }
@@ -1489,7 +1489,7 @@
             .my-recipe-calc-values span { padding: 5px 3px; }
             .my-recipe-calc-values strong { font-size: 11.5px; }
             .my-recipe-calc-values small { font-size: 7.8px; }
-            .my-recipe-form-actions { margin: 14px 0 0; padding: 0; }
+            .my-recipe-form-actions { margin: 14px 0 0; padding: 0 0 max(28px, env(safe-area-inset-bottom)); }
             .my-recipe-form-actions button { min-height: 40px; font-size: 12.5px; }
         }
         #full-calendar-modal { justify-content: center; align-items: center; padding: 20px; z-index: 9000; }
