@@ -100,7 +100,7 @@
         const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, myRecipeReturnToDiaryAfterSave = false, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, myRecipeReturnToDiaryAfterSave = false, myRecipeCreateStep = 1, myRecipeCookedWeightTouched = false, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
         const LOADING_SLOW_MS = 7000;
@@ -1982,9 +1982,77 @@
                 (Number(n.carbs) || 0).toFixed(1) + ' г';
         }
 
+        function formatMyRecipePer100Line(recipe) {
+            const n = recipe?.per100Nutrition || {};
+            return Math.round(Number(n.calories) || 0) + ' ккал · Б ' +
+                (Number(n.protein) || 0).toFixed(1) + ' · Ж ' +
+                (Number(n.fat) || 0).toFixed(1) + ' · У ' +
+                (Number(n.carbs) || 0).toFixed(1);
+        }
+
         function formatMyRecipeDetailNumber(value, digits = 1) {
             const number = Number(value) || 0;
             return digits === 0 ? String(Math.round(number)) : number.toFixed(digits);
+        }
+
+        function getMyRecipeNutritionValue(source, key) {
+            if (!source) return 0;
+            const value = key === 'calories'
+                ? (source.calories ?? source.kcal)
+                : source[key];
+            const number = Number(value);
+            return Number.isFinite(number) ? number : 0;
+        }
+
+        function buildMyRecipeIngredientTotals(recipe) {
+            return (Array.isArray(recipe?.ingredients) ? recipe.ingredients : []).reduce((sum, ingredient) => {
+                const grams = Math.max(0, Number(ingredient.grams) || 0);
+                const ratio = grams / 100;
+                sum.weight += grams;
+                sum.calories += Math.max(0, Number(ingredient.caloriesPer100) || 0) * ratio;
+                sum.protein += Math.max(0, Number(ingredient.proteinPer100) || 0) * ratio;
+                sum.fat += Math.max(0, Number(ingredient.fatPer100) || 0) * ratio;
+                sum.carbs += Math.max(0, Number(ingredient.carbsPer100) || 0) * ratio;
+                return sum;
+            }, { weight: 0, calories: 0, protein: 0, fat: 0, carbs: 0 });
+        }
+
+        function resolveMyRecipeDetailsNutrition(recipe) {
+            const ingredientTotals = buildMyRecipeIngredientTotals(recipe);
+            const total = {
+                calories: getMyRecipeNutritionValue(recipe?.totalNutrition, 'calories') || ingredientTotals.calories,
+                protein: getMyRecipeNutritionValue(recipe?.totalNutrition, 'protein') || ingredientTotals.protein,
+                fat: getMyRecipeNutritionValue(recipe?.totalNutrition, 'fat') || ingredientTotals.fat,
+                carbs: getMyRecipeNutritionValue(recipe?.totalNutrition, 'carbs') || ingredientTotals.carbs
+            };
+            const cookedWeight = Number(recipe?.cookedWeight) > 0 ? Number(recipe.cookedWeight) : ingredientTotals.weight;
+            const servings = Number(recipe?.servings) > 0 ? Number(recipe.servings) : 0;
+            const portionWeight = Number(recipe?.portionWeight) > 0
+                ? Number(recipe.portionWeight)
+                : cookedWeight > 0 && servings > 0 ? cookedWeight / servings : 0;
+            const per100Ratio = cookedWeight > 0 ? 100 / cookedWeight : 0;
+            const servingRatio = servings > 0 ? 1 / servings : 0;
+            const per100 = {
+                calories: getMyRecipeNutritionValue(recipe?.per100Nutrition, 'calories') || total.calories * per100Ratio,
+                protein: getMyRecipeNutritionValue(recipe?.per100Nutrition, 'protein') || total.protein * per100Ratio,
+                fat: getMyRecipeNutritionValue(recipe?.per100Nutrition, 'fat') || total.fat * per100Ratio,
+                carbs: getMyRecipeNutritionValue(recipe?.per100Nutrition, 'carbs') || total.carbs * per100Ratio
+            };
+            const serving = {
+                calories: getMyRecipeNutritionValue(recipe?.perServingNutrition, 'calories') || total.calories * servingRatio,
+                protein: getMyRecipeNutritionValue(recipe?.perServingNutrition, 'protein') || total.protein * servingRatio,
+                fat: getMyRecipeNutritionValue(recipe?.perServingNutrition, 'fat') || total.fat * servingRatio,
+                carbs: getMyRecipeNutritionValue(recipe?.perServingNutrition, 'carbs') || total.carbs * servingRatio
+            };
+            return {
+                rawWeight: Number(recipe?.rawIngredientsWeight) > 0 ? Number(recipe.rawIngredientsWeight) : ingredientTotals.weight,
+                cookedWeight,
+                servings,
+                portionWeight,
+                total,
+                per100,
+                serving
+            };
         }
 
         function renderMyRecipesList() {
@@ -2011,7 +2079,10 @@
                     '<div class="my-recipe-card-title">' + escapeHTML(recipe.name) + '</div>' +
                     '<div class="my-recipe-card-meta">' + meta + '</div>' +
                     '<div class="my-recipe-card-macros">На 100 г: ' + escapeHTML(formatMyRecipeMacroLine(recipe.per100Nutrition)) + '</div>' +
-                    '<button class="my-recipe-card-add-btn" type="button" data-my-recipe-add-id="' + escapeAttr(String(recipe.id || '')) + '">Добавить в дневник</button>' +
+                    '<div class="my-recipe-card-actions">' +
+                        '<button class="my-recipe-card-edit-btn" type="button" data-my-recipe-edit-id="' + escapeAttr(String(recipe.id || '')) + '">Редактировать</button>' +
+                        '<button class="my-recipe-card-add-btn" type="button" data-my-recipe-add-id="' + escapeAttr(String(recipe.id || '')) + '">Добавить в дневник</button>' +
+                    '</div>' +
                     '</article>';
             }).join('');
         }
@@ -2020,45 +2091,138 @@
         let myRecipeIngredientIds = [];
         let selectedMyRecipeForDiary = null;
         let selectedMyRecipeDetailsId = null;
+        let myRecipeDetailsPortionDraft = null;
         let myRecipeProductPickerIngredientId = null;
+        let activeMyRecipeIngredientSuggestId = null;
+        let myRecipeIngredientProductSources = new Map();
         let editingMyRecipeId = null;
+
+        function formatMyRecipeDetailMacroLine(nutrition, withGramUnits = false) {
+            const unit = withGramUnits ? ' г' : '';
+            return Math.round(Number(nutrition?.calories) || Number(nutrition?.kcal) || 0) + ' ккал · Б ' +
+                (Number(nutrition?.protein) || 0).toFixed(1) + unit + ' · Ж ' +
+                (Number(nutrition?.fat) || 0).toFixed(1) + unit + ' · У ' +
+                (Number(nutrition?.carbs) || 0).toFixed(1) + unit;
+        }
+
+        function getMyRecipeDetailsInitialGrams(recipe, resolved) {
+            if (Number(recipe?.portionWeight) > 0) return Math.round(Number(recipe.portionWeight));
+            if (Number(resolved?.portionWeight) > 0) return Math.round(Number(resolved.portionWeight));
+            if (Number(recipe?.cookedWeight) > 0 && Number(recipe?.servings) > 0) {
+                return Math.round(Number(recipe.cookedWeight) / Number(recipe.servings));
+            }
+            return 100;
+        }
+
+        function getMyRecipePreparationSteps(recipe) {
+            const candidates = [recipe?.instructions, recipe?.steps, recipe?.cookingSteps, recipe?.description];
+            for (const candidate of candidates) {
+                if (Array.isArray(candidate)) {
+                    const steps = candidate.map(item => String(item || '').trim()).filter(Boolean);
+                    if (steps.length) return steps;
+                }
+                if (typeof candidate === 'string') {
+                    const steps = candidate
+                        .split(/\n+|(?:^|\s)(?:\d+[\).\s]+|[-•]\s+)/)
+                        .map(item => item.trim())
+                        .filter(Boolean);
+                    if (steps.length) return steps;
+                }
+            }
+            return [];
+        }
+
+        function getMyRecipeTimeLabel(recipe) {
+            const minutes = Number(recipe?.time || recipe?.minutes || recipe?.cookingTime || recipe?.cookTime || recipe?.prepTime);
+            return Number.isFinite(minutes) && minutes > 0 ? Math.round(minutes) + ' мин' : '';
+        }
 
         function renderMyRecipeDetailsIngredients(recipe) {
             const ingredients = Array.isArray(recipe?.ingredients) ? recipe.ingredients : [];
             if (!ingredients.length) {
-                return '<div class="my-recipe-details-description">Ингредиенты не добавлены.</div>';
+                return '<div class="detail-note">Ингредиенты не добавлены.</div>';
             }
             return ingredients.map(ingredient => {
                 const name = String(ingredient.name || '').trim() || 'Ингредиент';
-                return '<article class="my-recipe-details-ingredient">' +
-                    '<div class="my-recipe-details-ingredient-name">' + escapeHTML(name) + '</div>' +
-                    '<div class="my-recipe-details-ingredient-grid">' +
-                    '<span>Вес: ' + escapeHTML(formatMyRecipeDetailNumber(ingredient.grams, 0)) + ' г</span>' +
-                    '<span>Ккал: ' + escapeHTML(formatMyRecipeDetailNumber(ingredient.caloriesPer100, 0)) + ' / 100 г</span>' +
-                    '<span>Б: ' + escapeHTML(formatMyRecipeDetailNumber(ingredient.proteinPer100)) + ' г / 100 г</span>' +
-                    '<span>Ж: ' + escapeHTML(formatMyRecipeDetailNumber(ingredient.fatPer100)) + ' г / 100 г</span>' +
-                    '<span>У: ' + escapeHTML(formatMyRecipeDetailNumber(ingredient.carbsPer100)) + ' г / 100 г</span>' +
-                    '</div>' +
-                    '</article>';
+                const grams = Math.max(0, Number(ingredient.grams) || 0);
+                return '<div class="ingredient-item"><span>' + escapeHTML(name) + '</span><span>' + escapeHTML(formatMyRecipeDetailNumber(grams, 0)) + ' г</span></div>';
             }).join('');
+        }
+
+        function renderMyRecipeDetailsPortion() {
+            if (!myRecipeDetailsPortionDraft) return;
+            const input = document.getElementById('my-recipe-details-portion-input');
+            const total = document.getElementById('my-recipe-details-portion-total');
+            const grams = Math.max(1, Number(myRecipeDetailsPortionDraft.grams) || 100);
+            const ratio = grams / 100;
+            const per100 = myRecipeDetailsPortionDraft.per100 || {};
+            const portion = {
+                calories: (Number(per100.calories) || 0) * ratio,
+                protein: (Number(per100.protein) || 0) * ratio,
+                fat: (Number(per100.fat) || 0) * ratio,
+                carbs: (Number(per100.carbs) || 0) * ratio
+            };
+            if (input && document.activeElement !== input) input.value = String(Math.round(grams));
+            if (total) total.innerText = 'Итого: ' + formatMyRecipeDetailMacroLine(portion, true);
+        }
+
+        function setMyRecipeDetailsPortionGrams(value) {
+            if (!myRecipeDetailsPortionDraft) return;
+            myRecipeDetailsPortionDraft.grams = Math.max(1, Number(String(value).replace(',', '.')) || 1);
+            renderMyRecipeDetailsPortion();
+        }
+
+        function stepMyRecipeDetailsPortion(delta) {
+            if (!myRecipeDetailsPortionDraft) return;
+            const current = Math.max(1, Number(myRecipeDetailsPortionDraft.grams) || 100);
+            myRecipeDetailsPortionDraft.grams = Math.max(1, current + Number(delta || 0));
+            renderMyRecipeDetailsPortion();
+        }
+
+        function getMyRecipeDetailsSelectedGrams() {
+            return Math.max(1, Number(myRecipeDetailsPortionDraft?.grams) || 100);
         }
 
         function openMyRecipeDetailsModal(recipeId) {
             const recipe = loadManualRecipes().find(item => String(item.id) === String(recipeId));
             if (!recipe) return showToast('Рецепт не найден');
             selectedMyRecipeDetailsId = String(recipe.id || '');
-            const servings = Number(recipe.servings) > 0 ? ' · ' + (Number(recipe.servings) || 0) + ' порц.' : '';
-            const meta = (recipe.category || 'Обед') + ' · ' + Math.round(Number(recipe.cookedWeight) || 0) + ' г готового блюда' + servings;
-            const n = recipe.per100Nutrition || {};
+            const resolved = resolveMyRecipeDetailsNutrition(recipe);
             setText('my-recipe-details-title', recipe.name || 'Рецепт');
-            setText('my-recipe-details-meta', meta);
-            setText('my-recipe-details-kcal', formatMyRecipeDetailNumber(n.calories, 0));
-            setText('my-recipe-details-protein', formatMyRecipeDetailNumber(n.protein));
-            setText('my-recipe-details-fat', formatMyRecipeDetailNumber(n.fat));
-            setText('my-recipe-details-carbs', formatMyRecipeDetailNumber(n.carbs));
+            const badges = document.getElementById('my-recipe-details-badges');
+            if (badges) {
+                const category = String(recipe.category || '').trim();
+                badges.innerHTML = (category ? '<span class="recipe-badge">' + escapeHTML(category) + '</span>' : '') +
+                    '<span class="recipe-badge protein">Собственный рецепт</span>';
+            }
+            myRecipeDetailsPortionDraft = {
+                recipeId: String(recipe.id || ''),
+                per100: resolved.per100,
+                grams: getMyRecipeDetailsInitialGrams(recipe, resolved)
+            };
+            const macros = document.getElementById('my-recipe-details-macros');
+            if (macros) {
+                const timeLabel = getMyRecipeTimeLabel(recipe);
+                macros.innerHTML =
+                    '<div class="detail-macro-summary"><div class="detail-macro-icon" aria-hidden="true"></div><div class="detail-macro-copy"><span>КБЖУ / 100 г</span><b>' +
+                    escapeHTML(formatMyRecipeDetailMacroLine(resolved.per100)) +
+                    '</b></div><div class="detail-macro-actions"><button class="detail-edit-recipe-btn" type="button" data-my-recipe-details-edit>Изменить рецепт</button>' +
+                    (timeLabel ? '<div class="detail-time-pill">' + escapeHTML(timeLabel) + '</div>' : '') +
+                    '</div></div>' +
+                    '<div class="detail-portion-card" id="my-recipe-details-portion-card"><div class="detail-portion-title">Вес порции</div><div class="detail-portion-control"><button class="detail-portion-step" type="button" aria-label="Уменьшить порцию" onclick="stepMyRecipeDetailsPortion(-10)">−</button><label class="detail-portion-field"><input id="my-recipe-details-portion-input" type="number" inputmode="decimal" min="1" step="1" oninput="setMyRecipeDetailsPortionGrams(this.value)"><span>г</span></label><button class="detail-portion-step detail-portion-plus" type="button" aria-label="Увеличить порцию" onclick="stepMyRecipeDetailsPortion(10)">+</button></div><div class="detail-portion-total" id="my-recipe-details-portion-total"></div></div>';
+            }
             const ingredients = document.getElementById('my-recipe-details-ingredients');
             if (ingredients) ingredients.innerHTML = renderMyRecipeDetailsIngredients(recipe);
-            setText('my-recipe-details-description', String(recipe.description || '').trim() || 'Описание приготовления не добавлено.');
+            const steps = getMyRecipePreparationSteps(recipe);
+            const instructionsSection = document.getElementById('my-recipe-details-instructions-section');
+            const instructions = document.getElementById('my-recipe-details-instructions');
+            instructionsSection?.toggleAttribute('hidden', !steps.length);
+            if (instructions && steps.length) {
+                instructions.innerHTML = steps.map((step, index) => '<div class="detail-step"><span>' + (index + 1) + '</span><p>' + escapeHTML(step) + '</p></div>').join('');
+            } else if (instructions) {
+                instructions.innerHTML = '';
+            }
+            renderMyRecipeDetailsPortion();
             const modal = document.getElementById('my-recipe-details-modal');
             modal?.removeAttribute('hidden');
             modal?.setAttribute('aria-hidden', 'false');
@@ -2071,19 +2235,69 @@
             modal?.setAttribute('hidden', '');
             modal?.setAttribute('aria-hidden', 'true');
             selectedMyRecipeDetailsId = null;
+            myRecipeDetailsPortionDraft = null;
         }
 
-        function addMyRecipeFromDetails() {
+        function buildMyRecipeDiaryPayload(recipe, grams, mealType) {
+            const resolved = resolveMyRecipeDetailsNutrition(recipe);
+            const safeGrams = Math.max(1, Number(grams) || 100);
+            const ratio = safeGrams / 100;
+            const per100 = resolved.per100 || {};
+            const createdAt = selectedDateTimeISO();
+            return {
+                type: 'manual-recipe-entry',
+                recipeId: recipe.id,
+                name: recipe.name,
+                recipe_title: recipe.name,
+                grams: safeGrams,
+                calories_per_100: Number(per100.calories) || 0,
+                protein_per_100: Number(per100.protein) || 0,
+                fat_per_100: Number(per100.fat) || 0,
+                carbs_per_100: Number(per100.carbs) || 0,
+                calories: (Number(per100.calories) || 0) * ratio,
+                kcal: (Number(per100.calories) || 0) * ratio,
+                protein: (Number(per100.protein) || 0) * ratio,
+                fat: (Number(per100.fat) || 0) * ratio,
+                carbs: (Number(per100.carbs) || 0) * ratio,
+                mealType,
+                meal_type: mealType,
+                createdAt,
+                created_at: createdAt,
+                ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : []
+            };
+        }
+
+        async function addMyRecipeToDiaryWithWeight(recipeId, grams, mealType) {
+            const recipe = loadManualRecipes().find(item => String(item.id) === String(recipeId));
+            if (!recipe) return showToast('Рецепт не найден');
+            const safeMealType = getValidMealType(mealType, recipe.category || 'Обед');
+            addManualLocalMeal(buildMyRecipeDiaryPayload(recipe, grams, safeMealType));
+            await refreshAllData();
+            if (isDiaryMealScreenOpen()) renderDiaryMealContent();
+            document.getElementById('history-list')?.classList.add('success-flash');
+            setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
+            showToast('Добавлено в ' + safeMealType);
+        }
+
+        async function addMyRecipeFromDetails() {
             const recipeId = selectedMyRecipeDetailsId;
             if (!recipeId) return showToast('Выберите рецепт');
+            const grams = getMyRecipeDetailsSelectedGrams();
             closeMyRecipeDetailsModal();
-            openMyRecipeAddModal(recipeId);
+            if (isDiaryMealScreenOpen()) {
+                await addMyRecipeToDiaryWithWeight(recipeId, grams, getDiaryMealType());
+                return;
+            }
+            openMyRecipeAddModal(recipeId, { grams });
         }
 
         function editMyRecipeFromDetails() {
             const recipeId = selectedMyRecipeDetailsId;
             if (!recipeId) return showToast('Выберите рецепт');
             closeMyRecipeDetailsModal();
+            if (!document.getElementById('my-recipes-modal')?.classList.contains('active')) {
+                openMyRecipesModal();
+            }
             openMyRecipeEditForm(recipeId);
         }
 
@@ -2099,10 +2313,65 @@
         }
 
         function formatMyRecipeProductPickerMacros(product) {
-            return Math.round(Number(product.caloriesPer100) || 0) + ' ккал / 100 г · Б ' +
-                (Number(product.proteinPer100) || 0).toFixed(1) + ' г · Ж ' +
-                (Number(product.fatPer100) || 0).toFixed(1) + ' г · У ' +
-                (Number(product.carbsPer100) || 0).toFixed(1) + ' г';
+            return Math.round(Number(product.caloriesPer100) || 0) + ' ккал · Б ' +
+                (Number(product.proteinPer100) || 0).toFixed(1) + ' · Ж ' +
+                (Number(product.fatPer100) || 0).toFixed(1) + ' · У ' +
+                (Number(product.carbsPer100) || 0).toFixed(1);
+        }
+
+        function formatMyRecipeProductSuggestMacros(product) {
+            return Math.round(Number(product.caloriesPer100) || 0) + ' ккал · Б ' +
+                (Number(product.proteinPer100) || 0).toFixed(1) + ' · Ж ' +
+                (Number(product.fatPer100) || 0).toFixed(1) + ' · У ' +
+                (Number(product.carbsPer100) || 0).toFixed(1);
+        }
+
+        function getMyRecipeProductSuggestions(query) {
+            const normalized = normalizeManualProductName(query);
+            if (normalized.length < 2) return [];
+            return getSortedManualProducts()
+                .filter(product => normalizeManualProductName(product.name).includes(normalized))
+                .slice(0, 5);
+        }
+
+        function closeMyRecipeIngredientSuggestions(exceptIngredientId = null) {
+            document.querySelectorAll('[data-my-recipe-suggestions-for]').forEach(list => {
+                if (exceptIngredientId !== null && String(list.dataset.myRecipeSuggestionsFor) === String(exceptIngredientId)) return;
+                list.innerHTML = '';
+                list.hidden = true;
+            });
+            if (exceptIngredientId === null) activeMyRecipeIngredientSuggestId = null;
+        }
+
+        function renderMyRecipeIngredientSuggestions(ingredientId) {
+            const list = document.getElementById('my-recipe-ingredient-' + ingredientId + '-suggestions');
+            const input = document.getElementById('my-recipe-ingredient-' + ingredientId + '-name');
+            if (!list || !input) return;
+            closeMyRecipeIngredientSuggestions(ingredientId);
+            activeMyRecipeIngredientSuggestId = Number(ingredientId);
+            const suggestions = getMyRecipeProductSuggestions(input.value);
+            if (!suggestions.length) {
+                list.innerHTML = '';
+                list.hidden = true;
+                return;
+            }
+            list.hidden = false;
+            list.innerHTML = suggestions.map(product =>
+                '<button class="my-recipe-ingredient-suggestion" type="button" data-my-recipe-suggestion-id="' + escapeAttr(String(product.id || '')) + '" data-my-recipe-suggestion-ingredient="' + escapeAttr(String(ingredientId)) + '">' +
+                    '<b>' + escapeHTML(product.name) + '</b>' +
+                    '<span>' + escapeHTML(formatMyRecipeProductSuggestMacros(product)) + '</span>' +
+                '</button>'
+            ).join('');
+        }
+
+        function handleMyRecipeIngredientNameInput(ingredientId) {
+            const input = document.getElementById('my-recipe-ingredient-' + ingredientId + '-name');
+            if (!String(input?.value || '').trim()) {
+                myRecipeIngredientProductSources.delete(Number(ingredientId));
+                renderMyRecipeIngredientSourceBadge(ingredientId);
+            }
+            renderMyRecipeIngredientSuggestions(ingredientId);
+            updateMyRecipeCalculation();
         }
 
         function renderMyRecipeProductPicker() {
@@ -2112,11 +2381,11 @@
             const query = normalizeManualProductName(document.getElementById('my-recipe-product-picker-search')?.value || '');
             const filtered = query ? products.filter(product => normalizeManualProductName(product.name).includes(query)) : products;
             if (!products.length) {
-                list.innerHTML = '<div class="my-recipe-product-picker-empty">Пока нет сохранённых продуктов. Добавь продукт вручную — он появится здесь.</div>';
+                list.innerHTML = '<div class="my-recipe-product-picker-empty">Пока нет сохранённых продуктов.</div>';
                 return;
             }
             if (!filtered.length) {
-                list.innerHTML = '<div class="my-recipe-product-picker-empty">Ничего не найдено.</div>';
+                list.innerHTML = '<div class="my-recipe-product-picker-empty">Продукты не найдены.</div>';
                 return;
             }
             list.innerHTML = filtered.map(product => {
@@ -2130,6 +2399,7 @@
 
         function openMyRecipeProductPicker(ingredientId) {
             if (!myRecipeIngredientIds.includes(Number(ingredientId))) return;
+            closeMyRecipeIngredientSuggestions();
             myRecipeProductPickerIngredientId = Number(ingredientId);
             const search = document.getElementById('my-recipe-product-picker-search');
             if (search) search.value = '';
@@ -2154,17 +2424,42 @@
             if (el) el.value = value;
         }
 
-        function selectMyRecipeIngredientProduct(productId) {
-            const ingredientId = myRecipeProductPickerIngredientId;
-            const product = loadManualProducts().find(item => String(item.id) === String(productId));
+        function renderMyRecipeIngredientSourceBadge(ingredientId) {
+            const badge = document.getElementById('my-recipe-ingredient-' + ingredientId + '-source');
+            if (!badge) return;
+            const source = myRecipeIngredientProductSources.get(Number(ingredientId));
+            const name = document.getElementById('my-recipe-ingredient-' + ingredientId + '-name')?.value || '';
+            const isVisible = source === 'manual-product' && Boolean(String(name).trim());
+            badge.hidden = !isVisible;
+            badge.textContent = isVisible ? 'Из моих продуктов' : '';
+        }
+
+        function applyManualProductToMyRecipeIngredient(ingredientId, product) {
             if (!ingredientId || !product || !isValidManualProduct(product)) return;
             setMyRecipeIngredientInputValue(ingredientId, 'name', product.name);
             setMyRecipeIngredientInputValue(ingredientId, 'kcal100', product.caloriesPer100);
             setMyRecipeIngredientInputValue(ingredientId, 'protein100', product.proteinPer100);
             setMyRecipeIngredientInputValue(ingredientId, 'fat100', product.fatPer100);
             setMyRecipeIngredientInputValue(ingredientId, 'carbs100', product.carbsPer100);
-            closeMyRecipeProductPicker();
+            myRecipeIngredientProductSources.set(Number(ingredientId), 'manual-product');
+            renderMyRecipeIngredientSourceBadge(ingredientId);
             updateMyRecipeCalculation();
+        }
+
+        function selectMyRecipeIngredientProduct(productId) {
+            const ingredientId = myRecipeProductPickerIngredientId;
+            const product = loadManualProducts().find(item => String(item.id) === String(productId));
+            if (!ingredientId || !product || !isValidManualProduct(product)) return;
+            applyManualProductToMyRecipeIngredient(ingredientId, product);
+            closeMyRecipeProductPicker();
+            document.getElementById('my-recipe-ingredient-' + ingredientId + '-grams')?.focus?.();
+        }
+
+        function selectMyRecipeIngredientSuggestion(ingredientId, productId) {
+            const product = loadManualProducts().find(item => String(item.id) === String(productId));
+            if (!myRecipeIngredientIds.includes(Number(ingredientId)) || !product || !isValidManualProduct(product)) return;
+            applyManualProductToMyRecipeIngredient(Number(ingredientId), product);
+            closeMyRecipeIngredientSuggestions();
             document.getElementById('my-recipe-ingredient-' + ingredientId + '-grams')?.focus?.();
         }
 
@@ -2178,6 +2473,13 @@
                         event.preventDefault();
                         event.stopPropagation();
                         openMyRecipeAddModal(addButton.dataset.myRecipeAddId);
+                        return;
+                    }
+                    const editButton = event.target.closest('[data-my-recipe-edit-id]');
+                    if (editButton) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        openMyRecipeEditForm(editButton.dataset.myRecipeEditId);
                         return;
                     }
                     const card = event.target.closest('[data-my-recipe-id]');
@@ -2197,10 +2499,21 @@
             if (form && !form.dataset.myRecipeProductEventsBound) {
                 form.dataset.myRecipeProductEventsBound = '1';
                 form.addEventListener('click', event => {
+                    const suggestion = event.target.closest('[data-my-recipe-suggestion-id]');
+                    if (suggestion) {
+                        event.preventDefault();
+                        selectMyRecipeIngredientSuggestion(suggestion.dataset.myRecipeSuggestionIngredient, suggestion.dataset.myRecipeSuggestionId);
+                        return;
+                    }
                     const button = event.target.closest('[data-my-recipe-product-picker-id]');
                     if (!button) return;
                     event.preventDefault();
                     openMyRecipeProductPicker(button.dataset.myRecipeProductPickerId);
+                });
+                form.addEventListener('focusin', event => {
+                    const input = event.target.closest('[data-my-recipe-ingredient-name-id]');
+                    if (!input) return;
+                    renderMyRecipeIngredientSuggestions(input.dataset.myRecipeIngredientNameId);
                 });
             }
 
@@ -2257,6 +2570,11 @@
                     selectMyRecipeIngredientProduct(product.dataset.productId);
                 });
             }
+
+            document.addEventListener('click', event => {
+                if (event.target.closest('.my-recipe-ingredient-name-wrap')) return;
+                closeMyRecipeIngredientSuggestions();
+            });
         }
 
         bindMyRecipeModalEvents();
@@ -2267,11 +2585,14 @@
             addMyRecipeFromDetails,
             editMyRecipeFromDetails,
             deleteMyRecipeFromDetails,
+            setMyRecipeDetailsPortionGrams,
+            stepMyRecipeDetailsPortion,
             openMyRecipeEditForm,
             renderMyRecipeProductPicker,
             openMyRecipeProductPicker,
             closeMyRecipeProductPicker,
-            selectMyRecipeIngredientProduct
+            selectMyRecipeIngredientProduct,
+            handleMyRecipeIngredientNameInput
         });
 
         function setMyRecipeAddError(message = '') {
@@ -2314,15 +2635,28 @@
             setText('my-recipe-add-total-carbs', (Math.max(0, totals.carbs || 0)).toFixed(1) + ' г');
         }
 
-        function openMyRecipeAddModal(recipeId) {
+        function openMyRecipeAddModal(recipeId, options = {}) {
             const recipe = loadManualRecipes().find(item => String(item.id) === String(recipeId));
-            selectedMyRecipeForDiary = recipe || null;
+            const resolved = recipe ? resolveMyRecipeDetailsNutrition(recipe) : null;
+            selectedMyRecipeForDiary = recipe && resolved ? {
+                ...recipe,
+                per100Nutrition: {
+                    calories: resolved.per100.calories,
+                    protein: resolved.per100.protein,
+                    fat: resolved.per100.fat,
+                    carbs: resolved.per100.carbs
+                }
+            } : null;
             setMyRecipeAddError('');
-            setText('my-recipe-add-name', recipe?.name || 'Рецепт');
+            setText('my-recipe-add-name', selectedMyRecipeForDiary?.name || 'Рецепт');
+            setText('my-recipe-add-per100', 'На 100 г: ' + formatMyRecipePer100Line(selectedMyRecipeForDiary));
             const mealType = document.getElementById('my-recipe-add-meal-type');
-            if (mealType) mealType.value = isDiaryMealScreenOpen() ? getValidMealType(currentDiaryMealType, 'Обед') : getValidMealType(recipe?.category, 'Обед');
+            if (mealType) {
+                mealType.value = isDiaryMealScreenOpen() ? getValidMealType(currentDiaryMealType, 'Обед') : getValidMealType(selectedMyRecipeForDiary?.category, 'Обед');
+                mealType.disabled = isDiaryMealScreenOpen();
+            }
             const grams = document.getElementById('my-recipe-add-grams');
-            if (grams) grams.value = '';
+            if (grams) grams.value = Number(options?.grams) > 0 ? String(Math.round(Number(options.grams))) : '';
             updateMyRecipeAddTotals();
             setLockedLayer('my-recipe-add', document.getElementById('my-recipe-add-modal'), true);
             setTimeout(() => grams?.focus?.(), 120);
@@ -2368,9 +2702,10 @@
             closeMyRecipeAddModal();
             closeMyRecipesModal();
             await refreshAllData();
+            if (isDiaryMealScreenOpen()) renderDiaryMealContent();
             document.getElementById('history-list')?.classList.add('success-flash');
             setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
-            showToast('Рецепт добавлен в дневник');
+            showToast('Добавлено в ' + mealType);
         }
 
         function setMyRecipeFormError(message = '') {
@@ -2403,6 +2738,57 @@
             el.textContent = digits === 0 ? String(Math.round(number)) : number.toFixed(digits);
         }
 
+        function setMyRecipeCalcOptionalText(id, value, digits = 1) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const number = Number(value);
+            el.textContent = Number.isFinite(number) && number > 0
+                ? (digits === 0 ? String(Math.round(number)) : number.toFixed(digits))
+                : '—';
+        }
+
+        function markMyRecipeCookedWeightEdited() {
+            myRecipeCookedWeightTouched = true;
+        }
+
+        function getMyRecipeStepMeta(step = myRecipeCreateStep) {
+            if (step === 2) return { kicker: 'Шаг 2 из 3', title: 'Рецепт' };
+            if (step === 3) return { kicker: 'Шаг 3 из 3', title: 'Итог' };
+            return { kicker: 'Шаг 1 из 3', title: 'Ингредиенты' };
+        }
+
+        function setMyRecipeCreateStep(step, options = {}) {
+            myRecipeCreateStep = Math.min(3, Math.max(1, Number(step) || 1));
+            closeMyRecipeIngredientSuggestions();
+            const meta = getMyRecipeStepMeta(myRecipeCreateStep);
+            setText('my-recipe-step-kicker', meta.kicker);
+            setText('my-recipe-step-title', meta.title);
+            document.querySelectorAll('[data-my-recipe-step]').forEach(panel => {
+                panel.classList.toggle('active', Number(panel.dataset.myRecipeStep) === myRecipeCreateStep);
+            });
+            document.querySelectorAll('[data-my-recipe-step-pill]').forEach(pill => {
+                const isActive = Number(pill.dataset.myRecipeStepPill) === myRecipeCreateStep;
+                pill.classList.toggle('active', isActive);
+                pill.setAttribute('aria-current', isActive ? 'step' : 'false');
+            });
+            const primary = document.getElementById('my-recipe-primary-action');
+            if (primary) primary.textContent = myRecipeCreateStep === 3 ? (editingMyRecipeId ? 'Сохранить изменения' : 'Сохранить рецепт') : 'Далее';
+            const back = document.querySelector('.my-recipe-back-btn');
+            if (back) back.textContent = myRecipeCreateStep === 1 ? 'Назад' : 'Назад';
+            setMyRecipeFormError('');
+            if (myRecipeCreateStep === 2 && !options.keepCookedWeight) syncMyRecipeCookedWeightFromIngredients();
+            updateMyRecipeCalculation();
+            document.getElementById('my-recipe-form')?.scrollTo?.({ top: 0, behavior: options.instant ? 'auto' : 'smooth' });
+        }
+
+        function syncMyRecipeCookedWeightFromIngredients() {
+            if (myRecipeCookedWeightTouched) return;
+            const weightInput = document.getElementById('my-recipe-weight-input');
+            if (!weightInput) return;
+            const rawWeight = calculateMyRecipeNutrition().totals.ingredientGrams;
+            if (rawWeight > 0) weightInput.value = String(Math.round(rawWeight));
+        }
+
         function calculateMyRecipeNutrition() {
             const ingredients = collectMyRecipeIngredientValues();
             const totals = ingredients.reduce((sum, ingredient) => {
@@ -2420,11 +2806,14 @@
             const servings = getMyRecipeFormNumber('my-recipe-servings-input');
             const per100Ratio = cookedWeight > 0 ? 100 / cookedWeight : 0;
             const servingRatio = servings > 0 ? 1 / servings : 0;
+            const portionWeight = cookedWeight > 0 && servings > 0 ? cookedWeight / servings : 0;
             return {
                 totals,
+                cookedWeightInput,
                 cookedWeight,
                 usesFallbackWeight: !(cookedWeightInput > 0),
                 servings,
+                portionWeight,
                 per100: {
                     kcal: totals.kcal * per100Ratio,
                     protein: totals.protein * per100Ratio,
@@ -2443,10 +2832,30 @@
         function updateMyRecipeCalculation() {
             const calc = calculateMyRecipeNutrition();
             const active = calc.per100;
+            setMyRecipeCalcText('my-recipe-raw-weight', calc.totals.ingredientGrams, 0);
+            setMyRecipeCalcText('my-recipe-total-kcal', calc.totals.kcal, 0);
+            setMyRecipeCalcText('my-recipe-total-protein', calc.totals.protein);
+            setMyRecipeCalcText('my-recipe-total-fat', calc.totals.fat);
+            setMyRecipeCalcText('my-recipe-total-carbs', calc.totals.carbs);
+            setMyRecipeCalcText('my-recipe-final-total-kcal', calc.totals.kcal, 0);
+            setMyRecipeCalcText('my-recipe-final-total-protein', calc.totals.protein);
+            setMyRecipeCalcText('my-recipe-final-total-fat', calc.totals.fat);
+            setMyRecipeCalcText('my-recipe-final-total-carbs', calc.totals.carbs);
             setMyRecipeCalcText('my-recipe-active-kcal', active.kcal, 0);
             setMyRecipeCalcText('my-recipe-active-protein', active.protein);
             setMyRecipeCalcText('my-recipe-active-fat', active.fat);
             setMyRecipeCalcText('my-recipe-active-carbs', active.carbs);
+            setMyRecipeCalcOptionalText('my-recipe-serving-weight', calc.portionWeight, 0);
+            setMyRecipeCalcOptionalText('my-recipe-serving-kcal', calc.serving.kcal, 0);
+            setMyRecipeCalcOptionalText('my-recipe-serving-protein', calc.serving.protein);
+            setMyRecipeCalcOptionalText('my-recipe-serving-fat', calc.serving.fat);
+            setMyRecipeCalcOptionalText('my-recipe-serving-carbs', calc.serving.carbs);
+            setText('my-recipe-summary-meta', 'Сырой вес ингредиентов: ' + Math.round(calc.totals.ingredientGrams) + ' г · Вес готового блюда: ' + Math.round(calc.cookedWeightInput || calc.cookedWeight || 0) + ' г · Порций: ' + (calc.servings > 0 ? formatMyRecipeDetailNumber(calc.servings, 0) : '—'));
+            const portionMessage = calc.cookedWeightInput > 0
+                ? (calc.servings > 0 ? 'Вес одной порции: ' + Math.round(calc.portionWeight) + ' г' : 'Укажи количество порций, чтобы рассчитать вес порции.')
+                : 'Укажи вес готового блюда для точного расчёта.';
+            setText('my-recipe-portion-weight-line', portionMessage);
+            setText('my-recipe-serving-hint', calc.cookedWeightInput > 0 && calc.servings > 0 ? 'Вес порции: ' + Math.round(calc.portionWeight) + ' г' : portionMessage);
             const weightHint = document.getElementById('my-recipe-weight-hint');
             if (weightHint) weightHint.hidden = !calc.usesFallbackWeight;
         }
@@ -2454,6 +2863,7 @@
         function renderMyRecipeIngredients(values = null) {
             const list = document.getElementById('my-recipe-ingredients-list');
             if (!list) return;
+            closeMyRecipeIngredientSuggestions();
             const ingredientValues = values || myRecipeIngredientIds.map(id => ({ id }));
             const canRemove = ingredientValues.length > 1;
             list.innerHTML = ingredientValues.map((ingredient, index) => {
@@ -2461,9 +2871,12 @@
                 const removeButton = canRemove
                     ? '<button class="my-recipe-remove-ingredient-btn" type="button" onclick="removeMyRecipeIngredient(' + id + ')">Удалить</button>'
                     : '';
+                const sourceBadge = myRecipeIngredientProductSources.get(Number(id)) === 'manual-product' && String(ingredient.name || '').trim()
+                    ? '<span class="my-recipe-ingredient-source" id="my-recipe-ingredient-' + id + '-source">Из моих продуктов</span>'
+                    : '<span class="my-recipe-ingredient-source" id="my-recipe-ingredient-' + id + '-source" hidden></span>';
                 return '<section class="my-recipe-ingredient-card">' +
-                    '<div class="my-recipe-ingredient-card-head"><b>Ингредиент ' + (index + 1) + '</b>' + removeButton + '</div>' +
-                    '<label class="my-recipe-field my-recipe-field-wide"><span>Название ингредиента</span><input id="my-recipe-ingredient-' + id + '-name" type="text" maxlength="80" placeholder="Например, рис" value="' + escapeAttr(ingredient.name || '') + '" oninput="updateMyRecipeCalculation()"></label>' +
+                    '<div class="my-recipe-ingredient-card-head"><b>Ингредиент ' + (index + 1) + '</b><div class="my-recipe-ingredient-card-meta">' + sourceBadge + removeButton + '</div></div>' +
+                    '<label class="my-recipe-field my-recipe-field-wide my-recipe-ingredient-name-wrap"><span>Название ингредиента</span><input id="my-recipe-ingredient-' + id + '-name" data-my-recipe-ingredient-name-id="' + id + '" type="text" maxlength="80" placeholder="Например, рис" value="' + escapeAttr(ingredient.name || '') + '" oninput="handleMyRecipeIngredientNameInput(' + id + ')"><div class="my-recipe-ingredient-suggestions" id="my-recipe-ingredient-' + id + '-suggestions" data-my-recipe-suggestions-for="' + id + '" hidden></div></label>' +
                     '<div class="my-recipe-grid">' +
                     '<label class="my-recipe-field"><span>Вес, г</span><input id="my-recipe-ingredient-' + id + '-grams" type="number" inputmode="decimal" min="1" step="1" placeholder="100" value="' + escapeAttr(ingredient.grams || '') + '" oninput="updateMyRecipeCalculation()"></label>' +
                     '<label class="my-recipe-field"><span>Ккал / 100 г</span><input id="my-recipe-ingredient-' + id + '-kcal100" type="number" inputmode="decimal" min="0" step="0.1" placeholder="0" value="' + escapeAttr(ingredient.kcal100 || '') + '" oninput="updateMyRecipeCalculation()"></label>' +
@@ -2480,6 +2893,7 @@
         function resetMyRecipeIngredients() {
             myRecipeIngredientSeq += 1;
             myRecipeIngredientIds = [myRecipeIngredientSeq];
+            myRecipeIngredientProductSources.clear();
             renderMyRecipeIngredients();
         }
 
@@ -2495,6 +2909,7 @@
         function removeMyRecipeIngredient(id) {
             if (myRecipeIngredientIds.length <= 1) return;
             const values = collectMyRecipeIngredientValues().filter(item => Number(item.id) !== Number(id));
+            myRecipeIngredientProductSources.delete(Number(id));
             myRecipeIngredientIds = values.map(item => item.id);
             renderMyRecipeIngredients(values);
             updateMyRecipeCalculation();
@@ -2503,8 +2918,9 @@
         function resetMyRecipeCreateForm() {
             setMyRecipeFormError('');
             editingMyRecipeId = null;
+            myRecipeCookedWeightTouched = false;
             const submit = document.querySelector('.my-recipe-next-btn');
-            if (submit) submit.textContent = 'Сохранить рецепт';
+            if (submit) submit.textContent = 'Далее';
             ['my-recipe-title-input','my-recipe-weight-input','my-recipe-servings-input','my-recipe-description-input'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.value = '';
@@ -2512,6 +2928,7 @@
             const category = document.getElementById('my-recipe-category-input');
             if (category) category.value = 'Обед';
             resetMyRecipeIngredients();
+            setMyRecipeCreateStep(1, { instant: true, keepCookedWeight: true });
             updateMyRecipeCalculation();
         }
 
@@ -2528,6 +2945,8 @@
         function populateMyRecipeForm(recipe) {
             setMyRecipeFormError('');
             editingMyRecipeId = String(recipe.id || '');
+            myRecipeCookedWeightTouched = true;
+            myRecipeIngredientProductSources.clear();
             setMyRecipeFormInputValue('my-recipe-title-input', recipe.name || '');
             const category = document.getElementById('my-recipe-category-input');
             if (category) category.value = ['Завтрак','Обед','Ужин','Перекус'].includes(recipe.category) ? recipe.category : 'Обед';
@@ -2549,7 +2968,8 @@
             myRecipeIngredientIds = ingredients.map(item => item.id);
             renderMyRecipeIngredients(ingredients);
             const submit = document.querySelector('.my-recipe-next-btn');
-            if (submit) submit.textContent = 'Сохранить изменения';
+            if (submit) submit.textContent = 'Далее';
+            setMyRecipeCreateStep(1, { instant: true, keepCookedWeight: true });
             updateMyRecipeCalculation();
         }
 
@@ -2557,6 +2977,7 @@
             editingMyRecipeId = null;
             myRecipeReturnToDiaryAfterSave = false;
             setMyRecipeFormScreen(false);
+            setText('my-recipes-title', 'Мои рецепты');
             const submit = document.querySelector('.my-recipe-next-btn');
             if (submit) submit.textContent = 'Сохранить рецепт';
             renderMyRecipesList();
@@ -2565,6 +2986,10 @@
         }
 
         function handleMyRecipeFormBack() {
+            if (myRecipeCreateStep > 1) {
+                setMyRecipeCreateStep(myRecipeCreateStep - 1);
+                return;
+            }
             if (myRecipeReturnToDiaryAfterSave && isDiaryMealScreenOpen()) {
                 closeMyRecipesModal();
                 return;
@@ -2581,7 +3006,8 @@
             document.getElementById('my-recipes-list-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipe-form')?.removeAttribute('hidden');
             setMyRecipeFormScreen(true);
-            setTimeout(() => document.getElementById('my-recipe-title-input')?.focus?.(), 120);
+            setText('my-recipes-title', 'Создать рецепт');
+            setTimeout(() => document.querySelector('[id^="my-recipe-ingredient-"][id$="-name"]')?.focus?.(), 120);
         }
 
         function openMyRecipeEditForm(recipeId) {
@@ -2593,7 +3019,8 @@
             document.getElementById('my-recipes-list-view')?.setAttribute('hidden', '');
             document.getElementById('my-recipe-form')?.removeAttribute('hidden');
             setMyRecipeFormScreen(true);
-            setTimeout(() => document.getElementById('my-recipe-title-input')?.focus?.(), 120);
+            setText('my-recipes-title', 'Редактировать рецепт');
+            setTimeout(() => document.querySelector('[id^="my-recipe-ingredient-"][id$="-name"]')?.focus?.(), 120);
         }
 
         function getMyRecipeFormNumber(id) {
@@ -2607,16 +3034,7 @@
             return Number(String(value).replace(',', '.'));
         }
 
-        function validateMyRecipeCreateForm() {
-            const title = (document.getElementById('my-recipe-title-input')?.value || '').trim();
-            const category = document.getElementById('my-recipe-category-input')?.value || '';
-            const weight = getMyRecipeFormNumber('my-recipe-weight-input');
-            const servingsRaw = document.getElementById('my-recipe-servings-input')?.value;
-            const servings = getMyRecipeFormNumber('my-recipe-servings-input');
-            if (!title) return 'Введите название рецепта.';
-            if (!category) return 'Выберите категорию рецепта.';
-            if (!Number.isFinite(weight) || weight <= 0) return 'Итоговый вес готового блюда должен быть больше 0 г.';
-            if (servingsRaw !== '' && (!Number.isFinite(servings) || servings <= 0)) return 'Количество порций должно быть больше 0.';
+        function validateMyRecipeIngredientsStep() {
             const ingredients = collectMyRecipeIngredientValues();
             if (!ingredients.length) return 'Добавьте хотя бы один ингредиент.';
             for (let i = 0; i < ingredients.length; i += 1) {
@@ -2637,11 +3055,59 @@
             return '';
         }
 
+        function validateMyRecipeDetailsStep() {
+            const title = (document.getElementById('my-recipe-title-input')?.value || '').trim();
+            const category = document.getElementById('my-recipe-category-input')?.value || '';
+            const weight = getMyRecipeFormNumber('my-recipe-weight-input');
+            const servings = getMyRecipeFormNumber('my-recipe-servings-input');
+            if (!title) return 'Введите название рецепта.';
+            if (!category) return 'Выберите категорию рецепта.';
+            if (!Number.isFinite(weight) || weight <= 0) return 'Итоговый вес готового блюда должен быть больше 0 г.';
+            if (!Number.isFinite(servings) || servings <= 0) return 'Количество порций должно быть больше 0.';
+            return '';
+        }
+
+        function hasFiniteMyRecipeNutrition(values) {
+            return ['kcal','protein','fat','carbs'].every(key => Number.isFinite(Number(values?.[key])) && Number(values[key]) >= 0);
+        }
+
+        function validateMyRecipeFinalCalculation() {
+            const calc = calculateMyRecipeNutrition();
+            if (!Number.isFinite(calc.totals.ingredientGrams) || calc.totals.ingredientGrams <= 0) return 'Добавьте ингредиенты с весом больше 0 г.';
+            if (!Number.isFinite(calc.cookedWeightInput) || calc.cookedWeightInput <= 0) return 'Итоговый вес готового блюда должен быть больше 0 г.';
+            if (!Number.isFinite(calc.servings) || calc.servings <= 0) return 'Количество порций должно быть больше 0.';
+            if (!Number.isFinite(calc.portionWeight) || calc.portionWeight <= 0) return 'Вес порции не рассчитан. Проверьте вес блюда и количество порций.';
+            if (!hasFiniteMyRecipeNutrition(calc.totals)) return 'Суммарное КБЖУ рецепта не рассчитано.';
+            if (!hasFiniteMyRecipeNutrition(calc.per100)) return 'КБЖУ на 100 г не рассчитано.';
+            if (!hasFiniteMyRecipeNutrition(calc.serving)) return 'КБЖУ на порцию не рассчитано.';
+            return '';
+        }
+
+        function validateMyRecipeCreateForm() {
+            return validateMyRecipeIngredientsStep() || validateMyRecipeDetailsStep() || validateMyRecipeFinalCalculation();
+        }
+
+        function handleMyRecipePrimaryAction() {
+            if (myRecipeCreateStep === 1) {
+                const error = validateMyRecipeIngredientsStep();
+                if (error) return setMyRecipeFormError(error);
+                setMyRecipeCreateStep(2);
+                return;
+            }
+            if (myRecipeCreateStep === 2) {
+                const error = validateMyRecipeDetailsStep();
+                if (error) return setMyRecipeFormError(error);
+                setMyRecipeCreateStep(3);
+                return;
+            }
+            submitMyRecipeCreateForm();
+        }
+
         function buildManualRecipeFromForm(existingRecipe = null) {
             const now = new Date().toISOString();
             const calc = calculateMyRecipeNutrition();
-            const servingsRaw = document.getElementById('my-recipe-servings-input')?.value || '';
-            const servings = servingsRaw === '' ? null : getMyRecipeFormNumber('my-recipe-servings-input');
+            const servings = getMyRecipeFormNumber('my-recipe-servings-input');
+            const cookedWeight = getMyRecipeFormNumber('my-recipe-weight-input');
             const ingredients = collectMyRecipeIngredientValues().map(ingredient => ({
                 name: String(ingredient.name || '').trim(),
                 grams: parseMyRecipeNumber(ingredient.grams),
@@ -2656,8 +3122,10 @@
                 name: (document.getElementById('my-recipe-title-input')?.value || '').trim(),
                 category: document.getElementById('my-recipe-category-input')?.value || 'Обед',
                 description: (document.getElementById('my-recipe-description-input')?.value || '').trim(),
-                cookedWeight: getMyRecipeFormNumber('my-recipe-weight-input'),
+                rawIngredientsWeight: calc.totals.ingredientGrams,
+                cookedWeight,
                 servings,
+                portionWeight: cookedWeight / servings,
                 ingredients,
                 totalNutrition: {
                     calories: calc.totals.kcal,
@@ -2671,12 +3139,12 @@
                     fat: calc.per100.fat,
                     carbs: calc.per100.carbs
                 },
-                perServingNutrition: servings ? {
+                perServingNutrition: {
                     calories: calc.serving.kcal,
                     protein: calc.serving.protein,
                     fat: calc.serving.fat,
                     carbs: calc.serving.carbs
-                } : null,
+                },
                 createdAt: existingRecipe?.createdAt || now,
                 updatedAt: now
             };
@@ -2684,6 +3152,10 @@
 
         function submitMyRecipeCreateForm(event) {
             event?.preventDefault?.();
+            if (myRecipeCreateStep < 3) {
+                handleMyRecipePrimaryAction();
+                return;
+            }
             const error = validateMyRecipeCreateForm();
             if (error) {
                 setMyRecipeFormError(error);
@@ -4427,6 +4899,8 @@
                 btn.classList.toggle('active', isActive);
                 btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
+            const search = document.getElementById('diary-meal-search-input');
+            if (search) search.placeholder = diaryMealActiveTab === 'recipes' ? 'Найти рецепт' : 'Найти продукт';
         }
 
         function openDiaryMealScreen(mealType, event) {
@@ -4506,26 +4980,27 @@
 
         function renderDiaryMealRecipes() {
             const query = normalizeManualProductName(document.getElementById('diary-meal-search-input')?.value || '');
-            const recipes = getRecommendedRecipes({
-                recipes: recipesData,
-                userGoal: userProfile.goal_type,
-                mealType: currentDiaryMealType,
-                currentMacros: stats
-            })
-                .filter(item => !currentDiaryMealType || item.recipe.category === currentDiaryMealType)
-                .filter(item => !query || normalizeManualProductName(item.recipe.title || '').includes(query))
-                .slice(0, 6);
-            if (!recipes.length) {
-                return '<div class="diary-meal-empty"><b>' + (query ? 'Ничего не найдено' : 'Рецепты будут здесь.') + '</b><span>' + (query ? 'Попробуй изменить запрос.' : 'Пока можно открыть существующий раздел рецептов или добавить продукт вручную.') + '</span></div>';
+            const allRecipes = loadManualRecipes()
+                .filter(recipe => recipe?.type === 'manual-recipe' && String(recipe.name || '').trim())
+                .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+            const recipes = query
+                ? allRecipes.filter(recipe => normalizeManualProductName(recipe.name || '').includes(query))
+                : allRecipes;
+            if (!allRecipes.length) {
+                return '<div class="diary-meal-empty"><b>Пока нет собственных рецептов.</b><span>Создай рецепт, и он появится здесь.</span><button class="diary-meal-empty-action" type="button" onclick="openDiaryMealCreateRecipe()">Создать рецепт</button></div>';
             }
-            return '<div class="diary-meal-recipe-list">' + recipes.map(item => {
-                const recipe = item.recipe;
-                const idArg = escapeAttr(JSON.stringify(String(recipe.id)));
-                const nutrition = getRecipeNutrition(recipe);
-                return '<article class="diary-meal-product-card">' +
-                    '<button class="diary-meal-product-main" type="button" onclick="openRecipeDetails(' + idArg + ')">' +
-                        '<b>' + escapeHTML(recipe.title || 'Рецепт') + '</b>' +
-                        '<span>' + escapeHTML(formatMacroLine(nutrition, true)) + '</span>' +
+            if (!recipes.length) {
+                return '<div class="diary-meal-empty"><b>Рецепты не найдены.</b><span>Попробуй изменить запрос.</span></div>';
+            }
+            return '<div class="diary-meal-recipe-list">' + recipes.map(recipe => {
+                const idArg = escapeAttr(JSON.stringify(String(recipe.id || '')));
+                const servings = Number(recipe.servings) > 0 ? ' · ' + (Number(recipe.servings) || 0) + ' порц.' : '';
+                const meta = (recipe.category || 'Обед') + ' · ' + Math.round(Number(recipe.cookedWeight) || 0) + ' г' + servings;
+                return '<article class="diary-meal-product-card diary-meal-recipe-card">' +
+                    '<button class="diary-meal-product-main" type="button" onclick="openMyRecipeDetailsModal(' + idArg + ')">' +
+                        '<b>' + escapeHTML(recipe.name || 'Рецепт') + '</b>' +
+                        '<span>' + escapeHTML(meta) + '</span>' +
+                        '<small>На 100 г: ' + escapeHTML(formatMyRecipePer100Line(recipe)) + '</small>' +
                     '</button>' +
                     '<button class="diary-meal-product-add" type="button" aria-label="Добавить рецепт" onclick="addDiaryMealRecipe(event, ' + idArg + ')">+</button>' +
                 '</article>';
@@ -4698,8 +5173,7 @@
             event?.preventDefault?.();
             event?.stopPropagation?.();
             currentMealFilter = getDiaryMealType();
-            await addRecipeToDiary(recipeId);
-            renderDiaryMealContent();
+            openMyRecipeAddModal(recipeId);
         }
 
         function openDiaryMealProduct(productId) {
