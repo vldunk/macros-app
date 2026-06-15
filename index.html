@@ -63,7 +63,7 @@
             <div class="recipes-screen-head">
                 <div class="recipes-screen-title-row">
                     <button class="recipe-library-back" type="button" aria-label="Назад" onclick="closeRecipesScreen()">‹</button>
-                    <div class="recipes-screen-title">Библиотека рецептов</div>
+                    <div class="recipes-screen-title">Рецепты</div>
                     <div class="recipe-library-head-spacer" aria-hidden="true"></div>
                 </div>
                 <div class="recipe-library-segment" aria-label="Раздел рецептов">
@@ -250,7 +250,7 @@
             <p class="add-meal-choice-subtitle">Выберите готовый рецепт или внесите свой продукт вручную.</p>
             <button class="modal-btn add-meal-choice-btn" type="button" onclick="chooseRecipeAddFlow()">
                 <span class="add-meal-choice-icon">🍽</span>
-                <span><b>Выбрать из рецептов</b><small>Открыть текущий список блюд</small></span>
+                <span><b>Рецепты</b><small>Каталог и созданные тобой блюда</small></span>
             </button>
             <button class="modal-btn add-meal-choice-btn" type="button" onclick="openManualMealModal()">
                 <span class="add-meal-choice-icon">✎</span>
@@ -291,7 +291,7 @@
                 </button>
             </div>
 
-            <div class="diary-meal-filter-tabs" data-diary-meal-library-only role="tablist" aria-label="Фильтры продуктов">
+            <div class="diary-meal-filter-tabs" data-diary-meal-library-only role="tablist" aria-label="Фильтры списка">
                 <button class="active" type="button">Недавние</button>
                 <button type="button">Частые</button>
                 <button type="button">Избранные</button>
@@ -371,12 +371,11 @@
             </div>
             <form class="my-recipe-form" id="my-recipe-form" onsubmit="submitMyRecipeCreateForm(event)" hidden>
                 <div class="my-recipe-step-head" aria-live="polite">
-                    <div class="my-recipe-step-kicker" id="my-recipe-step-kicker">Шаг 1 из 3</div>
+                    <div class="my-recipe-step-kicker" id="my-recipe-step-kicker">Шаг 1 из 2</div>
                     <div class="my-recipe-step-title" id="my-recipe-step-title">Ингредиенты</div>
                     <div class="my-recipe-step-progress" role="list" aria-label="Шаги создания рецепта">
                         <span class="active" data-my-recipe-step-pill="1" role="listitem">Ингредиенты</span>
                         <span data-my-recipe-step-pill="2" role="listitem">Рецепт</span>
-                        <span data-my-recipe-step-pill="3" role="listitem">Итог</span>
                     </div>
                 </div>
                 <div class="my-recipe-form-scroll">
@@ -407,6 +406,16 @@
                     </section>
                 </div>
                 <div class="my-recipe-step-panel" data-my-recipe-step="2">
+                    <div class="my-recipe-photo-card" id="my-recipe-photo-card">
+                        <input id="my-recipe-photo-input" type="file" accept="image/*" hidden onchange="handleMyRecipePhotoChange(event)">
+                        <button class="my-recipe-photo-btn" id="my-recipe-photo-btn" type="button" onclick="document.getElementById('my-recipe-photo-input')?.click()">
+                            <span class="my-recipe-photo-preview" id="my-recipe-photo-preview" aria-hidden="true"></span>
+                            <span class="my-recipe-photo-copy">
+                                <strong id="my-recipe-photo-title">Добавить фото</strong>
+                                <small id="my-recipe-photo-subtitle">Фото рецепта сделает карточку понятнее</small>
+                            </span>
+                        </button>
+                    </div>
                     <label class="my-recipe-field my-recipe-field-wide">
                         <span>Название рецепта</span>
                         <input id="my-recipe-title-input" type="text" maxlength="90" placeholder="Например, курица с рисом" autocomplete="off">
@@ -427,53 +436,30 @@
                         </label>
                     </div>
                     <div class="my-recipe-field-hint">Вес готового блюда может отличаться от суммы ингредиентов после приготовления.</div>
-                    <label class="my-recipe-field my-recipe-field-wide">
+                    <label class="my-recipe-field my-recipe-field-wide my-recipe-servings-field">
                         <span>Количество порций</span>
-                        <input id="my-recipe-servings-input" type="number" inputmode="decimal" min="1" step="1" placeholder="4" oninput="updateMyRecipeCalculation()">
+                        <div class="my-recipe-servings-stepper">
+                            <button type="button" aria-label="Уменьшить количество порций" onclick="stepMyRecipeServings(-1)">−</button>
+                            <input id="my-recipe-servings-input" type="number" inputmode="decimal" min="1" step="1" placeholder="4" oninput="updateMyRecipeCalculation()">
+                            <button type="button" aria-label="Увеличить количество порций" onclick="stepMyRecipeServings(1)">+</button>
+                        </div>
                     </label>
                     <div class="my-recipe-field-hint" id="my-recipe-portion-weight-line">Вес одной порции: —</div>
                     <label class="my-recipe-field my-recipe-field-wide">
                         <span>Описание приготовления</span>
-                        <textarea id="my-recipe-description-input" rows="3" maxlength="500" placeholder="Необязательно"></textarea>
+                        <textarea id="my-recipe-description-input" rows="5" maxlength="1200" placeholder="Опишите процесс приготовления..."></textarea>
                     </label>
                     <div class="my-recipe-calculation-hint" id="my-recipe-weight-hint">Укажи вес готового блюда для точного расчёта.</div>
-                </div>
-                <div class="my-recipe-step-panel" data-my-recipe-step="3">
-                    <section class="my-recipe-calculation" aria-live="polite">
+                    <section class="my-recipe-calculation my-recipe-result-card my-recipe-per100-card" aria-live="polite">
                         <div class="my-recipe-calculation-head">
-                            <div class="my-recipe-calculation-title">Всего в рецепте</div>
-                            <div class="my-recipe-calculation-subtitle">Сумма КБЖУ всех ингредиентов</div>
-                        </div>
-                        <div class="my-recipe-calc-values">
-                            <span><strong id="my-recipe-final-total-kcal">0</strong><small>ккал</small></span>
-                            <span><strong id="my-recipe-final-total-protein">0.0</strong><small>белки</small></span>
-                            <span><strong id="my-recipe-final-total-fat">0.0</strong><small>жиры</small></span>
-                            <span><strong id="my-recipe-final-total-carbs">0.0</strong><small>углеводы</small></span>
-                        </div>
-                    </section>
-                    <section class="my-recipe-calculation" aria-live="polite">
-                        <div class="my-recipe-calculation-head">
-                            <div class="my-recipe-calculation-title">На 100 г готового блюда</div>
+                            <div class="my-recipe-calculation-title">На 100 г</div>
                             <div class="my-recipe-calculation-subtitle">Расчёт от веса готового блюда</div>
                         </div>
                         <div class="my-recipe-calc-values">
-                            <span><strong id="my-recipe-active-kcal">0</strong><small>ккал</small></span>
+                            <span><strong id="my-recipe-active-kcal">0</strong><small>калории</small></span>
                             <span><strong id="my-recipe-active-protein">0.0</strong><small>белки</small></span>
                             <span><strong id="my-recipe-active-fat">0.0</strong><small>жиры</small></span>
                             <span><strong id="my-recipe-active-carbs">0.0</strong><small>углеводы</small></span>
-                        </div>
-                    </section>
-                    <section class="my-recipe-calculation" aria-live="polite">
-                        <div class="my-recipe-calculation-head">
-                            <div class="my-recipe-calculation-title">На порцию</div>
-                            <div class="my-recipe-calculation-subtitle" id="my-recipe-serving-hint">Укажи количество порций, чтобы рассчитать порцию.</div>
-                        </div>
-                        <div class="my-recipe-calc-values">
-                            <span><strong id="my-recipe-serving-weight">—</strong><small>вес, г</small></span>
-                            <span><strong id="my-recipe-serving-kcal">—</strong><small>ккал</small></span>
-                            <span><strong id="my-recipe-serving-protein">—</strong><small>белки</small></span>
-                            <span><strong id="my-recipe-serving-fat">—</strong><small>жиры</small></span>
-                            <span><strong id="my-recipe-serving-carbs">—</strong><small>углеводы</small></span>
                         </div>
                     </section>
                 </div>
@@ -492,6 +478,7 @@
                 <div>
                     <div class="my-recipe-add-title">Добавить рецепт</div>
                     <div class="my-recipe-add-subtitle" id="my-recipe-add-name">Рецепт</div>
+                    <div class="my-recipe-add-per100" id="my-recipe-add-per100">На 100 г: 0 ккал · Б 0.0 · Ж 0.0 · У 0.0</div>
                 </div>
                 <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeMyRecipeAddModal()">×</button>
             </div>
@@ -500,6 +487,7 @@
                 <label class="my-recipe-field">
                     <span>Приём пищи</span>
                     <select id="my-recipe-add-meal-type">
+                        <option value="">Выберите</option>
                         <option value="Завтрак">Завтрак</option>
                         <option value="Обед">Обед</option>
                         <option value="Ужин">Ужин</option>
@@ -529,45 +517,32 @@
 
     <div class="my-recipe-details-overlay" id="my-recipe-details-modal" hidden aria-hidden="true">
         <section class="my-recipe-details-sheet" aria-labelledby="my-recipe-details-title">
-            <header class="my-recipe-details-topbar">
-                <button class="my-recipe-details-back" type="button" data-my-recipe-details-close>Назад</button>
-                <div class="my-recipe-details-screen-title">Детали рецепта</div>
-                <span class="my-recipe-details-topbar-spacer" aria-hidden="true"></span>
-            </header>
             <div class="my-recipe-details-scroll">
-                <div class="my-recipe-details-head">
-                    <div>
-                        <div class="my-recipe-details-kicker">Собственный рецепт</div>
-                        <div class="my-recipe-details-title" id="my-recipe-details-title">Рецепт</div>
-                        <div class="my-recipe-details-meta" id="my-recipe-details-meta"></div>
+                <div class="detail-hero detail-hero-empty my-recipe-details-hero">
+                    <div class="detail-topbar">
+                        <button class="recipes-open-btn" type="button" data-my-recipe-details-close>Назад</button>
+                        <button class="close-details-btn" type="button" aria-label="Закрыть рецепт" data-my-recipe-details-close>×</button>
+                    </div>
+                    <div class="detail-hero-text">
+                        <h2 class="detail-title" id="my-recipe-details-title">Рецепт</h2>
+                        <div class="detail-badges" id="my-recipe-details-badges"></div>
                     </div>
                 </div>
-                <section class="my-recipe-details-section">
-                    <div class="my-recipe-details-section-title">КБЖУ на 100 г</div>
-                    <div class="my-recipe-details-macros">
-                        <div><b id="my-recipe-details-kcal">0</b><span>ккал</span></div>
-                        <div><b id="my-recipe-details-protein">0.0</b><span>белки</span></div>
-                        <div><b id="my-recipe-details-fat">0.0</b><span>жиры</span></div>
-                        <div><b id="my-recipe-details-carbs">0.0</b><span>углеводы</span></div>
+                <div class="detail-body my-recipe-details-body">
+                    <div id="my-recipe-details-macros" class="detail-macro-grid"></div>
+                    <div class="detail-section">
+                        <h3>Ингредиенты</h3>
+                        <div id="my-recipe-details-ingredients"></div>
                     </div>
-                </section>
-                <section class="my-recipe-details-section">
-                    <div class="my-recipe-details-section-title">Ингредиенты</div>
-                    <div class="my-recipe-details-ingredients" id="my-recipe-details-ingredients"></div>
-                </section>
-                <section class="my-recipe-details-section">
-                    <div class="my-recipe-details-section-title">Описание приготовления</div>
-                    <div class="my-recipe-details-description" id="my-recipe-details-description">Описание приготовления не добавлено.</div>
-                </section>
-                <div class="my-recipe-details-manage">
-                    <button class="my-recipe-details-edit" type="button" data-my-recipe-details-edit>Редактировать</button>
-                    <button class="my-recipe-details-delete" type="button" data-my-recipe-details-delete>Удалить</button>
+                    <div class="detail-section" id="my-recipe-details-instructions-section" hidden>
+                        <h3>Приготовление</h3>
+                        <div id="my-recipe-details-instructions" class="instructions-text"></div>
+                    </div>
+                </div>
+                <div class="detail-sticky-cta my-recipe-details-sticky-cta">
+                    <button class="detail-add-btn" type="button" data-my-recipe-details-add><span class="detail-add-icon">+</span>Добавить в дневник</button>
                 </div>
             </div>
-            <footer class="my-recipe-details-actions">
-                <button class="my-recipe-details-close" type="button" data-my-recipe-details-close>Назад</button>
-                <button class="my-recipe-details-add" type="button" data-my-recipe-details-add>Добавить в дневник</button>
-            </footer>
         </section>
     </div>
 
@@ -575,7 +550,7 @@
         <section class="my-recipe-product-picker-sheet" aria-labelledby="my-recipe-product-picker-title">
             <div class="my-recipe-product-picker-head">
                 <div>
-                    <div class="my-recipe-product-picker-title" id="my-recipe-product-picker-title">Мои продукты</div>
+                    <div class="my-recipe-product-picker-title" id="my-recipe-product-picker-title">Выбрать продукт</div>
                     <div class="my-recipe-product-picker-subtitle">Выбери продукт — КБЖУ заполнится в текущем ингредиенте.</div>
                 </div>
                 <button class="portion-reset-btn" type="button" aria-label="Закрыть" data-my-recipe-product-picker-close>×</button>

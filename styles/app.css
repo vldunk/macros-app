@@ -1432,18 +1432,11 @@
         .my-recipe-summary-meta { display: none; }
         .my-recipe-calculation-hint { color: rgba(138,118,95,.72); font-size: 10px; line-height: 1.24; font-weight: 650; }
         .my-recipe-calculation-hint[hidden] { display: none; }
-        .my-recipe-step-panel[data-my-recipe-step="3"] > .my-recipe-calculation:first-of-type { display: none; }
-        .my-recipe-step-panel[data-my-recipe-step="3"] { gap: 9px; }
-        .my-recipe-step-panel[data-my-recipe-step="3"] .my-recipe-calculation {
-            background: rgba(255,255,255,.72);
-            box-shadow: 0 10px 26px rgba(77,68,54,.045), inset 0 1px 0 rgba(255,255,255,.75);
-        }
         .my-recipe-result-card { padding: 10px; border-radius: 17px; }
         .my-recipe-result-card .my-recipe-calculation-title { font-size: 14px; }
         .my-recipe-result-card .my-recipe-calculation-subtitle { font-size: 10.5px; color: #557d6c; }
         .my-recipe-calc-values { display: grid; grid-template-columns: repeat(auto-fit, minmax(66px, 1fr)); gap: 4px; }
         .my-recipe-step-panel .my-recipe-calc-values { grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); }
-        .my-recipe-step-panel[data-my-recipe-step="3"] .my-recipe-calc-values { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
         .my-recipe-serving-weight-chip { display: none !important; }
         .my-recipe-calc-values span { min-width: 0; display: grid; gap: 2px; padding: 6px 4px; border-radius: 11px; background: rgba(255,255,255,.70); text-align: center; }
         .my-recipe-result-card .my-recipe-calc-values span { min-height: 46px; align-content: center; padding: 7px 4px; border-radius: 12px; background: rgba(255,255,255,.70); border: 1px solid rgba(82,73,58,.045); }
@@ -1518,11 +1511,290 @@
             .my-recipe-calc-values span { padding: 5px 3px; }
             .my-recipe-calc-values strong { font-size: 11px; }
             .my-recipe-calc-values small { font-size: 7.4px; }
-            .my-recipe-step-panel[data-my-recipe-step="3"] .my-recipe-calc-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .my-recipe-result-card .my-recipe-calc-values span { min-height: 44px; padding: 6px 4px; }
             .my-recipe-result-card .my-recipe-calc-values strong { font-size: 14px; }
             .my-recipe-form-actions { margin: 12px 0 max(22px, env(safe-area-inset-bottom)); padding: 0 0 max(28px, env(safe-area-inset-bottom)); }
             .my-recipe-form-actions button { min-height: 52px; font-size: 12.5px; border-radius: 15px; }
+        }
+
+        /* Create recipe: compact two-step rhythm for Ingredients and Recipe. */
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-head {
+            margin-bottom: 5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-scroll,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel.active {
+            gap: 8px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-head {
+            gap: 6px !important;
+            padding: 10px 12px !important;
+            border-radius: 20px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-kicker {
+            font-size: 10px !important;
+            line-height: 1 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-title {
+            font-size: 21px !important;
+            line-height: 1.04 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress {
+            height: 48px !important;
+            min-height: 48px !important;
+            padding: 5px !important;
+            border-radius: 20px !important;
+            gap: 5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress span {
+            min-height: 38px !important;
+            border-radius: 16px !important;
+            font-size: 11px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active {
+            padding: 12px !important;
+            border-radius: 20px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] {
+            gap: 7px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-title,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-title {
+            font-size: 20px !important;
+            line-height: 1.08 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before {
+            margin-bottom: -1px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-subtitle,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-subtitle,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field-hint,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-hint {
+            font-size: 10.5px !important;
+            line-height: 1.2 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-subtitle {
+            margin-top: 2px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card {
+            padding: 9px !important;
+            border-radius: 15px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card-head b {
+            font-size: 13px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-grid {
+            gap: 7px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field {
+            gap: 4px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field span,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field span {
+            font-size: 10.5px !important;
+            line-height: 1 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field input,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field select,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field input,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field select {
+            min-height: 44px !important;
+            border-radius: 16px !important;
+            font-size: 13px !important;
+            line-height: 1.15 !important;
+            padding-inline: 11px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field select {
+            background-position: calc(100% - 18px) 18px, calc(100% - 12px) 18px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field textarea,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field textarea {
+            min-height: 88px !important;
+            border-radius: 16px !important;
+            padding: 10px 11px !important;
+            font-size: 13px !important;
+            line-height: 1.28 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-btn {
+            min-height: 52px !important;
+            grid-template-columns: 42px minmax(0, 1fr) !important;
+            gap: 8px !important;
+            padding: 5px 9px !important;
+            border-radius: 16px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-preview {
+            width: 42px !important;
+            height: 40px !important;
+            border-radius: 12px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-copy strong {
+            font-size: 12.5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-copy small {
+            font-size: 10px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-servings-stepper,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-servings-stepper {
+            min-height: 44px !important;
+            grid-template-columns: 38px minmax(0, 1fr) 38px !important;
+            border-radius: 16px !important;
+            padding: 4px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-servings-stepper button,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-servings-stepper button {
+            min-height: 34px !important;
+            border-radius: 12px !important;
+            font-size: 16px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-servings-field input {
+            min-height: 34px !important;
+            font-size: 13px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-products-stub-btn,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-add-ingredient-btn {
+            min-height: 40px !important;
+            border-radius: 14px !important;
+            font-size: 12px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-per100-card,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card {
+            padding: 10px !important;
+            border-radius: 18px !important;
+            gap: 6px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-title {
+            font-size: 20px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-subtitle {
+            font-size: 10.5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values {
+            gap: 5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values span,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-result-card .my-recipe-calc-values span,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values span {
+            min-height: 44px !important;
+            padding: 6px 4px !important;
+            border-radius: 13px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values strong,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-result-card .my-recipe-calc-values strong,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values strong {
+            font-size: 13px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values small {
+            font-size: 7.5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions {
+            gap: 8px !important;
+            margin: 10px 0 max(18px, env(safe-area-inset-bottom)) !important;
+            padding: 0 0 max(22px, env(safe-area-inset-bottom)) !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions button {
+            min-height: 50px !important;
+            border-radius: 16px !important;
+            font-size: 13px !important;
+            line-height: 1 !important;
+        }
+
+        @media (max-width: 360px) {
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-scroll,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel.active {
+                gap: 7px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-head {
+                padding: 9px 10px !important;
+                border-radius: 18px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-title,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-title,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-title,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-title {
+                font-size: 19px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress {
+                height: 44px !important;
+                min-height: 44px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress span {
+                min-height: 34px !important;
+                font-size: 10px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active {
+                padding: 10px !important;
+                border-radius: 18px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-field input,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-field select,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field input,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field select {
+                min-height: 42px !important;
+                font-size: 12.5px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field textarea,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-field textarea {
+                min-height: 80px !important;
+                font-size: 12.5px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions button {
+                min-height: 48px !important;
+                font-size: 12.5px !important;
+            }
         }
         #full-calendar-modal { justify-content: center; align-items: center; padding: 20px; z-index: 9000; }
         .full-cal-content { width: 100%; max-width: 360px; padding: 25px; border-radius: 24px; background: rgba(255,255,255,.88); }
@@ -10222,6 +10494,42 @@
             display: grid;
             gap: 10px;
         }
+        .diary-meal-recipe-section {
+            display: grid;
+            gap: 10px;
+        }
+        .diary-meal-recipe-section + .diary-meal-recipe-section {
+            margin-top: 16px;
+        }
+        .diary-meal-section-title {
+            color: var(--text-main);
+            font-size: 13px;
+            line-height: 1.2;
+            font-weight: 920;
+        }
+        .diary-meal-catalog-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .diary-meal-catalog-grid .recipe-card {
+            width: 100%;
+            min-height: 132px;
+        }
+        .diary-meal-recipe-badge {
+            justify-self: start;
+            margin-top: 2px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(95,143,122,.10);
+            color: #557d6c;
+            font-size: 10px;
+            line-height: 1;
+            font-style: normal;
+            font-weight: 860;
+        }
+        .diary-meal-own-empty {
+            margin-top: 16px;
+        }
 
         .diary-meal-product-card {
             min-width: 0;
@@ -12277,4 +12585,312 @@
             .macro-summary-card .macro-mini-card {
                 min-width: 86px !important;
             }
+        }
+
+        /* Create recipe: match the recipe step to the ingredients step rhythm. */
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-head {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+            gap: 8px !important;
+            min-height: 0 !important;
+            padding: 12px 14px 14px !important;
+            border-radius: 22px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-kicker {
+            font-size: 11px !important;
+            line-height: 1 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-title {
+            margin: 0 !important;
+            font-size: 24px !important;
+            line-height: 1.05 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            height: 62px !important;
+            min-height: 62px !important;
+            margin: 0 !important;
+            padding: 6px !important;
+            border-radius: 24px !important;
+            gap: 6px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress span {
+            min-height: 50px !important;
+            border-radius: 21px !important;
+            font-size: 12px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] {
+            gap: 12px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active {
+            padding: 16px !important;
+            border-radius: 24px !important;
+            background: linear-gradient(180deg, rgba(250,248,242,.82), rgba(245,251,247,.58)) !important;
+            border: 1px solid rgba(82,73,58,.075) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78) !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before {
+            content: "Рецепт";
+            display: block !important;
+            margin: 0 0 -2px !important;
+            color: var(--text-main) !important;
+            font-size: 24px !important;
+            line-height: 1.08 !important;
+            font-weight: 950 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-photo-btn {
+            min-height: 58px !important;
+            grid-template-columns: 48px minmax(0, 1fr) !important;
+            padding: 6px 10px !important;
+            gap: 10px !important;
+            border-radius: 18px !important;
+            background: rgba(255,255,255,.70) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.74) !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-photo-preview {
+            width: 48px !important;
+            height: 46px !important;
+            border-radius: 14px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-photo-copy {
+            gap: 2px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-photo-copy strong {
+            font-size: 13px !important;
+            line-height: 1.05 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-photo-copy small {
+            font-size: 10px !important;
+            line-height: 1.18 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field {
+            gap: 6px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field span {
+            font-size: 11px !important;
+            line-height: 1 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field input,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field select {
+            min-height: 52px !important;
+            border-radius: 18px !important;
+            font-size: 13.5px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-servings-stepper {
+            min-height: 52px !important;
+            grid-template-columns: 46px minmax(0, 1fr) 46px !important;
+            border-radius: 18px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-servings-stepper button {
+            min-height: 40px !important;
+            border-radius: 14px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field textarea {
+            min-height: 112px !important;
+            border-radius: 18px !important;
+            padding: 12px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card {
+            padding: 16px !important;
+            border-radius: 24px !important;
+            gap: 7px !important;
+            background: linear-gradient(180deg, rgba(250,248,242,.78), rgba(245,251,247,.64)) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.78) !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-title {
+            font-size: 24px !important;
+            line-height: 1.08 !important;
+            font-weight: 950 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-subtitle {
+            font-size: 14px !important;
+            line-height: 1.22 !important;
+            font-weight: 850 !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values span {
+            min-height: 58px !important;
+            padding: 8px 5px !important;
+            border-radius: 16px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values strong {
+            font-size: 16px !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions {
+            gap: 8px !important;
+            margin: 12px 0 max(24px, env(safe-area-inset-bottom)) !important;
+            padding: 0 0 max(28px, env(safe-area-inset-bottom)) !important;
+        }
+
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions button {
+            min-height: 58px !important;
+            border-radius: 18px !important;
+            font-size: 13px !important;
+        }
+
+        @media (max-width: 360px) {
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-head {
+                padding: 10px 12px 12px !important;
+                border-radius: 20px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-title {
+                font-size: 22px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress {
+                height: 58px !important;
+                min-height: 58px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress span {
+                min-height: 46px !important;
+                font-size: 10.5px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active {
+                padding: 12px !important;
+                border-radius: 22px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-title {
+                font-size: 22px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field input,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field select {
+                min-height: 50px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card {
+                padding: 12px !important;
+                border-radius: 22px !important;
+            }
+
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values span {
+                min-height: 54px !important;
+            }
+        }
+
+        /* Final compact pass for the two-step recipe form. */
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-head { margin-bottom: 5px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-scroll,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel.active { gap: 8px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-head { gap: 6px !important; padding: 10px 12px !important; border-radius: 20px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-kicker { font-size: 10px !important; line-height: 1 !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-title { font-size: 21px !important; line-height: 1.04 !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress { height: 48px !important; min-height: 48px !important; padding: 5px !important; border-radius: 20px !important; gap: 5px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress span { min-height: 38px !important; border-radius: 16px !important; font-size: 11px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active { padding: 12px !important; border-radius: 20px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] { gap: 7px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-title,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-title,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-title { font-size: 20px !important; line-height: 1.08 !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before { margin-bottom: -1px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-subtitle,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-subtitle,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-subtitle,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field-hint,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-hint { font-size: 10.5px !important; line-height: 1.2 !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-subtitle { margin-top: 2px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card { padding: 9px !important; border-radius: 15px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card-head b { font-size: 13px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-grid { gap: 7px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field { gap: 4px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field span,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field span { font-size: 10.5px !important; line-height: 1 !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field input,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field select,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field input,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field select { min-height: 44px !important; border-radius: 16px !important; font-size: 13px !important; line-height: 1.15 !important; padding-inline: 11px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field select { background-position: calc(100% - 18px) 18px, calc(100% - 12px) 18px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field textarea,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-field textarea { min-height: 88px !important; border-radius: 16px !important; padding: 10px 11px !important; font-size: 13px !important; line-height: 1.28 !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-btn { min-height: 52px !important; grid-template-columns: 42px minmax(0, 1fr) !important; gap: 8px !important; padding: 5px 9px !important; border-radius: 16px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-preview { width: 42px !important; height: 40px !important; border-radius: 12px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-copy strong { font-size: 12.5px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-photo-copy small { font-size: 10px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-servings-stepper,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-servings-stepper { min-height: 44px !important; grid-template-columns: 38px minmax(0, 1fr) 38px !important; border-radius: 16px !important; padding: 4px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-servings-stepper button,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-servings-stepper button { min-height: 34px !important; border-radius: 12px !important; font-size: 16px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-servings-field input { min-height: 34px !important; font-size: 13px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-products-stub-btn,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-add-ingredient-btn { min-height: 40px !important; border-radius: 14px !important; font-size: 12px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-per100-card,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card { padding: 10px !important; border-radius: 18px !important; gap: 6px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values { gap: 5px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values span,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-result-card .my-recipe-calc-values span,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values span { min-height: 44px !important; padding: 6px 4px !important; border-radius: 13px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values strong,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-result-card .my-recipe-calc-values strong,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calc-values strong { font-size: 13px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-calc-values small { font-size: 7.5px !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions { gap: 8px !important; margin: 10px 0 max(18px, env(safe-area-inset-bottom)) !important; padding: 0 0 max(22px, env(safe-area-inset-bottom)) !important; }
+        .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions button { min-height: 50px !important; border-radius: 16px !important; font-size: 13px !important; line-height: 1 !important; }
+        @media (max-width: 360px) {
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-scroll,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel.active { gap: 7px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-head { padding: 9px 10px !important; border-radius: 18px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-title,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active::before,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients-title,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation-title,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-per100-card .my-recipe-calculation-title { font-size: 19px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress { height: 44px !important; min-height: 44px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-progress span { min-height: 34px !important; font-size: 10px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredients,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"].active { padding: 10px !important; border-radius: 18px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-field input,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-field select,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field input,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field select { min-height: 42px !important; font-size: 12.5px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field textarea,
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-field textarea { min-height: 80px !important; font-size: 12.5px !important; }
+            .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions button { min-height: 48px !important; font-size: 12.5px !important; }
         }

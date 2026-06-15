@@ -43,7 +43,7 @@ function renderRecipeCard(item, favs, compact = false) {
                 '<div class="recipe-content"><div class="recipe-title">' + escapeHTML(r.title) + '</div>' +
                 '<div class="recipe-kbju-line">На 100 г: ' + Math.round(nutrition.kcal) + ' ккал · Б ' + Math.round(nutrition.protein) + ' г · Ж ' + Math.round(nutrition.fat) + ' г · У ' + Math.round(nutrition.carbs) + ' г</div>' +
                 '<div class="recipe-time-line">' + getRecipeTime(r) + ' мин</div>' +
-                '<button class="recipe-add-btn" type="button" data-recipe-id="' + encodeData(r.id) + '" data-k="' + encodeData(nutrition.kcal) + '" data-p="' + encodeData(nutrition.protein) + '" data-f="' + encodeData(nutrition.fat) + '" data-c="' + encodeData(nutrition.carbs) + '">Добавить</button></div></div>';
+                '<button class="recipe-add-btn" type="button" aria-label="Добавить рецепт в дневник" data-recipe-id="' + encodeData(r.id) + '" data-k="' + encodeData(nutrition.kcal) + '" data-p="' + encodeData(nutrition.protein) + '" data-f="' + encodeData(nutrition.fat) + '" data-c="' + encodeData(nutrition.carbs) + '">+</button></div></div>';
         }
 
 function renderMealSlot(type, plan) {

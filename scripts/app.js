@@ -100,7 +100,7 @@
         const DEMO_PROFILE = { id: 'demo-user', user_id: appUserId, full_name: 'Demo User', weight: 75, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 1800, target_protein: 120, target_fat: 55, target_carbs: 180, target_water: 2000 };
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, myRecipeReturnToDiaryAfterSave = false, myRecipeCreateStep = 1, myRecipeCookedWeightTouched = false, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', screenMealFilter = 'Все', screenDietFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', diaryMealRecipeFilter = 'Все', pendingMeal = null, barcodeProductDraft = null, barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, myRecipeReturnToDiaryAfterSave = false, myRecipeCreateStep = 1, myRecipeCookedWeightTouched = false, isAddingMeal = false;
         let weeklyDataMap = {}, weeklyWaterMap = {}, currentDate = new Date(), calendarViewDate = new Date(), activeDaysSet = new Set(), currentGender = localStorage.getItem('user_gender') || 'M';
         const LOADING_MIN_MS = 700;
         const LOADING_SLOW_MS = 7000;
@@ -1352,7 +1352,7 @@
 
         function chooseRecipeAddFlow() {
             closeAddMealChoice();
-            document.getElementById('recipe-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            openDiaryMealScreen('', null, { activeTab: 'recipes' });
         }
 
         function setBarcodeMealError(message = '') {
@@ -2096,6 +2096,7 @@
         let activeMyRecipeIngredientSuggestId = null;
         let myRecipeIngredientProductSources = new Map();
         let editingMyRecipeId = null;
+        let myRecipeImageData = '';
 
         function formatMyRecipeDetailMacroLine(nutrition, withGramUnits = false) {
             const unit = withGramUnits ? ' г' : '';
@@ -2195,6 +2196,14 @@
                 badges.innerHTML = (category ? '<span class="recipe-badge">' + escapeHTML(category) + '</span>' : '') +
                     '<span class="recipe-badge protein">Собственный рецепт</span>';
             }
+            const detailHero = document.querySelector('.my-recipe-details-hero');
+            const recipeImage = safeImageUrl(recipe.image_url || recipe.image || '');
+            if (detailHero) {
+                detailHero.classList.toggle('detail-hero-empty', !recipeImage);
+                detailHero.style.backgroundImage = recipeImage ? 'url("' + recipeImage.replace(/"/g, '%22') + '")' : '';
+                detailHero.style.backgroundSize = recipeImage ? 'cover' : '';
+                detailHero.style.backgroundPosition = recipeImage ? 'center' : '';
+            }
             myRecipeDetailsPortionDraft = {
                 recipeId: String(recipe.id || ''),
                 per100: resolved.per100,
@@ -2284,10 +2293,6 @@
             if (!recipeId) return showToast('Выберите рецепт');
             const grams = getMyRecipeDetailsSelectedGrams();
             closeMyRecipeDetailsModal();
-            if (isDiaryMealScreenOpen()) {
-                await addMyRecipeToDiaryWithWeight(recipeId, grams, getDiaryMealType());
-                return;
-            }
             openMyRecipeAddModal(recipeId, { grams });
         }
 
@@ -2652,8 +2657,8 @@
             setText('my-recipe-add-per100', 'На 100 г: ' + formatMyRecipePer100Line(selectedMyRecipeForDiary));
             const mealType = document.getElementById('my-recipe-add-meal-type');
             if (mealType) {
-                mealType.value = isDiaryMealScreenOpen() ? getValidMealType(currentDiaryMealType, 'Обед') : getValidMealType(selectedMyRecipeForDiary?.category, 'Обед');
-                mealType.disabled = isDiaryMealScreenOpen();
+                mealType.value = isDiaryMealScreenOpen() && !currentDiaryMealType ? '' : currentDiaryMealType ? getValidMealType(currentDiaryMealType, 'Обед') : getValidMealType(selectedMyRecipeForDiary?.category, 'Обед');
+                mealType.disabled = false;
             }
             const grams = document.getElementById('my-recipe-add-grams');
             if (grams) grams.value = Number(options?.grams) > 0 ? String(Math.round(Number(options.grams))) : '';
@@ -2751,14 +2756,78 @@
             myRecipeCookedWeightTouched = true;
         }
 
+        function setMyRecipePhotoPreview(imageUrl = '') {
+            myRecipeImageData = imageUrl || '';
+            const card = document.getElementById('my-recipe-photo-card');
+            const preview = document.getElementById('my-recipe-photo-preview');
+            card?.classList.toggle('has-photo', Boolean(myRecipeImageData));
+            if (preview) preview.style.backgroundImage = myRecipeImageData ? 'url("' + myRecipeImageData.replace(/"/g, '%22') + '")' : '';
+            setText('my-recipe-photo-title', myRecipeImageData ? 'Заменить фото' : 'Добавить фото');
+            setText('my-recipe-photo-subtitle', myRecipeImageData ? 'Выбрано изображение рецепта' : 'Фото рецепта сделает карточку понятнее');
+        }
+
+        function resizeMyRecipePhotoDataUrl(dataUrl, callback) {
+            const img = new Image();
+            img.onload = () => {
+                const maxSide = 1200;
+                const scale = Math.min(1, maxSide / Math.max(img.width || maxSide, img.height || maxSide));
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round((img.width || maxSide) * scale));
+                canvas.height = Math.max(1, Math.round((img.height || maxSide) * scale));
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return callback(dataUrl);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                try {
+                    callback(canvas.toDataURL('image/jpeg', 0.82));
+                } catch (error) {
+                    callback(dataUrl);
+                }
+            };
+            img.onerror = () => callback(dataUrl);
+            img.src = dataUrl;
+        }
+
+        function handleMyRecipePhotoChange(event) {
+            const file = event?.target?.files?.[0];
+            if (!file) return;
+            if (!String(file.type || '').startsWith('image/')) {
+                setMyRecipeFormError('Выберите файл изображения.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                resizeMyRecipePhotoDataUrl(String(reader.result || ''), resized => {
+                    setMyRecipePhotoPreview(resized);
+                    setMyRecipeFormError('');
+                });
+            };
+            reader.onerror = () => setMyRecipeFormError('Не удалось загрузить фото. Попробуйте другое изображение.');
+            reader.readAsDataURL(file);
+        }
+
+        function stepMyRecipeServings(delta) {
+            const input = document.getElementById('my-recipe-servings-input');
+            if (!input) return;
+            const current = getMyRecipeFormNumber('my-recipe-servings-input') || 1;
+            input.value = String(Math.max(1, Math.round(current + Number(delta || 0))));
+            updateMyRecipeCalculation();
+        }
+
+        function setMyRecipePrimaryState(state = 'idle') {
+            const primary = document.getElementById('my-recipe-primary-action');
+            if (!primary) return;
+            primary.classList.toggle('is-saving', state === 'saving');
+            primary.classList.toggle('is-success', state === 'success');
+            primary.disabled = state === 'saving';
+        }
+
         function getMyRecipeStepMeta(step = myRecipeCreateStep) {
-            if (step === 2) return { kicker: 'Шаг 2 из 3', title: 'Рецепт' };
-            if (step === 3) return { kicker: 'Шаг 3 из 3', title: 'Итог' };
-            return { kicker: 'Шаг 1 из 3', title: 'Ингредиенты' };
+            if (step === 2) return { kicker: 'Шаг 2 из 2', title: 'Рецепт' };
+            return { kicker: 'Шаг 1 из 2', title: 'Ингредиенты' };
         }
 
         function setMyRecipeCreateStep(step, options = {}) {
-            myRecipeCreateStep = Math.min(3, Math.max(1, Number(step) || 1));
+            myRecipeCreateStep = Math.min(2, Math.max(1, Number(step) || 1));
             closeMyRecipeIngredientSuggestions();
             const meta = getMyRecipeStepMeta(myRecipeCreateStep);
             setText('my-recipe-step-kicker', meta.kicker);
@@ -2772,7 +2841,11 @@
                 pill.setAttribute('aria-current', isActive ? 'step' : 'false');
             });
             const primary = document.getElementById('my-recipe-primary-action');
-            if (primary) primary.textContent = myRecipeCreateStep === 3 ? (editingMyRecipeId ? 'Сохранить изменения' : 'Сохранить рецепт') : 'Далее';
+            if (primary) primary.textContent = myRecipeCreateStep === 2 ? (editingMyRecipeId ? 'Сохранить изменения' : 'Сохранить рецепт') : 'Далее';
+            if (primary && myRecipeCreateStep === 2) {
+                primary.innerHTML = '<span class="my-recipe-primary-icon" aria-hidden="true">✓</span><span>' + (editingMyRecipeId ? 'Сохранить изменения' : 'Сохранить рецепт') + '</span>';
+            }
+            setMyRecipePrimaryState('idle');
             const back = document.querySelector('.my-recipe-back-btn');
             if (back) back.textContent = myRecipeCreateStep === 1 ? 'Назад' : 'Назад';
             setMyRecipeFormError('');
@@ -2919,6 +2992,9 @@
             setMyRecipeFormError('');
             editingMyRecipeId = null;
             myRecipeCookedWeightTouched = false;
+            setMyRecipePhotoPreview('');
+            const photoInput = document.getElementById('my-recipe-photo-input');
+            if (photoInput) photoInput.value = '';
             const submit = document.querySelector('.my-recipe-next-btn');
             if (submit) submit.textContent = 'Далее';
             ['my-recipe-title-input','my-recipe-weight-input','my-recipe-servings-input','my-recipe-description-input'].forEach(id => {
@@ -2953,6 +3029,7 @@
             setMyRecipeFormInputValue('my-recipe-weight-input', formatMyRecipeEditableNumber(recipe.cookedWeight));
             setMyRecipeFormInputValue('my-recipe-servings-input', Number(recipe.servings) > 0 ? formatMyRecipeEditableNumber(recipe.servings) : '');
             setMyRecipeFormInputValue('my-recipe-description-input', recipe.description || '');
+            setMyRecipePhotoPreview(recipe.image_url || recipe.image || '');
             const ingredients = (Array.isArray(recipe.ingredients) && recipe.ingredients.length ? recipe.ingredients : [{}]).map(ingredient => {
                 myRecipeIngredientSeq += 1;
                 return {
@@ -3097,7 +3174,7 @@
             if (myRecipeCreateStep === 2) {
                 const error = validateMyRecipeDetailsStep();
                 if (error) return setMyRecipeFormError(error);
-                setMyRecipeCreateStep(3);
+                submitMyRecipeCreateForm();
                 return;
             }
             submitMyRecipeCreateForm();
@@ -3122,6 +3199,8 @@
                 name: (document.getElementById('my-recipe-title-input')?.value || '').trim(),
                 category: document.getElementById('my-recipe-category-input')?.value || 'Обед',
                 description: (document.getElementById('my-recipe-description-input')?.value || '').trim(),
+                image: myRecipeImageData || '',
+                image_url: myRecipeImageData || '',
                 rawIngredientsWeight: calc.totals.ingredientGrams,
                 cookedWeight,
                 servings,
@@ -3152,7 +3231,7 @@
 
         function submitMyRecipeCreateForm(event) {
             event?.preventDefault?.();
-            if (myRecipeCreateStep < 3) {
+            if (myRecipeCreateStep < 2) {
                 handleMyRecipePrimaryAction();
                 return;
             }
@@ -3162,16 +3241,19 @@
                 return;
             }
             setMyRecipeFormError('');
+            setMyRecipePrimaryState('saving');
             updateMyRecipeCalculation();
             const recipes = loadManualRecipes();
             if (editingMyRecipeId) {
                 const index = recipes.findIndex(recipe => String(recipe.id) === String(editingMyRecipeId));
                 if (index < 0) {
+                    setMyRecipePrimaryState('idle');
                     setMyRecipeFormError('Рецепт не найден. Закрой форму и попробуй снова.');
                     return;
                 }
                 recipes[index] = buildManualRecipeFromForm(recipes[index]);
                 saveManualRecipes(recipes);
+                setMyRecipePrimaryState('success');
                 editingMyRecipeId = null;
                 showMyRecipesEmptyView();
                 showToast('Изменения сохранены');
@@ -3179,6 +3261,7 @@
             }
             recipes.unshift(buildManualRecipeFromForm());
             saveManualRecipes(recipes);
+            setMyRecipePrimaryState('success');
             if (myRecipeReturnToDiaryAfterSave && isDiaryMealScreenOpen()) {
                 myRecipeReturnToDiaryAfterSave = false;
                 closeMyRecipesModal();
@@ -4082,13 +4165,14 @@
             const hasContextIngredients = Array.isArray(context.ingredients) && context.ingredients.length;
             const ingredients = hasContextIngredients ? hydratePortionIngredients(context.ingredients, recipe) : getRecipeWorkingIngredients(recipe);
             const total = getRecipePortionNutrition(recipe, ingredients);
+            const isDiaryMode = mode === 'diary';
             recipePortionDraft = {
                 mode,
                 recipeId: String(recipe.id),
                 context,
                 ingredients,
-                eatenGrams: Math.max(1, Math.round(total.grams || 100)),
-                mealType: context.mealType || recipe.category || currentMealFilter || 'Обед'
+                eatenGrams: Math.max(1, Number(context.eatenGrams) || Math.round(total.grams || 100)),
+                mealType: context.mealType || (isDiaryMode ? '' : recipe.category || currentMealFilter || 'Обед')
             };
             document.getElementById('portion-title').textContent = recipe.title;
             const subtitle = document.getElementById('portion-editor-subtitle');
@@ -4110,9 +4194,13 @@
             const total = getRecipePortionNutrition(getRecipeById(recipePortionDraft.recipeId), recipePortionDraft.ingredients);
             const per100Ratio = total.grams > 0 ? 100 / total.grams : 0;
             const eatenGrams = Math.max(1, Number(recipePortionDraft.eatenGrams) || Math.round(total.grams) || 100);
+            const eatenRatio = total.grams > 0 ? eatenGrams / total.grams : 0;
+            const eatenLine = recipePortionDraft.mode === 'diary'
+                ? '<div class="portion-kbju-row portion-kbju-row-accent"><span>Итого</span><b>' + Math.round(total.kcal * eatenRatio) + ' ккал · Б ' + (total.protein * eatenRatio).toFixed(1) + ' · Ж ' + (total.fat * eatenRatio).toFixed(1) + ' · У ' + (total.carbs * eatenRatio).toFixed(1) + '</b></div>'
+                : '';
             document.getElementById('portion-total').innerHTML =
                 '<div class="portion-kbju-card"><div><div class="portion-kbju-title">КБЖУ / 100 г</div>' +
-                '<div class="portion-kbju-line">' + Math.round(total.kcal * per100Ratio) + ' ккал · Б ' + (total.protein * per100Ratio).toFixed(1) + ' · Ж ' + (total.fat * per100Ratio).toFixed(1) + ' · У ' + (total.carbs * per100Ratio).toFixed(1) + '</div></div>' +
+                '<div class="portion-kbju-line">' + Math.round(total.kcal * per100Ratio) + ' ккал · Б ' + (total.protein * per100Ratio).toFixed(1) + ' · Ж ' + (total.fat * per100Ratio).toFixed(1) + ' · У ' + (total.carbs * per100Ratio).toFixed(1) + '</div>' + eatenLine + '</div>' +
                 '<div class="portion-auto-badge">Обновляется автоматически</div>' +
                 '</div>';
             const eatenInput = document.getElementById('portion-eaten-grams');
@@ -4195,7 +4283,8 @@
             const mode = recipePortionDraft.mode;
             const total = getRecipePortionNutrition(recipe, ingredients);
             const eatenGrams = Math.max(1, Number(recipePortionDraft.eatenGrams) || total.grams || 100);
-            const mealType = recipePortionDraft.mealType || recipe.category || 'Перекус';
+            const mealType = getValidMealType(recipePortionDraft.mealType, mode === 'diary' ? '' : recipe.category || 'Перекус');
+            if (mode === 'diary' && !mealType) return showToast('Выберите приём пищи.');
             const eatenRatio = total.grams > 0 ? eatenGrams / total.grams : 0;
             saveRecipeIngredientOverride(recipe.id, ingredients);
             closeRecipePortionEditor({ returnToDetails: false });
@@ -4811,12 +4900,7 @@
         function addRecipeToDiary(recipeId, portionGrams = null) {
             const recipe = getRecipeById(recipeId);
             if (!recipe) return showToast('Рецепт не найден');
-            const ingredients = getRecipeWorkingIngredients(recipe).filter(ing => Number(ing.weight) > 0);
-            const total = getRecipePortionNutrition(recipe, ingredients);
-            const grams = Math.max(1, Number(portionGrams) || total.grams || 100);
-            const ratio = total.grams > 0 ? grams / total.grams : 1;
-            const mealType = currentMealFilter || recipe.category || 'Перекус';
-            return openMealModal(recipe.id, total.kcal * ratio, total.protein * ratio, total.fat * ratio, total.carbs * ratio, scalePortionIngredients(ingredients, ratio), mealType);
+            return openRecipePortionEditor('diary', recipe.id, { eatenGrams: portionGrams });
         }
 
         function openRecipeEditFromDetails(recipeId) {
@@ -4894,25 +4978,33 @@
                 btn.classList.toggle('active', isActive);
                 btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
             });
-            document.querySelectorAll('.diary-meal-filter-tabs button').forEach(btn => {
-                const isActive = btn.textContent.trim() === diaryMealActiveFilter;
+            const filterTabs = document.querySelectorAll('.diary-meal-filter-tabs button');
+            const filterLabels = diaryMealActiveTab === 'recipes' ? ['Все', 'Каталог', 'Мои'] : ['Недавние', 'Частые', 'Избранные'];
+            const activeFilter = diaryMealActiveTab === 'recipes' ? diaryMealRecipeFilter : diaryMealActiveFilter;
+            filterTabs.forEach((btn, index) => {
+                const label = filterLabels[index] || '';
+                if (btn.textContent.trim() !== label) btn.textContent = label;
+                const isActive = label === activeFilter;
                 btn.classList.toggle('active', isActive);
                 btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
             });
             const search = document.getElementById('diary-meal-search-input');
             if (search) search.placeholder = diaryMealActiveTab === 'recipes' ? 'Найти рецепт' : 'Найти продукт';
+            const title = document.getElementById('diary-meal-title');
+            if (title) title.textContent = diaryMealActiveTab === 'recipes' && !currentDiaryMealType ? 'Рецепты' : getValidMealType(currentDiaryMealType, 'Рецепты');
         }
 
-        function openDiaryMealScreen(mealType, event) {
+        function openDiaryMealScreen(mealType, event, options = {}) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
-            currentDiaryMealType = getValidMealType(mealType, currentDiaryMealType || 'Завтрак');
-            currentMealFilter = currentDiaryMealType;
+            currentDiaryMealType = mealType ? getValidMealType(mealType, currentDiaryMealType || 'Завтрак') : '';
+            if (currentDiaryMealType) currentMealFilter = currentDiaryMealType;
             diaryMealSourceTab = 'library';
-            diaryMealActiveTab = 'products';
+            diaryMealActiveTab = ['products','recipes','estimate'].includes(options.activeTab) ? options.activeTab : 'products';
             diaryMealActiveFilter = 'Недавние';
+            diaryMealRecipeFilter = 'Все';
             const title = document.getElementById('diary-meal-title');
-            if (title) title.textContent = currentDiaryMealType;
+            if (title) title.textContent = diaryMealActiveTab === 'recipes' && !currentDiaryMealType ? 'Рецепты' : currentDiaryMealType;
             const search = document.getElementById('diary-meal-search-input');
             if (search) search.value = '';
             syncDiaryMealControls();
@@ -4932,6 +5024,8 @@
 
         function setDiaryMealTab(tabName) {
             diaryMealActiveTab = ['products','recipes','estimate'].includes(tabName) ? tabName : 'products';
+            if (diaryMealActiveTab === 'recipes' && !['Все','Каталог','Мои'].includes(diaryMealRecipeFilter)) diaryMealRecipeFilter = 'Все';
+            if (diaryMealActiveTab !== 'recipes' && !['Недавние','Частые','Избранные'].includes(diaryMealActiveFilter)) diaryMealActiveFilter = 'Недавние';
             syncDiaryMealControls();
             renderDiaryMealContent();
         }
@@ -4946,7 +5040,9 @@
         document.addEventListener('click', function(event) {
             const filterButton = event.target.closest('.diary-meal-filter-tabs button');
             if (!filterButton) return;
-            diaryMealActiveFilter = filterButton.textContent.trim() || 'Недавние';
+            const value = filterButton.textContent.trim();
+            if (diaryMealActiveTab === 'recipes') diaryMealRecipeFilter = ['Все','Каталог','Мои'].includes(value) ? value : 'Все';
+            else diaryMealActiveFilter = value || 'Недавние';
             syncDiaryMealControls();
             renderDiaryMealContent();
         });
@@ -4980,19 +5076,27 @@
 
         function renderDiaryMealRecipes() {
             const query = normalizeManualProductName(document.getElementById('diary-meal-search-input')?.value || '');
+            const favs = JSON.parse(localStorage.getItem('fav_recipes_' + appUserId)) || [];
+            const searchableIds = new Set(searchRecipes(recipesData, query).map(recipe => String(recipe.id)));
+            let catalogItems = sortRecipeItems(getEnrichedRecipes()
+                .filter(item => !query || searchableIds.has(String(item.recipe.id)))
+                .filter(item => diaryMealRecipeFilter !== 'Мои'), 'recommended');
             const allRecipes = loadManualRecipes()
                 .filter(recipe => recipe?.type === 'manual-recipe' && String(recipe.name || '').trim())
                 .sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
-            const recipes = query
+            const recipes = diaryMealRecipeFilter === 'Каталог' ? [] : query
                 ? allRecipes.filter(recipe => normalizeManualProductName(recipe.name || '').includes(query))
                 : allRecipes;
-            if (!allRecipes.length) {
-                return '<div class="diary-meal-empty"><b>Пока нет собственных рецептов.</b><span>Создай рецепт, и он появится здесь.</span><button class="diary-meal-empty-action" type="button" onclick="openDiaryMealCreateRecipe()">Создать рецепт</button></div>';
-            }
-            if (!recipes.length) {
+            if (!catalogItems.length && !recipes.length && query) {
                 return '<div class="diary-meal-empty"><b>Рецепты не найдены.</b><span>Попробуй изменить запрос.</span></div>';
             }
-            return '<div class="diary-meal-recipe-list">' + recipes.map(recipe => {
+            const catalogHtml = catalogItems.length
+                ? '<section class="diary-meal-recipe-section"><div class="diary-meal-section-title">Рецепты из приложения</div><div class="recipes-results-grid diary-meal-catalog-grid">' + catalogItems.map(item => renderRecipeCard(item, favs, true)).join('') + '</div></section>'
+                : '';
+            const ownEmpty = !allRecipes.length && !query
+                ? '<div class="diary-meal-empty diary-meal-own-empty"><b>Пока нет собственных рецептов.</b><span>Создай рецепт, и он появится здесь.</span><button class="diary-meal-empty-action" type="button" onclick="openDiaryMealCreateRecipe()">Создать рецепт</button></div>'
+                : '';
+            const ownHtml = recipes.length ? '<section class="diary-meal-recipe-section"><div class="diary-meal-section-title">Собственные рецепты</div><div class="diary-meal-recipe-list">' + recipes.map(recipe => {
                 const idArg = escapeAttr(JSON.stringify(String(recipe.id || '')));
                 const servings = Number(recipe.servings) > 0 ? ' · ' + (Number(recipe.servings) || 0) + ' порц.' : '';
                 const meta = (recipe.category || 'Обед') + ' · ' + Math.round(Number(recipe.cookedWeight) || 0) + ' г' + servings;
@@ -5001,10 +5105,15 @@
                         '<b>' + escapeHTML(recipe.name || 'Рецепт') + '</b>' +
                         '<span>' + escapeHTML(meta) + '</span>' +
                         '<small>На 100 г: ' + escapeHTML(formatMyRecipePer100Line(recipe)) + '</small>' +
+                        '<em class="diary-meal-recipe-badge">Собственный</em>' +
                     '</button>' +
                     '<button class="diary-meal-product-add" type="button" aria-label="Добавить рецепт" onclick="addDiaryMealRecipe(event, ' + idArg + ')">+</button>' +
                 '</article>';
-            }).join('') + '</div>';
+            }).join('') + '</div></section>' : ownEmpty;
+            if (!catalogHtml && !ownHtml) {
+                return '<div class="diary-meal-empty"><b>Рецептов пока нет.</b><span>Создай свой рецепт или измени фильтр.</span><button class="diary-meal-empty-action" type="button" onclick="openDiaryMealCreateRecipe()">Создать рецепт</button></div>';
+            }
+            return catalogHtml + ownHtml;
         }
 
         function showDiaryMealCreateStub(message) {
@@ -5172,7 +5281,6 @@
         async function addDiaryMealRecipe(event, recipeId) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
-            currentMealFilter = getDiaryMealType();
             openMyRecipeAddModal(recipeId);
         }
 
@@ -5276,7 +5384,7 @@
                 cta.innerHTML = '<button class="detail-add-btn" id="detail-add-btn" type="button"><span class="detail-add-icon">+</span>Добавить в дневник</button>';
             }
             renderRecipeDetailPortion();
-            document.getElementById('detail-add-btn').onclick = () => { const grams = recipeDetailPortionDraft?.recipeId === String(r.id) ? recipeDetailPortionDraft.grams : null; closeRecipeDetails(); addRecipeToDiary(r.id, grams); };
+            document.getElementById('detail-add-btn').onclick = () => { const grams = recipeDetailPortionDraft?.recipeId === String(r.id) ? recipeDetailPortionDraft.grams : null; closeRecipeDetails(); openRecipePortionEditor('diary', r.id, { eatenGrams: grams }); };
             setDisplayedLayer('recipe-details', document.getElementById('recipe-details-modal'), true);
         }
 
