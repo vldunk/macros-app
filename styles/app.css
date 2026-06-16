@@ -10178,6 +10178,206 @@
             min-height: 33px !important;
         }
 
+        .recipe-card,
+        .recipes-results-grid.list .recipe-card,
+        #recipe-list .recipe-card,
+        .home-recipe-library #recipe-list .recipe-card,
+        .diary-meal-catalog-grid .recipe-card {
+            min-width: 0 !important;
+            min-height: 88px !important;
+            max-height: none !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 12px !important;
+            overflow: hidden !important;
+            border-radius: 20px !important;
+            background: rgba(255,255,255,.82) !important;
+            border: 1px solid rgba(82,66,49,.08) !important;
+            box-shadow: 0 10px 24px rgba(72,55,36,.065), inset 0 1px 0 rgba(255,255,255,.92) !important;
+        }
+
+        #recipe-list .recipe-card,
+        .home-recipe-library #recipe-list .recipe-card {
+            flex: 0 0 clamp(304px, 84vw, 366px) !important;
+            width: clamp(304px, 84vw, 366px) !important;
+        }
+
+        .recipes-results-grid,
+        .recipes-results-grid.list,
+        .diary-meal-catalog-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+        }
+
+        .recipe-image,
+        #recipe-list .recipe-image,
+        .home-recipe-library #recipe-list .recipe-image,
+        .recipes-results-grid.list .recipe-image,
+        .recipe-no-image .recipe-image,
+        #recipe-list .recipe-no-image .recipe-image,
+        .diary-meal-catalog-grid .recipe-image {
+            flex: 0 0 68px !important;
+            width: 68px !important;
+            height: 68px !important;
+            min-height: 68px !important;
+            aspect-ratio: 1 / 1 !important;
+            align-self: center !important;
+            border-radius: 15px !important;
+            background-size: cover !important;
+            background-position: center !important;
+            filter: saturate(.96) contrast(.98) brightness(1.03) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.34) !important;
+        }
+
+        .recipe-image-placeholder,
+        #recipe-list .recipe-image-placeholder {
+            width: 100% !important;
+            height: 100% !important;
+            display: grid !important;
+            place-items: center !important;
+            margin: 0 !important;
+            border-radius: inherit !important;
+            color: #8a7350 !important;
+            background: linear-gradient(145deg, rgba(255,251,244,.96), rgba(240,232,217,.72)) !important;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .recipe-image-placeholder svg,
+        #recipe-list .recipe-image-placeholder svg {
+            width: 22px !important;
+            height: 22px !important;
+        }
+
+        .recipe-content,
+        #recipe-list .recipe-content,
+        .home-recipe-library #recipe-list .recipe-content,
+        .recipes-results-grid.list .recipe-content {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 4px !important;
+            padding: 0 !important;
+        }
+
+        .recipe-title,
+        #recipe-list .recipe-title,
+        .home-recipe-library #recipe-list .recipe-title {
+            min-height: 0 !important;
+            max-width: 100% !important;
+            display: block !important;
+            color: #20232b !important;
+            font-size: clamp(15px, 4vw, 17px) !important;
+            line-height: 1.13 !important;
+            font-weight: 930 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            overflow-wrap: normal !important;
+        }
+
+        .recipe-meta-line {
+            max-width: 100% !important;
+            margin: 0 !important;
+            display: block !important;
+            color: #81786e !important;
+            font-size: 12px !important;
+            line-height: 1.2 !important;
+            font-weight: 720 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+
+        .recipe-kbju-line,
+        #recipe-list .recipe-kbju-line,
+        .home-recipe-library #recipe-list .recipe-kbju-line {
+            width: fit-content !important;
+            max-width: min(100%, 220px) !important;
+            min-height: 0 !important;
+            color: #777f78 !important;
+            font-size: 11.5px !important;
+            line-height: 1.18 !important;
+            font-weight: 690 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+
+        .recipe-time-line,
+        #recipe-list .recipe-time-line,
+        .home-recipe-library #recipe-list .recipe-time-line {
+            display: none !important;
+        }
+
+        .recipe-add-btn,
+        #recipe-list .recipe-add-btn,
+        .home-recipe-library #recipe-list .recipe-add-btn {
+            flex: 0 0 38px !important;
+            width: 38px !important;
+            height: 38px !important;
+            min-height: 38px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: grid !important;
+            place-items: center !important;
+            align-self: center !important;
+            border-radius: 50% !important;
+            border: 1px solid rgba(95,143,122,.18) !important;
+            background: linear-gradient(180deg, #8eb6a2, #6f9d88) !important;
+            color: #fff !important;
+            box-shadow: 0 9px 18px rgba(95,143,122,.18), inset 0 1px 0 rgba(255,255,255,.28) !important;
+            font-size: 21px !important;
+            line-height: 1 !important;
+            font-weight: 760 !important;
+        }
+
+        .fav-btn,
+        #recipe-list .fav-btn,
+        .home-recipe-library #recipe-list .fav-btn {
+            top: 4px !important;
+            right: 4px !important;
+            width: 22px !important;
+            height: 22px !important;
+            border-radius: 50% !important;
+            font-size: 11px !important;
+            line-height: 1 !important;
+            background: rgba(255,255,255,.78) !important;
+            box-shadow: 0 5px 10px rgba(49,39,28,.08), inset 0 1px 0 rgba(255,255,255,.88) !important;
+        }
+
+        @media (max-width: 360px) {
+            #recipe-list .recipe-card,
+            .home-recipe-library #recipe-list .recipe-card {
+                flex-basis: calc(100vw - 36px) !important;
+                width: calc(100vw - 36px) !important;
+            }
+            .recipe-image,
+            #recipe-list .recipe-image,
+            .home-recipe-library #recipe-list .recipe-image,
+            .recipes-results-grid.list .recipe-image,
+            .recipe-no-image .recipe-image,
+            #recipe-list .recipe-no-image .recipe-image,
+            .diary-meal-catalog-grid .recipe-image {
+                flex-basis: 64px !important;
+                width: 64px !important;
+                height: 64px !important;
+                min-height: 64px !important;
+            }
+            .recipe-add-btn,
+            #recipe-list .recipe-add-btn,
+            .home-recipe-library #recipe-list .recipe-add-btn {
+                flex-basis: 36px !important;
+                width: 36px !important;
+                height: 36px !important;
+                min-height: 36px !important;
+            }
+        }
+
         .history-header {
             margin: 22px 0 12px !important;
             align-items: center !important;
@@ -10322,7 +10522,7 @@
             margin: 0 auto;
             display: grid;
             grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-            gap: 14px;
+            gap: 10px;
             padding: max(16px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
             color: #242326;
             overflow: hidden;
@@ -10376,19 +10576,19 @@
 
         .diary-meal-category-tabs {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 9px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 7px;
             min-width: 0;
         }
 
         .diary-meal-category {
             min-width: 0;
-            min-height: 112px;
+            min-height: 76px;
             display: grid;
             align-content: center;
             justify-items: center;
-            gap: 10px;
-            padding: 12px 8px;
+            gap: 6px;
+            padding: 8px 7px;
             border-radius: 30px;
             color: #6f675e;
             background: rgba(255,255,255,.60);
@@ -10406,14 +10606,14 @@
         .diary-meal-category-icon {
             display: grid;
             place-items: center;
-            width: 38px;
-            height: 38px;
+            width: 30px;
+            height: 30px;
             color: currentColor;
         }
 
         .diary-meal-category-icon svg {
-            width: 34px;
-            height: 34px;
+            width: 27px;
+            height: 27px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
@@ -10442,6 +10642,10 @@
             box-shadow: inset 0 1px 0 rgba(255,255,255,.62);
             min-width: 0;
         }
+        .diary-meal-filter-tabs.is-recipe-source,
+        .diary-meal-filter-tabs:has(button[hidden]) {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
 
         .diary-meal-filter-tabs button,
         .diary-meal-bottom-tabs button {
@@ -10469,7 +10673,7 @@
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 8px 0 2px;
+            padding: 4px 0 2px;
             scrollbar-width: none;
         }
 
@@ -10482,7 +10686,7 @@
         }
 
         .diary-meal-date {
-            margin: 0 0 10px 6px;
+            margin: 0 0 8px 6px;
             color: #8a8176;
             font-size: 15px;
             line-height: 1;
@@ -10492,14 +10696,14 @@
         .diary-meal-product-list,
         .diary-meal-recipe-list {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
         .diary-meal-recipe-section {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
         .diary-meal-recipe-section + .diary-meal-recipe-section {
-            margin-top: 16px;
+            margin-top: 12px;
         }
         .diary-meal-section-title {
             color: var(--text-main);
@@ -10509,11 +10713,48 @@
         }
         .diary-meal-catalog-grid {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
         .diary-meal-catalog-grid .recipe-card {
             width: 100%;
             min-height: 132px;
+        }
+        .diary-meal-catalog-grid .recipe-card,
+        .diary-meal-recipe-card {
+            min-height: 108px !important;
+            padding-top: 11px !important;
+            padding-bottom: 11px !important;
+        }
+        .diary-meal-catalog-grid .recipe-image,
+        .diary-meal-catalog-grid .recipe-no-image .recipe-image {
+            flex-basis: 72px !important;
+            width: 72px !important;
+            height: 72px !important;
+            min-height: 72px !important;
+        }
+        .diary-meal-catalog-grid .recipe-content {
+            gap: 5px !important;
+        }
+        .diary-meal-catalog-grid .recipe-title,
+        .diary-meal-recipe-card .diary-meal-product-main b {
+            min-height: 0 !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            white-space: normal !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            line-height: 1.16 !important;
+        }
+        .diary-meal-catalog-grid .recipe-kbju-line {
+            max-width: min(100%, 230px) !important;
+        }
+        @media (max-width: 360px) {
+            #recipe-list .recipe-card,
+            .home-recipe-library #recipe-list .recipe-card {
+                flex-basis: calc(100vw - 36px) !important;
+                width: calc(100vw - 36px) !important;
+            }
         }
         .diary-meal-recipe-badge {
             justify-self: start;
@@ -10537,7 +10778,7 @@
             grid-template-columns: minmax(0, 1fr) 46px;
             align-items: center;
             gap: 10px;
-            padding: 13px 13px 13px 16px;
+            padding: 11px 13px 11px 16px;
             border-radius: 26px;
             background: rgba(255,255,255,.72);
             border: 1px solid rgba(104,91,70,.09);
@@ -10821,28 +11062,28 @@
             }
 
             .diary-meal-category-tabs {
-                gap: 7px;
+                gap: 6px;
             }
 
             .diary-meal-category {
-                min-height: 96px;
+                min-height: 70px;
                 border-radius: 24px;
             }
 
             .diary-meal-category-icon {
-                width: 32px;
-                height: 32px;
+                width: 28px;
+                height: 28px;
             }
 
             .diary-meal-category-icon svg {
-                width: 29px;
-                height: 29px;
+                width: 25px;
+                height: 25px;
             }
 
             .diary-meal-product-card {
                 grid-template-columns: minmax(0, 1fr) 42px;
                 border-radius: 22px;
-                padding: 12px;
+                padding: 10px 12px;
             }
 
             .diary-meal-create-options {
