@@ -51,6 +51,13 @@
             --shadowCard: 0 12px 30px rgba(82,73,58,.075);
             --shadowControl: 0 8px 20px rgba(77,68,54,.07);
             --shadowSheet: 0 24px 64px rgba(82,73,58,.14);
+            --ux-safe-top: 14px;
+            --ux-safe-bottom: max(96px, calc(84px + env(safe-area-inset-bottom)));
+            --ux-block-gap: 12px;
+            --ux-card-radius: 22px;
+            --ux-card-padding: 12px;
+            --ux-card-shadow: 0 10px 24px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.82);
+            --ux-add-size: 40px;
             --ease-soft: cubic-bezier(.2,.8,.2,1);
         }
 
@@ -10539,9 +10546,15 @@
 
         .diary-meal-topbar {
             display: grid;
-            grid-template-columns: minmax(76px, auto) minmax(0, 1fr) minmax(82px, auto);
+            grid-template-columns: minmax(76px, auto) minmax(0, 1fr) minmax(76px, auto);
             align-items: center;
             gap: 8px;
+        }
+
+        .diary-meal-topbar::after {
+            content: "";
+            width: 76px;
+            min-width: 76px;
         }
 
         .diary-meal-title {
@@ -10577,43 +10590,49 @@
         .diary-meal-category-tabs {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 7px;
+            gap: 4px;
+            padding: 5px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.40);
+            border: 1px solid rgba(104,91,70,.10);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.62);
             min-width: 0;
         }
 
         .diary-meal-category {
             min-width: 0;
-            min-height: 76px;
-            display: grid;
-            align-content: center;
-            justify-items: center;
-            gap: 6px;
-            padding: 8px 7px;
-            border-radius: 30px;
-            color: #6f675e;
-            background: rgba(255,255,255,.60);
-            border: 1px solid rgba(104,91,70,.10);
-            box-shadow: 0 12px 26px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.72);
+            min-height: 58px;
+            display: inline-grid;
+            grid-auto-flow: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 12px;
+            border-radius: 999px;
+            color: #776d62;
+            background: transparent;
+            border: 0;
+            box-shadow: none;
         }
 
         .diary-meal-category.active {
-            color: #fefdf8;
-            background: linear-gradient(145deg, #80ad88, #6c9f7b);
-            border-color: rgba(255,255,255,.38);
-            box-shadow: 0 16px 30px rgba(95,143,122,.23), inset 0 1px 0 rgba(255,255,255,.24);
+            color: #2f3a32;
+            background: rgba(255,255,255,.84);
+            border-color: transparent;
+            box-shadow: 0 8px 16px rgba(72,55,36,.07);
         }
 
         .diary-meal-category-icon {
             display: grid;
             place-items: center;
-            width: 30px;
-            height: 30px;
+            width: 22px;
+            height: 22px;
             color: currentColor;
         }
 
         .diary-meal-category-icon svg {
-            width: 27px;
-            height: 27px;
+            width: 19px;
+            height: 19px;
             fill: none;
             stroke: currentColor;
             stroke-width: 2;
@@ -10623,9 +10642,9 @@
 
         .diary-meal-category b {
             max-width: 100%;
-            font-size: clamp(13px, 3.9vw, 17px);
-            line-height: 1.05;
-            font-weight: 900;
+            font-size: clamp(13px, 3.8vw, 15px);
+            line-height: 1;
+            font-weight: 850;
             text-align: center;
             overflow-wrap: anywhere;
         }
@@ -10642,11 +10661,9 @@
             box-shadow: inset 0 1px 0 rgba(255,255,255,.62);
             min-width: 0;
         }
-        .diary-meal-filter-tabs.is-recipe-source,
         .diary-meal-filter-tabs:has(button[hidden]) {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
-
         .diary-meal-filter-tabs button,
         .diary-meal-bottom-tabs button {
             min-width: 0;
@@ -10661,19 +10678,17 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .diary-meal-filter-tabs button.active,
         .diary-meal-bottom-tabs button.active {
             color: #2f3a32;
             background: rgba(255,255,255,.84);
             box-shadow: 0 8px 16px rgba(72,55,36,.07);
         }
-
         .diary-meal-content {
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 4px 0 2px;
+            padding: 4px 0 18px;
             scrollbar-width: none;
         }
 
@@ -10717,26 +10732,29 @@
         }
         .diary-meal-catalog-grid .recipe-card {
             width: 100%;
-            min-height: 132px;
-        }
-        .diary-meal-catalog-grid .recipe-card,
-        .diary-meal-recipe-card {
-            min-height: 108px !important;
-            padding-top: 11px !important;
-            padding-bottom: 11px !important;
+            min-height: 96px !important;
+            align-items: center !important;
+            gap: 10px !important;
+            padding: 10px 12px !important;
+            border-radius: 22px !important;
+            overflow: hidden !important;
         }
         .diary-meal-catalog-grid .recipe-image,
         .diary-meal-catalog-grid .recipe-no-image .recipe-image {
-            flex-basis: 72px !important;
-            width: 72px !important;
-            height: 72px !important;
-            min-height: 72px !important;
+            flex: 0 0 68px !important;
+            width: 68px !important;
+            height: 68px !important;
+            min-height: 68px !important;
+            border-radius: 16px !important;
+            background-size: cover !important;
+            background-position: center !important;
         }
         .diary-meal-catalog-grid .recipe-content {
-            gap: 5px !important;
+            min-width: 0 !important;
+            gap: 4px !important;
+            align-self: center !important;
         }
-        .diary-meal-catalog-grid .recipe-title,
-        .diary-meal-recipe-card .diary-meal-product-main b {
+        .diary-meal-catalog-grid .recipe-title {
             min-height: 0 !important;
             display: -webkit-box !important;
             -webkit-line-clamp: 2 !important;
@@ -10744,10 +10762,43 @@
             white-space: normal !important;
             overflow: hidden !important;
             text-overflow: ellipsis !important;
+            color: #20232b !important;
+            font-size: clamp(14px, 3.8vw, 16px) !important;
             line-height: 1.16 !important;
+            font-weight: 930 !important;
+        }
+        .diary-meal-catalog-grid .recipe-meta-line {
+            max-width: 100% !important;
+            color: #81786e !important;
+            font-size: 12px !important;
+            line-height: 1.2 !important;
+            font-weight: 720 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
         }
         .diary-meal-catalog-grid .recipe-kbju-line {
+            width: fit-content !important;
             max-width: min(100%, 230px) !important;
+            color: #777f78 !important;
+            font-size: 10.8px !important;
+            line-height: 1.22 !important;
+            font-weight: 700 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+        }
+        .diary-meal-catalog-grid .fav-btn {
+            display: none !important;
+        }
+        .diary-meal-catalog-grid .recipe-add-btn {
+            flex: 0 0 40px !important;
+            width: 40px !important;
+            height: 40px !important;
+            min-height: 40px !important;
+            align-self: center !important;
+            place-self: center end !important;
+            margin: 0 !important;
         }
         @media (max-width: 360px) {
             #recipe-list .recipe-card,
@@ -10784,6 +10835,20 @@
             border: 1px solid rgba(104,91,70,.09);
             box-shadow: 0 12px 24px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.82);
         }
+        .diary-meal-recipe-card {
+            grid-template-columns: 76px minmax(0, 1fr) 40px;
+            gap: 10px;
+        }
+        .diary-meal-recipe-card::before {
+            content: "";
+            width: 76px;
+            height: 76px;
+            border-radius: 17px;
+            background:
+                linear-gradient(145deg, rgba(255,251,244,.96), rgba(240,232,217,.72)),
+                radial-gradient(circle at 32% 28%, rgba(95,143,122,.22), transparent 34%);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+        }
 
         .diary-meal-product-main {
             min-width: 0;
@@ -10793,6 +10858,10 @@
             text-align: left;
             background: transparent;
             box-shadow: none;
+        }
+        .diary-meal-recipe-card .diary-meal-product-main {
+            align-content: center;
+            gap: 5px;
         }
 
         .diary-meal-product-main b {
@@ -10820,6 +10889,14 @@
             line-height: 1.24;
             font-weight: 820;
             overflow-wrap: anywhere;
+        }
+        .diary-meal-recipe-card .diary-meal-product-main small {
+            max-width: min(100%, 250px);
+            color: #777f78;
+            font-size: 11.5px;
+            line-height: 1.22;
+            font-weight: 700;
+            overflow-wrap: normal;
         }
 
         .diary-meal-product-add,
@@ -10967,6 +11044,24 @@
             display: grid;
             gap: 10px;
             padding-top: 4px;
+            max-height: 136px;
+            opacity: 1;
+            transform: translateY(0);
+            overflow: hidden;
+            transition: max-height .24s var(--ease-soft), opacity .18s ease, transform .24s var(--ease-soft), padding .2s ease;
+            will-change: max-height, opacity, transform;
+        }
+
+        .diary-meal-screen.is-footer-hidden .diary-meal-footer {
+            max-height: 0;
+            padding-top: 0;
+            opacity: 0;
+            transform: translateY(18px);
+            pointer-events: none;
+        }
+
+        .diary-meal-screen.is-footer-hidden .diary-meal-content {
+            padding-bottom: 20px !important;
         }
 
         .diary-meal-search-row {
@@ -11054,6 +11149,11 @@
                 grid-template-columns: 68px minmax(0, 1fr) 76px;
             }
 
+            .diary-meal-topbar::after {
+                width: 76px;
+                min-width: 76px;
+            }
+
             .diary-meal-nav-btn,
             .diary-meal-done-btn {
                 min-height: 42px;
@@ -11062,22 +11162,23 @@
             }
 
             .diary-meal-category-tabs {
-                gap: 6px;
+                gap: 4px;
             }
 
             .diary-meal-category {
-                min-height: 70px;
-                border-radius: 24px;
+                min-height: 54px;
+                border-radius: 999px;
+                gap: 7px;
             }
 
             .diary-meal-category-icon {
-                width: 28px;
-                height: 28px;
+                width: 21px;
+                height: 21px;
             }
 
             .diary-meal-category-icon svg {
-                width: 25px;
-                height: 25px;
+                width: 18px;
+                height: 18px;
             }
 
             .diary-meal-product-card {
@@ -13134,4 +13235,113 @@
             .my-recipes-overlay.is-recipe-form-screen .my-recipe-step-panel[data-my-recipe-step="2"] .my-recipe-field textarea,
             .my-recipes-overlay.is-recipe-form-screen .my-recipe-field textarea { min-height: 80px !important; font-size: 12.5px !important; }
             .my-recipes-overlay.is-recipe-form-screen .my-recipe-form-actions button { min-height: 48px !important; font-size: 12.5px !important; }
+        }
+
+        /* Stage 3 UX system layer: consistent safe scrolling, cards, and add actions. */
+        .recipes-screen-body,
+        .meal-prep-screen,
+        .diary-meal-content,
+        .my-recipes-sheet,
+        .my-recipe-details-scroll,
+        .portion-sheet,
+        .info-sheet {
+            scroll-padding-top: var(--ux-safe-top);
+            scroll-padding-bottom: var(--ux-safe-bottom);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .recipes-screen-body,
+        .meal-prep-screen,
+        .diary-meal-content,
+        .my-recipe-details-scroll {
+            padding-bottom: var(--ux-safe-bottom) !important;
+        }
+
+        .recipes-screen,
+        .meal-prep-screen,
+        .diary-meal-screen,
+        .my-recipes-overlay.is-recipe-form-screen .my-recipes-sheet,
+        .my-recipe-product-picker-sheet {
+            gap: var(--ux-block-gap) !important;
+        }
+
+        .recipes-screen-head,
+        .meal-prep-head,
+        .diary-meal-topbar,
+        .my-recipes-head,
+        .my-recipe-step-head,
+        .my-recipe-details-head,
+        .my-recipe-product-picker-head {
+            flex: 0 0 auto;
+        }
+
+        .recipe-card,
+        .diary-meal-product-card,
+        .diary-meal-recipe-card,
+        .my-recipe-card,
+        .planner-card,
+        .shopping-card,
+        .prep-recipe-card,
+        .meal-group,
+        .meal-picker-item,
+        .portion-kbju-card {
+            border-radius: var(--ux-card-radius) !important;
+            box-shadow: var(--ux-card-shadow) !important;
+        }
+
+        .diary-meal-product-card,
+        .diary-meal-recipe-card,
+        .my-recipe-card,
+        .planner-card,
+        .shopping-card,
+        .meal-picker-item,
+        .portion-kbju-card {
+            padding: var(--ux-card-padding) !important;
+        }
+
+        .recipe-title,
+        .diary-meal-product-main b,
+        .my-recipe-card-title,
+        .planner-card-title,
+        .prep-recipe-title,
+        .meal-slot-name {
+            font-weight: 920;
+        }
+
+        .recipe-meta-line,
+        .diary-meal-product-main span,
+        .my-recipe-card-meta,
+        .prep-recipe-meta,
+        .planner-card-kbju {
+            color: var(--text-muted);
+        }
+
+        .recipe-kbju-line,
+        .diary-meal-product-main small,
+        .my-recipe-card-macros {
+            color: #777f78;
+            font-size: 11.5px;
+            line-height: 1.22;
+        }
+
+        .recipe-add-btn,
+        .diary-meal-product-add,
+        .meal-slot-add-btn {
+            width: var(--ux-add-size) !important;
+            height: var(--ux-add-size) !important;
+            min-width: var(--ux-add-size) !important;
+            min-height: var(--ux-add-size) !important;
+            border-radius: 50% !important;
+            display: grid !important;
+            place-items: center !important;
+            align-self: center !important;
+            justify-self: end !important;
+            flex: 0 0 var(--ux-add-size) !important;
+            margin: 0 !important;
+        }
+
+        .tabs-container,
+        .planner-toolbar,
+        .my-recipe-step-progress {
+            margin-bottom: var(--ux-block-gap);
         }

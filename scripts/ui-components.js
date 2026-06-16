@@ -35,15 +35,21 @@ function renderRecipeCard(item, favs, compact = false) {
             const idArg = JSON.stringify(id);
             const img = safeImageUrl(r.image_url);
             const hasStableImage = !!img && !(compact && /source\.unsplash\.com/i.test(img));
+            const portionTotal = typeof getRecipeWorkingIngredients === 'function' && typeof getRecipePortionNutrition === 'function'
+                ? getRecipePortionNutrition(r, getRecipeWorkingIngredients(r))
+                : null;
+            const recipeWeight = Math.round(Number(portionTotal?.grams) || Number(nutrition.grams) || (Array.isArray(r.ingredients) ? r.ingredients.reduce((sum, ing) => sum + (Number(ing.weight || ing.default_grams || ing.defaultGrams || ing.grams || ing.amount) || 0), 0) : 0));
+            const servings = Number(r.servings) || 1;
+            const metaLine = [r.category || 'Рецепт', recipeWeight > 0 ? recipeWeight + ' г' : '', servings > 0 ? servings + ' порц.' : ''].filter(Boolean).join(' · ');
             const cardClass = 'recipe-card' + (compact ? ' recipe-card-compact' : '') + (hasStableImage ? ' recipe-has-image' : ' recipe-no-image') + (item.personalScore > 0 ? ' recipe-personal-match' : '');
             return '<div class="' + cardClass + '" role="button" tabindex="0" onclick="if(event.target.closest(\'.recipe-add-btn,.fav-btn\')) return; openRecipeDetails(' + escapeAttr(idArg) + ')" onkeydown="if((event.key===\'Enter\'||event.key===\' \')&&!event.target.closest(\'.recipe-add-btn,.fav-btn\')){event.preventDefault();openRecipeDetails(' + escapeAttr(idArg) + ')}">' +
                 '<div class="recipe-image" style="' + (hasStableImage ? 'background-image: url(&quot;' + escapeAttr(img) + '&quot;)' : '') + '">' +
                 (!hasStableImage ? '<span class="recipe-image-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v16"></path><path d="M11 4v6a4 4 0 0 1-8 0V4"></path><path d="M17 4v16"></path><path d="M17 4c3 2 4 5 4 8h-4"></path></svg></span>' : '') +
                 '<div class="fav-btn" style="color: ' + (favs.map(String).includes(String(r.id)) ? '#d85f5a' : '#b79a64') + ';" onclick="toggleFavorite(event, ' + escapeAttr(idArg) + ')">' + (favs.map(String).includes(String(r.id)) ? '♥' : '♡') + '</div></div>' +
                 '<div class="recipe-content"><div class="recipe-title">' + escapeHTML(r.title) + '</div>' +
-                '<div class="recipe-kbju-line">На 100 г: ' + Math.round(nutrition.kcal) + ' ккал · Б ' + Math.round(nutrition.protein) + ' г · Ж ' + Math.round(nutrition.fat) + ' г · У ' + Math.round(nutrition.carbs) + ' г</div>' +
-                '<div class="recipe-time-line">' + getRecipeTime(r) + ' мин</div>' +
-                '<button class="recipe-add-btn" type="button" aria-label="Добавить рецепт в дневник" data-recipe-id="' + encodeData(r.id) + '" data-k="' + encodeData(nutrition.kcal) + '" data-p="' + encodeData(nutrition.protein) + '" data-f="' + encodeData(nutrition.fat) + '" data-c="' + encodeData(nutrition.carbs) + '">+</button></div></div>';
+                '<div class="recipe-meta-line">' + escapeHTML(metaLine) + '</div>' +
+                '<div class="recipe-kbju-line">' + Math.round(nutrition.kcal) + ' ккал · Б ' + (Number(nutrition.protein) || 0).toFixed(1) + ' · Ж ' + (Number(nutrition.fat) || 0).toFixed(1) + ' · У ' + (Number(nutrition.carbs) || 0).toFixed(1) + '</div></div>' +
+                '<button class="recipe-add-btn" type="button" aria-label="Добавить рецепт в дневник" data-recipe-id="' + encodeData(r.id) + '" data-k="' + encodeData(nutrition.kcal) + '" data-p="' + encodeData(nutrition.protein) + '" data-f="' + encodeData(nutrition.fat) + '" data-c="' + encodeData(nutrition.carbs) + '">+</button></div>';
         }
 
 function renderMealSlot(type, plan) {
