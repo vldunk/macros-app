@@ -1292,17 +1292,7 @@
         .my-recipes-empty-icon { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 18px; background: rgba(95,143,122,.10); color: #557d6c; font-size: 25px; }
         .my-recipes-empty-title { color: var(--text-main); font-size: 15px; line-height: 1.25; font-weight: 900; }
         .my-recipes-create-btn { width: 100%; min-height: 44px; margin-top: 2px; border-radius: 15px; color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); font-size: 13px; font-weight: 900; box-shadow: 0 12px 24px rgba(95,143,122,.16); }
-        .my-recipes-list { display: grid; gap: 9px; margin-bottom: 10px; }
-        .my-recipe-card { display: grid; gap: 5px; padding: 13px; border-radius: 18px; background: linear-gradient(180deg, rgba(250,248,242,.78), rgba(245,251,247,.64)); border: 1px solid rgba(82,73,58,.075); box-shadow: inset 0 1px 0 rgba(255,255,255,.78); }
-        .my-recipe-card.is-clickable { cursor: pointer; transition: transform .18s var(--ease-soft), border-color .18s ease, box-shadow .18s ease; }
-        .my-recipe-card.is-clickable:active { transform: scale(.992); }
-        .my-recipe-card-title { min-width: 0; color: var(--text-main); font-size: 15px; line-height: 1.18; font-weight: 930; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .my-recipe-card-meta { color: #557d6c; font-size: 12px; line-height: 1.25; font-weight: 850; }
-        .my-recipe-card-macros { color: var(--text-muted); font-size: 12px; line-height: 1.32; font-weight: 700; }
-        .my-recipe-card-actions { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 7px; margin-top: 4px; }
-        .my-recipe-card-actions button { width: 100%; min-height: 38px; border-radius: 14px; font-size: 12px; font-weight: 900; }
-        .my-recipe-card-edit-btn { color: #557d6c; background: rgba(245,251,247,.82); border: 1px solid rgba(95,143,122,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.78); }
-        .my-recipe-card-add-btn { color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); box-shadow: 0 10px 20px rgba(95,143,122,.14); }
+        .my-recipes-list { margin-bottom: 10px; }
         .my-recipe-add-overlay { position: fixed; inset: 0; z-index: 12250; display: none; align-items: center; justify-content: center; padding: 14px; background: rgba(247,245,239,.68); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); overflow-x: hidden; }
         .my-recipe-add-overlay.active { display: flex; }
         .my-recipe-add-sheet { width: min(440px, 100%); max-height: min(calc(var(--app-viewport-height, 100vh) - 28px), 620px); overflow-y: auto; padding: 18px 18px 0; border-radius: 28px; background: rgba(255,255,255,.96); border: 1px solid rgba(82,73,58,.10); box-shadow: 0 24px 70px rgba(82,73,58,.18), inset 0 1px 0 rgba(255,255,255,.82); animation: slideUp .22s ease-out both; }
@@ -1475,11 +1465,6 @@
             .my-recipe-step-title { font-size: 15px; }
             .my-recipe-step-progress { min-height: 42px; padding: 4px; }
             .my-recipe-step-progress span { min-height: 32px; font-size: 9.5px; padding-inline: 4px; border-radius: 13px; }
-            .my-recipe-card { padding: 11px; border-radius: 16px; }
-            .my-recipe-card-title { font-size: 14px; }
-            .my-recipe-card-meta,
-            .my-recipe-card-macros { font-size: 11.5px; }
-            .my-recipe-card-actions button { min-height: 36px; font-size: 11.5px; }
             .my-recipe-add-sheet { padding: 16px 16px 0; border-radius: 26px; }
             .my-recipe-add-title { font-size: 20px; }
             .my-recipe-add-subtitle { font-size: 12px; }
@@ -10537,7 +10522,8 @@
 
         .diary-meal-screen.is-create-tab {
             grid-template-rows: auto minmax(0, 1fr) auto;
-            gap: 16px;
+            gap: 12px;
+            align-content: stretch;
         }
 
         [data-diary-meal-library-only][hidden] {
@@ -10693,7 +10679,10 @@
         }
 
         .diary-meal-screen.is-create-tab .diary-meal-content {
+            display: grid;
+            align-content: start;
             padding-top: 2px;
+            padding-bottom: 16px !important;
         }
 
         .diary-meal-content::-webkit-scrollbar {
@@ -10708,8 +10697,7 @@
             font-weight: 840;
         }
 
-        .diary-meal-product-list,
-        .diary-meal-recipe-list {
+        .diary-meal-product-list {
             display: grid;
             gap: 8px;
         }
@@ -10788,8 +10776,34 @@
             overflow: hidden !important;
             text-overflow: ellipsis !important;
         }
-        .diary-meal-catalog-grid .fav-btn {
-            display: none !important;
+        .diary-meal-catalog-grid .fav-btn,
+        .diary-meal-fav-btn {
+            position: static !important;
+            z-index: 1 !important;
+            flex: 0 0 36px !important;
+            width: 36px !important;
+            height: 36px !important;
+            min-width: 36px !important;
+            min-height: 36px !important;
+            display: grid !important;
+            place-items: center !important;
+            align-self: center !important;
+            justify-self: end !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border-radius: 50% !important;
+            color: #b79a64 !important;
+            background: rgba(255,255,255,.66) !important;
+            border: 1px solid rgba(104,91,70,.08) !important;
+            box-shadow: 0 7px 16px rgba(72,55,36,.055), inset 0 1px 0 rgba(255,255,255,.78) !important;
+            font-size: 19px !important;
+            line-height: 1 !important;
+            font-weight: 760 !important;
+        }
+        .diary-meal-catalog-grid .fav-btn[style*="#d85f5a"],
+        .diary-meal-fav-btn.active {
+            color: #d85f5a !important;
+            background: rgba(255,255,255,.86) !important;
         }
         .diary-meal-catalog-grid .recipe-add-btn {
             flex: 0 0 40px !important;
@@ -10826,7 +10840,7 @@
         .diary-meal-product-card {
             min-width: 0;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 46px;
+            grid-template-columns: minmax(0, 1fr) 36px 46px;
             align-items: center;
             gap: 10px;
             padding: 11px 13px 11px 16px;
@@ -10836,7 +10850,7 @@
             box-shadow: 0 12px 24px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.82);
         }
         .diary-meal-recipe-card {
-            grid-template-columns: 76px minmax(0, 1fr) 40px;
+            grid-template-columns: 76px minmax(0, 1fr) 36px 40px;
             gap: 10px;
         }
         .diary-meal-recipe-card::before {
@@ -10917,26 +10931,26 @@
 
         .diary-meal-create-options {
             display: grid;
-            gap: 14px;
+            gap: 12px;
             padding-top: 2px;
             min-width: 0;
         }
 
         .diary-meal-create-card {
             min-width: 0;
-            min-height: 104px;
+            min-height: 90px;
             width: 100%;
             display: grid;
-            grid-template-columns: 50px minmax(0, 1fr) 34px;
+            grid-template-columns: 46px minmax(0, 1fr) 30px;
             align-items: center;
-            gap: 13px;
-            padding: 18px 16px;
-            border-radius: 28px;
+            gap: 12px;
+            padding: 14px 14px;
+            border-radius: 22px;
             color: #25242b;
             text-align: left;
-            background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(246,241,230,.70));
+            background: rgba(255,255,255,.82);
             border: 1px solid rgba(104,91,70,.10);
-            box-shadow: 0 16px 32px rgba(72,55,36,.08), inset 0 1px 0 rgba(255,255,255,.88);
+            box-shadow: 0 10px 24px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.88);
         }
 
         .diary-meal-create-card:active {
@@ -10946,22 +10960,22 @@
         .diary-meal-create-icon {
             display: grid;
             place-items: center;
-            width: 50px;
-            height: 50px;
-            border-radius: 18px;
+            width: 46px;
+            height: 46px;
+            border-radius: 16px;
             color: #5f8f7a;
-            background: rgba(95,143,122,.12);
+            background: rgba(95,143,122,.10);
             border: 1px solid rgba(95,143,122,.12);
             box-shadow: inset 0 1px 0 rgba(255,255,255,.74);
         }
 
         .diary-meal-create-icon svg,
         .diary-meal-create-chevron svg {
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             fill: none;
             stroke: currentColor;
-            stroke-width: 2.2;
+            stroke-width: 2;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
@@ -10969,14 +10983,14 @@
         .diary-meal-create-copy {
             min-width: 0;
             display: grid;
-            gap: 7px;
+            gap: 5px;
         }
 
         .diary-meal-create-copy b {
             min-width: 0;
             color: #25242b;
-            font-size: clamp(18px, 5vw, 22px);
-            line-height: 1.08;
+            font-size: clamp(17px, 4.6vw, 20px);
+            line-height: 1.1;
             font-weight: 930;
             overflow-wrap: anywhere;
         }
@@ -10984,8 +10998,8 @@
         .diary-meal-create-copy small {
             min-width: 0;
             color: #81786d;
-            font-size: clamp(13px, 3.7vw, 15px);
-            line-height: 1.28;
+            font-size: clamp(12px, 3.35vw, 14px);
+            line-height: 1.22;
             font-weight: 760;
             overflow-wrap: anywhere;
         }
@@ -10993,8 +11007,8 @@
         .diary-meal-create-chevron {
             display: grid;
             place-items: center;
-            width: 34px;
-            height: 34px;
+            width: 30px;
+            height: 30px;
             justify-self: end;
             color: #739f7c;
         }
@@ -11044,11 +11058,11 @@
             display: grid;
             gap: 10px;
             padding-top: 4px;
-            max-height: 136px;
-            opacity: 1;
-            transform: translateY(0);
+            max-height: var(--diary-footer-space, 136px);
+            opacity: calc(1 - var(--diary-footer-progress, 0));
+            transform: translateY(calc(var(--diary-footer-progress, 0) * 22px));
             overflow: hidden;
-            transition: max-height .24s var(--ease-soft), opacity .18s ease, transform .24s var(--ease-soft), padding .2s ease;
+            transition: max-height .08s linear, opacity .08s linear, transform .08s linear, padding .08s linear;
             will-change: max-height, opacity, transform;
         }
 
@@ -11062,6 +11076,160 @@
 
         .diary-meal-screen.is-footer-hidden .diary-meal-content {
             padding-bottom: 20px !important;
+        }
+
+        /* Create tab visual alignment with the recipe library screen. */
+        .diary-meal-screen.is-create-tab {
+            position: relative !important;
+            grid-template-rows: auto auto minmax(0, 1fr) !important;
+            gap: 16px !important;
+            padding-inline: 14px !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-topbar {
+            margin-bottom: 2px !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-nav-btn {
+            min-height: 40px !important;
+            padding: 0 16px !important;
+            font-size: 14px !important;
+            font-weight: 880 !important;
+            background: rgba(255,255,255,.84) !important;
+            box-shadow: 0 8px 18px rgba(72,55,36,.065), inset 0 1px 0 rgba(255,255,255,.9) !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-title {
+            font-size: 28px !important;
+            line-height: 1 !important;
+            font-weight: 940 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-content {
+            align-content: start !important;
+            padding: 0 0 0 !important;
+            overflow: visible !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-options {
+            gap: 12px !important;
+            padding-top: 0 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-card {
+            min-height: 90px !important;
+            grid-template-columns: 44px minmax(0, 1fr) 24px !important;
+            gap: 10px !important;
+            padding: 13px 12px !important;
+            border-radius: 22px !important;
+            background: rgba(255,255,255,.72) !important;
+            border: 1px solid rgba(104,91,70,.09) !important;
+            box-shadow: 0 10px 24px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.84) !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-icon {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 15px !important;
+            color: #5f8f7a !important;
+            background: linear-gradient(145deg, rgba(246,252,249,.96), rgba(230,241,236,.82)) !important;
+            border: 1px solid rgba(95,143,122,.14) !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-icon svg {
+            width: 22px !important;
+            height: 22px !important;
+            stroke-width: 1.9 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-copy {
+            gap: 4px !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-copy b {
+            font-size: 20px !important;
+            line-height: 1.08 !important;
+            font-weight: 930 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-copy small {
+            max-width: 228px !important;
+            color: #81786d !important;
+            font-size: 13px !important;
+            line-height: 1.14 !important;
+            font-weight: 760 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-chevron {
+            width: 24px !important;
+            height: 24px !important;
+            color: #6f9d88 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-create-chevron svg {
+            width: 22px !important;
+            height: 22px !important;
+            stroke-width: 2.2 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-footer {
+            align-self: start !important;
+            padding-top: 70px !important;
+            max-height: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+            overflow: visible !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-bottom-tabs {
+            min-height: 58px !important;
+            padding: 5px !important;
+            border-radius: 999px !important;
+            background: rgba(255,255,255,.42) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.68) !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-bottom-tabs button {
+            min-height: 48px !important;
+            gap: 7px !important;
+            border-radius: 999px !important;
+            font-size: 14px !important;
+            line-height: 1 !important;
+            font-weight: 850 !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-bottom-tabs button.active {
+            background: rgba(255,255,255,.88) !important;
+            box-shadow: 0 8px 16px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.88) !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-bottom-tabs svg {
+            width: 19px !important;
+            height: 19px !important;
+            stroke-width: 1.95 !important;
+        }
+
+        @media (max-width: 360px) {
+            .diary-meal-screen.is-create-tab {
+                gap: 14px !important;
+                padding-inline: 12px !important;
+            }
+
+            .diary-meal-screen.is-create-tab .diary-meal-create-card {
+                min-height: 88px !important;
+            }
+
+            .diary-meal-screen.is-create-tab .diary-meal-create-copy b {
+                font-size: 18px !important;
+            }
+
+            .diary-meal-screen.is-create-tab .diary-meal-create-copy small {
+                font-size: 12px !important;
+            }
+
+            .diary-meal-screen.is-create-tab .diary-meal-footer {
+                padding-top: 64px !important;
+            }
         }
 
         .diary-meal-search-row {
@@ -11182,9 +11350,13 @@
             }
 
             .diary-meal-product-card {
-                grid-template-columns: minmax(0, 1fr) 42px;
+                grid-template-columns: minmax(0, 1fr) 34px 42px;
                 border-radius: 22px;
                 padding: 10px 12px;
+            }
+
+            .diary-meal-recipe-card {
+                grid-template-columns: 68px minmax(0, 1fr) 34px 42px;
             }
 
             .diary-meal-create-options {
@@ -13278,7 +13450,6 @@
         .recipe-card,
         .diary-meal-product-card,
         .diary-meal-recipe-card,
-        .my-recipe-card,
         .planner-card,
         .shopping-card,
         .prep-recipe-card,
@@ -13291,7 +13462,6 @@
 
         .diary-meal-product-card,
         .diary-meal-recipe-card,
-        .my-recipe-card,
         .planner-card,
         .shopping-card,
         .meal-picker-item,
@@ -13301,7 +13471,6 @@
 
         .recipe-title,
         .diary-meal-product-main b,
-        .my-recipe-card-title,
         .planner-card-title,
         .prep-recipe-title,
         .meal-slot-name {
@@ -13310,15 +13479,13 @@
 
         .recipe-meta-line,
         .diary-meal-product-main span,
-        .my-recipe-card-meta,
         .prep-recipe-meta,
         .planner-card-kbju {
             color: var(--text-muted);
         }
 
         .recipe-kbju-line,
-        .diary-meal-product-main small,
-        .my-recipe-card-macros {
+        .diary-meal-product-main small {
             color: #777f78;
             font-size: 11.5px;
             line-height: 1.22;
@@ -13344,4 +13511,213 @@
         .planner-toolbar,
         .my-recipe-step-progress {
             margin-bottom: var(--ux-block-gap);
+        }
+
+        .diary-meal-screen.is-footer-hidden .diary-meal-content {
+            padding-bottom: 20px !important;
+        }
+
+        /* Final create-screen alignment: keep the lower switcher at the same visual level as the library screen. */
+        .diary-meal-screen.is-create-tab {
+            grid-template-rows: auto auto minmax(0, 1fr) !important;
+            gap: 16px !important;
+            padding-inline: 14px !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-content {
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-footer {
+            position: absolute !important;
+            left: 14px !important;
+            right: 14px !important;
+            bottom: max(14px, env(safe-area-inset-bottom)) !important;
+            align-self: auto !important;
+            padding-top: 0 !important;
+            max-height: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+            overflow: visible !important;
+        }
+
+        @media (max-width: 360px) {
+            .diary-meal-screen.is-create-tab .diary-meal-footer {
+                left: 12px !important;
+                right: 12px !important;
+                padding-top: 0 !important;
+            }
+        }
+
+        /* Premium recipe grid component for the full recipes screen. */
+        .recipes-results-grid.recipe-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 14px !important;
+            padding: 0 16px 18px !important;
+            margin: 0 -16px !important;
+        }
+
+        .recipe-grid-card {
+            min-width: 0;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-radius: 20px;
+            background: rgba(255,255,255,.94);
+            border: 1px solid rgba(82,73,58,.09);
+            box-shadow: 0 12px 26px rgba(72,55,36,.075), inset 0 1px 0 rgba(255,255,255,.88);
+            color: #161819;
+            cursor: pointer;
+            transition: transform .16s var(--ease-soft), box-shadow .18s ease;
+        }
+
+        .recipe-grid-card:active {
+            transform: scale(.985);
+        }
+
+        .recipe-grid-card-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            padding: 10px 10px 0;
+            overflow: hidden;
+        }
+
+        .recipe-grid-card-img,
+        .recipe-grid-card-placeholder {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 18px;
+            object-fit: cover;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(255,255,255,.82), transparent 34%),
+                linear-gradient(145deg, rgba(245,241,232,.95), rgba(230,238,233,.78));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.5);
+        }
+
+        .recipe-grid-card-img.is-placeholder {
+            object-fit: cover;
+            background:
+                radial-gradient(circle at 30% 20%, rgba(255,255,255,.82), transparent 34%),
+                linear-gradient(145deg, rgba(245,241,232,.95), rgba(230,238,233,.78));
+        }
+
+        .recipe-grid-favorite {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 2;
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            color: #9e9e9e;
+            background: rgba(255,255,255,.88);
+            border: 1px solid rgba(82,73,58,.09);
+            box-shadow: 0 8px 18px rgba(49,39,28,.12), inset 0 1px 0 rgba(255,255,255,.9);
+            transition: transform .18s var(--ease-soft), color .18s ease, background .18s ease, box-shadow .18s ease;
+        }
+
+        .recipe-grid-favorite svg {
+            width: 22px;
+            height: 22px;
+            fill: transparent;
+            stroke: currentColor;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: fill .18s ease, transform .18s var(--ease-soft);
+        }
+
+        .recipe-grid-favorite:active {
+            transform: scale(.9);
+        }
+
+        .recipe-grid-favorite.is-favorite {
+            color: #d85f5a;
+            background: rgba(255,255,255,.95);
+        }
+
+        .recipe-grid-favorite.is-favorite svg {
+            fill: currentColor;
+            transform: scale(1.04);
+        }
+
+        .recipe-grid-badge {
+            position: absolute;
+            left: 16px;
+            bottom: 10px;
+            z-index: 2;
+            max-width: calc(100% - 32px);
+            padding: 8px 14px;
+            border-radius: 999px;
+            color: #fff;
+            background: linear-gradient(180deg, #ffb022, #ff9500);
+            box-shadow: 0 8px 16px rgba(255,149,0,.22);
+            font-size: 13px;
+            line-height: 1;
+            font-weight: 900;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .recipe-grid-card-body {
+            flex: 1 1 auto;
+            display: grid;
+            grid-template-rows: minmax(44px, auto) auto;
+            align-content: space-between;
+            gap: 12px;
+            padding: 14px 14px 16px;
+        }
+
+        .recipe-grid-card-title {
+            min-width: 0;
+            color: #171819;
+            font-size: 16px;
+            line-height: 1.18;
+            font-weight: 850;
+            letter-spacing: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            overflow-wrap: anywhere;
+        }
+
+        .recipe-grid-kbju {
+            color: #007a4d;
+            font-size: 15px;
+            line-height: 1.1;
+            font-weight: 760;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (max-width: 379px) {
+            .recipes-results-grid.recipe-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+
+            .recipe-grid-card-body {
+                grid-template-rows: auto auto;
+            }
+        }
+
+        @media (min-width: 420px) {
+            .recipe-grid-card-title {
+                font-size: 17px;
+            }
+
+            .recipe-grid-kbju {
+                font-size: 16px;
+            }
         }

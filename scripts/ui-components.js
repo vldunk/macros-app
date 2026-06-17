@@ -42,14 +42,95 @@ function renderRecipeCard(item, favs, compact = false) {
             const servings = Number(r.servings) || 1;
             const metaLine = [r.category || 'Рецепт', recipeWeight > 0 ? recipeWeight + ' г' : '', servings > 0 ? servings + ' порц.' : ''].filter(Boolean).join(' · ');
             const cardClass = 'recipe-card' + (compact ? ' recipe-card-compact' : '') + (hasStableImage ? ' recipe-has-image' : ' recipe-no-image') + (item.personalScore > 0 ? ' recipe-personal-match' : '');
+            const isFav = favs.map(String).includes(String(r.id));
+            const favButton = '<button class="fav-btn" type="button" aria-label="' + (isFav ? 'Убрать из избранного' : 'Добавить в избранное') + '" style="color: ' + (isFav ? '#d85f5a' : '#b79a64') + ';" onclick="toggleFavorite(event, ' + escapeAttr(idArg) + ')">' + (isFav ? '♥' : '♡') + '</button>';
             return '<div class="' + cardClass + '" role="button" tabindex="0" onclick="if(event.target.closest(\'.recipe-add-btn,.fav-btn\')) return; openRecipeDetails(' + escapeAttr(idArg) + ')" onkeydown="if((event.key===\'Enter\'||event.key===\' \')&&!event.target.closest(\'.recipe-add-btn,.fav-btn\')){event.preventDefault();openRecipeDetails(' + escapeAttr(idArg) + ')}">' +
                 '<div class="recipe-image" style="' + (hasStableImage ? 'background-image: url(&quot;' + escapeAttr(img) + '&quot;)' : '') + '">' +
                 (!hasStableImage ? '<span class="recipe-image-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4v16"></path><path d="M11 4v6a4 4 0 0 1-8 0V4"></path><path d="M17 4v16"></path><path d="M17 4c3 2 4 5 4 8h-4"></path></svg></span>' : '') +
-                '<div class="fav-btn" style="color: ' + (favs.map(String).includes(String(r.id)) ? '#d85f5a' : '#b79a64') + ';" onclick="toggleFavorite(event, ' + escapeAttr(idArg) + ')">' + (favs.map(String).includes(String(r.id)) ? '♥' : '♡') + '</div></div>' +
+                (compact ? '' : favButton) + '</div>' +
                 '<div class="recipe-content"><div class="recipe-title">' + escapeHTML(r.title) + '</div>' +
                 '<div class="recipe-meta-line">' + escapeHTML(metaLine) + '</div>' +
                 '<div class="recipe-kbju-line">' + Math.round(nutrition.kcal) + ' ккал · Б ' + (Number(nutrition.protein) || 0).toFixed(1) + ' · Ж ' + (Number(nutrition.fat) || 0).toFixed(1) + ' · У ' + (Number(nutrition.carbs) || 0).toFixed(1) + '</div></div>' +
+                (compact ? favButton : '') +
                 '<button class="recipe-add-btn" type="button" aria-label="Добавить рецепт в дневник" data-recipe-id="' + encodeData(r.id) + '" data-k="' + encodeData(nutrition.kcal) + '" data-p="' + encodeData(nutrition.protein) + '" data-f="' + encodeData(nutrition.fat) + '" data-c="' + encodeData(nutrition.carbs) + '">+</button></div>';
+        }
+
+function formatRecipeGridMacroValue(value) {
+            return Math.round(Number(value) || 0);
+        }
+
+const RECIPE_GRID_FALLBACK_IMAGE = 'images/recipe-placeholder.svg';
+
+function renderRecipeGridCard({
+            id,
+            title,
+            image,
+            tag = 'Много белка',
+            kcal,
+            protein,
+            fat,
+            carbs,
+            isFavorite = false,
+            onClick = 'openRecipeDetails',
+            onToggleFavorite = 'toggleFavorite'
+        } = {}) {
+            const recipeId = String(id || '');
+            const idArg = JSON.stringify(recipeId);
+            const safeImg = safeImageUrl(String(image || '').trim());
+            const favoriteClass = isFavorite ? ' is-favorite' : '';
+            const favoriteLabel = isFavorite ? 'Убрать из избранного' : 'Добавить в избранное';
+            const macroLine = 'КБЖУ ' +
+                formatRecipeGridMacroValue(kcal) + '/' +
+                formatRecipeGridMacroValue(protein) + '/' +
+                formatRecipeGridMacroValue(fat) + '/' +
+                formatRecipeGridMacroValue(carbs);
+            const imageSrc = safeImg || RECIPE_GRID_FALLBACK_IMAGE;
+            const imageClass = 'recipe-grid-card-img' + (safeImg ? '' : ' is-placeholder');
+            const fallbackSrc = escapeAttr(RECIPE_GRID_FALLBACK_IMAGE);
+            const imageHtml = '<img class="' + imageClass + '" src="' + escapeAttr(imageSrc) + '" alt="' + escapeAttr(safeImg ? (title || 'Рецепт') : '') + '" loading="lazy" onerror="this.onerror=null;this.classList.add(\'is-placeholder\');this.src=\'' + fallbackSrc + '\'">';
+            return '<article class="recipe-grid-card" role="button" tabindex="0" onclick="' + onClick + '(' + escapeAttr(idArg) + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();' + onClick + '(' + escapeAttr(idArg) + ')}">' +
+                '<div class="recipe-grid-card-media">' +
+                    imageHtml +
+                    '<button class="recipe-grid-favorite' + favoriteClass + '" type="button" aria-label="' + favoriteLabel + '" aria-pressed="' + (isFavorite ? 'true' : 'false') + '" onclick="event.stopPropagation();' + onToggleFavorite + '(event, ' + escapeAttr(idArg) + ')">' +
+                        '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-9.2-9.2C1.6 7.8 3.5 5 6.7 5c1.9 0 3.3 1 4.1 2.2C11.6 6 13 5 14.9 5c3.2 0 5.1 2.8 3.9 6.3C17.5 16.1 12 20.5 12 20.5Z"></path></svg>' +
+                    '</button>' +
+                    (tag ? '<span class="recipe-grid-badge">' + escapeHTML(tag) + '</span>' : '') +
+                '</div>' +
+                '<div class="recipe-grid-card-body">' +
+                    '<div class="recipe-grid-card-title">' + escapeHTML(title || 'Рецепт') + '</div>' +
+                    '<div class="recipe-grid-kbju">' + escapeHTML(macroLine) + '</div>' +
+                '</div>' +
+            '</article>';
+        }
+
+function getRecipeGridCardTag(item) {
+            const recipe = item?.recipe || {};
+            const nutrition = item?.nutrition || {};
+            const tags = recipe.nutritionTags || [];
+            return tags.includes('high_protein') || Number(nutrition.protein) >= 18 ? 'Много белка' : '';
+        }
+
+function renderRecipeGrid(items = [], favs = [], options = {}) {
+            const favoriteIds = new Set((favs || []).map(String));
+            const onClick = options.onClick || 'openRecipeDetails';
+            const onToggleFavorite = options.onToggleFavorite || 'toggleFavorite';
+            return (items || []).map(item => {
+                const recipe = item.recipe || {};
+                const nutrition = item.nutrition || {};
+                return renderRecipeGridCard({
+                    id: String(recipe.id || ''),
+                    title: recipe.title || 'Рецепт',
+                    image: recipe.image_url || recipe.image || '',
+                    tag: getRecipeGridCardTag(item),
+                    kcal: nutrition.kcal,
+                    protein: nutrition.protein,
+                    fat: nutrition.fat,
+                    carbs: nutrition.carbs,
+                    isFavorite: favoriteIds.has(String(recipe.id || '')),
+                    onClick,
+                    onToggleFavorite
+                });
+            }).join('');
         }
 
 function renderMealSlot(type, plan) {

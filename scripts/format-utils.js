@@ -8,6 +8,7 @@ function encodeData(value) { return escapeAttr(String(value ?? '')); }
 
 function safeImageUrl(value) {
             if (!value) return '';
+            if (/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(String(value))) return String(value);
             try {
                 const url = new URL(String(value), window.location.href);
                 return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
@@ -66,4 +67,3 @@ function parseAmountInput(value, fallbackUnit = 'г') {
             const unit = raw.includes('кг') ? 'г' : raw.includes('л') && !raw.includes('мл') ? 'мл' : raw.includes('шт') ? 'шт' : raw.includes('мл') ? 'мл' : fallbackUnit;
             return { amount: raw.includes('кг') ? amount * 1000 : (raw.includes('л') && !raw.includes('мл')) ? amount * 1000 : amount, unit };
         }
-

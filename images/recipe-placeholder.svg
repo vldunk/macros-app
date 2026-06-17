@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640" role="img" aria-label="Food bowl placeholder">
+  <defs>
+    <linearGradient id="bg" x1="74" y1="72" x2="566" y2="584" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fbf7ee"/>
+      <stop offset="0.55" stop-color="#eef4ef"/>
+      <stop offset="1" stop-color="#e7eee9"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(210 154) rotate(52) scale(330 276)">
+      <stop stop-color="#ffffff" stop-opacity="0.88"/>
+      <stop offset="0.7" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="132" y="120" width="376" height="402" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="20" stdDeviation="24" flood-color="#4d3d28" flood-opacity="0.11"/>
+    </filter>
+  </defs>
+  <rect width="640" height="640" rx="84" fill="url(#bg)"/>
+  <rect width="640" height="640" rx="84" fill="url(#glow)"/>
+  <g filter="url(#softShadow)">
+    <circle cx="320" cy="310" r="128" fill="#ffffff" fill-opacity="0.62"/>
+    <circle cx="320" cy="310" r="128" fill="none" stroke="#ffffff" stroke-opacity="0.74" stroke-width="2"/>
+    <path d="M209 318h222c0 70-49 119-111 119s-111-49-111-119Z" fill="#ffffff" fill-opacity="0.58"/>
+    <path d="M209 318h222c0 70-49 119-111 119s-111-49-111-119Z" fill="none" stroke="#6d9b84" stroke-width="16" stroke-linejoin="round"/>
+    <path d="M231 318c18 18 159 18 178 0" fill="none" stroke="#6d9b84" stroke-width="16" stroke-linecap="round"/>
+    <path d="M257 354h126" fill="none" stroke="#d79b4b" stroke-width="14" stroke-linecap="round" opacity="0.86"/>
+    <path d="M284 388h72" fill="none" stroke="#9a8f7f" stroke-width="14" stroke-linecap="round" opacity="0.72"/>
+    <circle cx="279" cy="278" r="24" fill="none" stroke="#d79b4b" stroke-width="14"/>
+    <path d="M332 268c19-28 57-24 74 4-28 17-57 17-74-4Z" fill="none" stroke="#6d9b84" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M356 269c14 1 27 2 41 4" fill="none" stroke="#6d9b84" stroke-width="10" stroke-linecap="round" opacity="0.62"/>
+    <path d="M239 255c14-20 41-22 58-5-16 20-42 23-58 5Z" fill="none" stroke="#6d9b84" stroke-width="14" stroke-linejoin="round"/>
+    <path d="M176 199l112 104" fill="none" stroke="#9a8f7f" stroke-width="13" stroke-linecap="round"/>
+    <path d="M209 186l101 108" fill="none" stroke="#9a8f7f" stroke-width="13" stroke-linecap="round"/>
+  </g>
+  <circle cx="476" cy="178" r="12" fill="#d79b4b" fill-opacity="0.34"/>
+  <circle cx="176" cy="464" r="10" fill="#6d9b84" fill-opacity="0.28"/>
+  <circle cx="502" cy="448" r="7" fill="#9a8f7f" fill-opacity="0.24"/>
+</svg>
