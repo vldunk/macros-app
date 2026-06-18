@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     
-    <link rel="stylesheet" href="./styles/app.css?v=20260617-recipe-grid-card-2">
+    <link rel="stylesheet" href="./styles/app.css?v=20260618-diary-multiselect-1">
 </head>
 <body>
 
@@ -269,10 +269,9 @@
     </div>
 
     <div class="diary-meal-overlay" id="diary-meal-screen" hidden aria-hidden="true">
-        <section class="diary-meal-screen" aria-labelledby="diary-meal-title">
+        <section class="diary-meal-screen" aria-label="Добавить еду">
             <header class="diary-meal-topbar">
                 <button class="diary-meal-nav-btn" type="button" onclick="closeDiaryMealScreen()">Назад</button>
-                <div class="diary-meal-title" id="diary-meal-title">Обед</div>
             </header>
 
             <div class="diary-meal-category-tabs" data-diary-meal-library-only role="tablist" aria-label="Категории добавления">
@@ -295,10 +294,11 @@
             <main class="diary-meal-content" id="diary-meal-content"></main>
 
             <footer class="diary-meal-footer">
+                <div class="diary-meal-selection-bar" id="diary-meal-selection-bar" hidden></div>
                 <div class="diary-meal-search-row" data-diary-meal-library-only>
                     <label class="diary-meal-search">
                         <span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 4 4"></path></svg></span>
-                        <input id="diary-meal-search-input" type="search" placeholder="Найти продукт" autocomplete="off" oninput="renderDiaryMealContent()">
+                        <input id="diary-meal-search-input" type="search" placeholder="Найти продукт" autocomplete="off" oninput="handleDiaryMealSearchInput()">
                     </label>
                     <button class="diary-meal-scan-btn" type="button" aria-label="Сканировать штрихкод" onclick="openDiaryMealBarcode()">
                         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5a1 1 0 0 0-1 1v2"></path><path d="M17 4h2a1 1 0 0 1 1 1v2"></path><path d="M7 20H5a1 1 0 0 1-1-1v-2"></path><path d="M17 20h2a1 1 0 0 0 1-1v-2"></path><path d="M8 8v8M11 8v8M14 8v8M17 8v8"></path></svg>
@@ -341,6 +341,34 @@
                 <button class="barcode-meal-submit" id="barcode-meal-find-btn" type="submit">Найти продукт</button>
             </div>
         </form>
+    </div>
+
+    <div class="barcode-meal-overlay product-search-meal-overlay" id="product-search-meal-modal" onclick="closeProductSearchMealModal()">
+        <section class="barcode-meal-sheet product-search-meal-sheet" onclick="event.stopPropagation()" aria-labelledby="product-search-meal-title">
+            <div class="barcode-meal-head">
+                <div>
+                    <div class="barcode-meal-title" id="product-search-meal-title">Добавить продукт</div>
+                    <div class="barcode-meal-subtitle">Укажите приём пищи и вес порции.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeProductSearchMealModal()">×</button>
+            </div>
+            <div class="barcode-meal-error" id="product-search-meal-error" role="alert"></div>
+            <div class="barcode-meal-result" id="product-search-meal-result" aria-live="polite"></div>
+        </section>
+    </div>
+
+    <div class="barcode-meal-overlay multi-product-meal-overlay" id="multi-product-meal-modal" onclick="closeMultiProductMealModal()">
+        <section class="barcode-meal-sheet multi-product-meal-sheet" onclick="event.stopPropagation()" aria-labelledby="multi-product-meal-title">
+            <div class="barcode-meal-head">
+                <div>
+                    <div class="barcode-meal-title" id="multi-product-meal-title">Добавить продукты</div>
+                    <div class="barcode-meal-subtitle">Настройте вес каждой позиции перед добавлением.</div>
+                </div>
+                <button class="portion-reset-btn" type="button" aria-label="Закрыть" onclick="closeMultiProductMealModal()">×</button>
+            </div>
+            <div class="barcode-meal-error" id="multi-product-meal-error" role="alert"></div>
+            <div class="barcode-meal-result" id="multi-product-meal-result" aria-live="polite"></div>
+        </section>
     </div>
 
     <div class="my-recipes-overlay" id="my-recipes-modal" onclick="closeMyRecipesModal()">
@@ -1086,29 +1114,6 @@
             </div>
         </div>
 
-        <div class="recipes-open-row">
-            <h3 class="section-title" style="margin-bottom: 0;">Рацион</h3>
-            <button class="recipes-open-btn" type="button" onclick="openRecipesScreen()">Все рецепты</button>
-        </div>
-        <div class="recipe-coach-card recipe-section-control" id="recipe-coach-card">
-            <div class="recipe-coach-top">
-                <div class="recipe-coach-icon">AI</div>
-                <div><div class="recipe-coach-title">AI подбирает</div><div class="recipe-coach-caption">Под твою цель и текущий день</div></div>
-            </div>
-            <div id="recipe-coach-text">Подберу блюда под твою цель после загрузки рецептов.</div>
-            <div class="recipe-coach-chips" id="recipe-coach-chips"></div>
-        </div>
-        <div class="recipe-filter-panel recipe-section-control">
-            <div class="recipe-filter-label">Прием пищи</div>
-            <div class="meal-segmented" id="meal-tabs">
-                <button class="meal-segment active" type="button" onclick="setMealFilter('Завтрак', this)">Завтрак</button>
-                <button class="meal-segment" type="button" onclick="setMealFilter('Обед', this)">Обед</button>
-                <button class="meal-segment" type="button" onclick="setMealFilter('Ужин', this)">Ужин</button>
-                <button class="meal-segment" type="button" onclick="setMealFilter('Перекус', this)">Перекус</button>
-            </div>
-        </div>
-        <div id="recipe-list"></div>
-
         <section class="meal-prep-preview" hidden aria-hidden="true">
             <div class="meal-prep-preview-head">
                 <div>
@@ -1131,12 +1136,12 @@
         </div>
         <div id="history-list"></div>
     </div>
-    <script src="./scripts/starter-recipes.js?v=20260617-recipe-grid-card-2"></script>
-    <script src="./scripts/ui-components.js?v=20260617-recipe-grid-card-2"></script>
-    <script src="./scripts/format-utils.js?v=20260617-recipe-grid-card-2"></script>
-    <script src="./scripts/nutrition-utils.js?v=20260617-recipe-grid-card-2"></script>
-    <script src="./scripts/recipe-utils.js?v=20260617-recipe-grid-card-2"></script>
-    <script src="./scripts/recommendation-utils.js?v=20260617-recipe-grid-card-2"></script>
-    <script src="./scripts/app.js?v=20260617-recipe-grid-card-2"></script>
+    <script src="./scripts/starter-recipes.js?v=20260618-diary-clean-2"></script>
+    <script src="./scripts/ui-components.js?v=20260618-diary-clean-2"></script>
+    <script src="./scripts/format-utils.js?v=20260618-diary-clean-2"></script>
+    <script src="./scripts/nutrition-utils.js?v=20260618-diary-clean-2"></script>
+    <script src="./scripts/recipe-utils.js?v=20260618-diary-clean-2"></script>
+    <script src="./scripts/recommendation-utils.js?v=20260618-diary-clean-2"></script>
+    <script src="./scripts/app.js?v=20260618-diary-multiselect-1"></script>
 </body>
 </html>

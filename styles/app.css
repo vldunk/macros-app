@@ -884,6 +884,8 @@
         .clear-day-btn { padding: 8px 14px; border-radius: 999px; color: #b46158; background: rgba(255,244,242,.76); border-color: rgba(201,108,97,.16); font-size: 13px; font-weight: 900; }
         .meal-group { margin-bottom: 14px; padding: 14px; border-radius: var(--radius-lg); background: var(--surfaceDiary); border: 1px solid rgba(82,73,58,.09); box-shadow: var(--shadowFlat), inset 0 1px 0 rgba(255,255,255,.62); }
         .meal-group-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(82,73,58,.08); cursor: pointer; user-select: none; }
+        .meal-group-add-btn { flex: 0 0 38px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; color: #fff; background: linear-gradient(180deg, #86b39e, #6f9d88); border: 1px solid rgba(255,255,255,.38); box-shadow: 0 10px 18px rgba(95,143,122,.18), inset 0 1px 0 rgba(255,255,255,.28); font-size: 24px; line-height: 1; font-weight: 620; }
+        .meal-group-add-btn:active { transform: scale(.97); }
         .meal-name { color: var(--text-main); font-weight: 900; font-size: 17px; display: flex; align-items: center; gap: 8px; }
         .chevron { color: var(--text-muted); font-size: 12px; transition: transform .22s ease; }
         .meal-stats { text-align: right; }
@@ -894,6 +896,7 @@
         .meal-progress-caption { margin: -5px 0 10px; color: var(--text-muted); font-size: 11px; font-weight: 700; }
         .meal-group-content { display: block; overflow: hidden; opacity: 1; max-height: 900px; transition: max-height .28s ease, opacity .22s ease, transform .22s ease; }
         .meal-group-content.collapsed { max-height: 0; opacity: 0; transform: translateY(-4px); }
+        .meal-group-empty { padding: 10px 2px 2px; color: var(--text-muted); font-size: 13px; line-height: 1.35; font-weight: 680; }
         .history-item { padding: 12px 0; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(82,73,58,.075); }
         .history-item:first-child { border-top: none; }
         .del-btn { width: 28px; height: 28px; margin-left: 15px; border-radius: 50%; color: #b46158; background: rgba(201,108,97,.075); box-shadow: none; font-size: 16px; display: flex; align-items: center; justify-content: center; }
@@ -2704,11 +2707,137 @@
             overflow-wrap: anywhere;
         }
 
+        .product-search-product-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 6px;
+            align-items: center;
+        }
+
+        .product-search-product-copy {
+            min-width: 0;
+            display: grid;
+            gap: 0;
+        }
+
+        .product-search-meal-sheet {
+            max-height: min(calc(var(--app-viewport-height, 100vh) - 16px), 620px);
+            padding: 12px 12px 0;
+            border-radius: 24px;
+        }
+
+        .product-search-meal-sheet .barcode-meal-head {
+            margin-bottom: 6px;
+        }
+
+        .product-search-meal-sheet .barcode-meal-title {
+            font-size: 20px;
+        }
+
+        .product-search-product-card {
+            margin-top: 6px;
+            padding: 9px 10px 10px;
+            border-radius: 18px;
+        }
+
+        .product-search-product-card .barcode-product-title {
+            font-size: 16px;
+            line-height: 1.12;
+        }
+
+        .product-search-product-card .barcode-meal-field {
+            gap: 4px;
+        }
+
+        .product-search-product-card .barcode-meal-field input,
+        .product-search-product-card .barcode-meal-field select {
+            min-height: 40px;
+            border-radius: 14px;
+        }
+
         .barcode-meal-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 10px;
             margin-top: 12px;
+        }
+
+        .product-search-product-card .barcode-meal-grid {
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .product-search-quick-grams {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px;
+            margin-top: 7px;
+        }
+
+        .product-search-quick-grams button {
+            min-height: 31px;
+            border-radius: 12px;
+            color: #557d6c;
+            background: rgba(255,255,255,.78);
+            border: 1px solid rgba(95,143,122,.14);
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: 0 7px 16px rgba(82,73,58,.045), inset 0 1px 0 rgba(255,255,255,.74);
+        }
+
+        .product-search-quick-grams button.is-active {
+            color: #fff;
+            background: linear-gradient(180deg, #86b39e, #6f9d88);
+            border-color: rgba(95,143,122,.24);
+            box-shadow: 0 8px 18px rgba(95,143,122,.18), inset 0 1px 0 rgba(255,255,255,.28);
+        }
+
+        .product-search-quick-grams button:active {
+            transform: scale(.98);
+        }
+
+        .product-search-product-card .barcode-total-card {
+            margin-top: 9px;
+            padding: 10px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(241,248,244,.96), rgba(255,255,255,.86));
+            border-color: rgba(95,143,122,.18);
+            box-shadow: 0 10px 22px rgba(95,143,122,.10), inset 0 1px 0 rgba(255,255,255,.76);
+        }
+
+        .product-search-product-card .barcode-total-title {
+            margin-bottom: 7px;
+            color: #557d6c;
+            font-size: 12.5px;
+            letter-spacing: 0;
+        }
+
+        .product-search-product-card .barcode-total-grid {
+            gap: 6px;
+        }
+
+        .product-search-product-card .barcode-total-grid div {
+            min-height: 46px;
+            padding: 6px 4px;
+            border-radius: 12px;
+            background: rgba(255,255,255,.82);
+            border-color: rgba(95,143,122,.10);
+        }
+
+        .product-search-product-card .barcode-total-grid b {
+            color: var(--text-main);
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .product-search-product-card .barcode-total-grid span {
+            margin-top: 3px;
+            font-size: 9px;
+        }
+
+        .product-search-add-btn {
+            margin-top: 8px;
+            min-height: 42px;
         }
 
         .barcode-total-card {
@@ -10371,7 +10500,7 @@
         }
 
         .history-header {
-            margin: 22px 0 12px !important;
+            margin: 8px 0 12px !important;
             align-items: center !important;
         }
 
@@ -10508,12 +10637,12 @@
 
         .diary-meal-screen {
             width: 100%;
-            max-width: 480px;
+            max-width: none;
             height: var(--app-viewport-height, 100vh);
             min-height: 100vh;
             margin: 0 auto;
             display: grid;
-            grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+            grid-template-rows: auto auto auto auto minmax(0, 1fr);
             gap: 10px;
             padding: max(16px, env(safe-area-inset-top)) 16px max(14px, env(safe-area-inset-bottom));
             color: #242326;
@@ -10672,9 +10801,12 @@
         }
         .diary-meal-content {
             min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 4px 0 18px;
+            padding: 4px 0 max(20px, calc(18px + env(safe-area-inset-bottom)));
             scrollbar-width: none;
         }
 
@@ -10929,6 +11061,13 @@
             font-weight: 520;
         }
 
+        .diary-meal-inline-bottom-tabs {
+            margin-top: auto;
+            margin-bottom: max(18px, env(safe-area-inset-bottom));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            flex: 0 0 auto;
+        }
+
         .diary-meal-create-options {
             display: grid;
             gap: 12px;
@@ -11055,27 +11194,26 @@
         }
 
         .diary-meal-footer {
-            display: grid;
+            display: none;
             gap: 10px;
-            padding-top: 4px;
-            max-height: var(--diary-footer-space, 136px);
-            opacity: calc(1 - var(--diary-footer-progress, 0));
-            transform: translateY(calc(var(--diary-footer-progress, 0) * 22px));
-            overflow: hidden;
-            transition: max-height .08s linear, opacity .08s linear, transform .08s linear, padding .08s linear;
-            will-change: max-height, opacity, transform;
+            align-self: end;
+            padding: 10px 0 max(2px, env(safe-area-inset-bottom));
+            max-height: none;
+            opacity: 1;
+            transform: none;
+            overflow: visible;
         }
 
         .diary-meal-screen.is-footer-hidden .diary-meal-footer {
-            max-height: 0;
-            padding-top: 0;
-            opacity: 0;
-            transform: translateY(18px);
-            pointer-events: none;
+            max-height: none;
+            padding-top: 10px;
+            opacity: 1;
+            transform: none;
+            pointer-events: auto;
         }
 
         .diary-meal-screen.is-footer-hidden .diary-meal-content {
-            padding-bottom: 20px !important;
+            padding-bottom: max(20px, calc(18px + env(safe-area-inset-bottom))) !important;
         }
 
         /* Create tab visual alignment with the recipe library screen. */
@@ -11286,6 +11424,34 @@
             color: #9a9186;
         }
 
+        .diary-meal-search-state {
+            min-height: 128px;
+            align-content: center;
+        }
+
+        .diary-meal-search-state b {
+            overflow-wrap: anywhere;
+        }
+
+        .diary-meal-search-card .diary-meal-product-main b {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+
+        .diary-meal-search-card .diary-meal-product-main span {
+            display: block;
+            margin-top: 5px;
+        }
+
+        .diary-meal-search-spacer {
+            width: 34px;
+            min-width: 34px;
+            height: 1px;
+        }
+
         .diary-meal-scan-btn {
             width: 56px;
             height: 56px;
@@ -11405,106 +11571,6 @@
             }
         }
 
-        .diary-timeline {
-            display: grid;
-            gap: 14px;
-            width: 100%;
-            max-width: 100%;
-            overflow: hidden;
-        }
-
-        .diary-timeline-row {
-            position: relative;
-            display: grid;
-            grid-template-columns: 46px minmax(0, 1fr);
-            gap: 11px;
-            align-items: center;
-            min-width: 0;
-        }
-
-        .diary-timeline-row:not(:last-child)::before {
-            content: "";
-            position: absolute;
-            left: 22px;
-            top: calc(50% + 22px);
-            bottom: calc(-14px - 22px);
-            width: 4px;
-            border-radius: 999px;
-            background: linear-gradient(180deg, rgba(95,143,122,.28), rgba(95,143,122,.10));
-        }
-
-        .diary-timeline-marker {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            place-items: center;
-            width: 46px;
-            height: 46px;
-        }
-
-        .diary-timeline-icon {
-            display: grid;
-            place-items: center;
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            color: #557d6c;
-            background: rgba(255,255,255,.72);
-            border: 1px solid rgba(95,143,122,.14);
-            box-shadow: 0 8px 18px rgba(72,55,36,.06), inset 0 1px 0 rgba(255,255,255,.82);
-        }
-
-        .diary-timeline-icon svg {
-            width: 25px;
-            height: 25px;
-            fill: none;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .diary-timeline-card {
-            min-width: 0;
-            min-height: 68px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            padding: 0 14px 0 22px;
-            border-radius: 999px;
-            color: #25242b;
-            background: linear-gradient(180deg, rgba(255,255,255,.84), rgba(247,245,239,.76));
-            border: 1px solid rgba(82,73,58,.08);
-            box-shadow: 0 12px 28px rgba(72,55,36,.07), inset 0 1px 0 rgba(255,255,255,.86);
-            text-align: left;
-        }
-
-        .diary-timeline-title {
-            min-width: 0;
-            font-size: clamp(19px, 5vw, 25px);
-            line-height: 1.05;
-            font-weight: 940;
-            letter-spacing: 0;
-            overflow-wrap: anywhere;
-        }
-
-        .diary-timeline-add {
-            flex: 0 0 auto;
-            width: 42px;
-            height: 42px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            color: #557d6c;
-            background: rgba(255,255,255,.72);
-            border: 2px solid rgba(95,143,122,.36);
-            box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
-            font-size: 30px;
-            line-height: 1;
-            font-weight: 520;
-        }
-
         .diary-existing-meals {
             display: grid;
             gap: 10px;
@@ -11513,51 +11579,6 @@
 
         .diary-empty-state {
             margin-top: 2px;
-        }
-
-        @media (max-width: 360px) {
-            .diary-timeline {
-                gap: 12px;
-            }
-
-            .diary-timeline-row {
-                grid-template-columns: 40px minmax(0, 1fr);
-                gap: 8px;
-            }
-
-            .diary-timeline-row:not(:last-child)::before {
-                left: 19px;
-                top: calc(50% + 20px);
-                bottom: calc(-12px - 20px);
-                width: 3px;
-            }
-
-            .diary-timeline-marker {
-                width: 40px;
-                height: 40px;
-            }
-
-            .diary-timeline-icon {
-                width: 36px;
-                height: 36px;
-            }
-
-            .diary-timeline-icon svg {
-                width: 22px;
-                height: 22px;
-            }
-
-            .diary-timeline-card {
-                min-height: 62px;
-                padding-left: 17px;
-                padding-right: 10px;
-            }
-
-            .diary-timeline-add {
-                width: 38px;
-                height: 38px;
-                font-size: 27px;
-            }
         }
 
         /* Daily norm card inner redesign: compact header, two-column core, one progress bar. */
@@ -13484,6 +13505,15 @@
             color: var(--text-muted);
         }
 
+        .diary-meal-screen .diary-meal-footer {
+            display: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-content {
+            padding-bottom: max(20px, calc(18px + env(safe-area-inset-bottom))) !important;
+        }
+
+
         .recipe-kbju-line,
         .diary-meal-product-main small {
             color: #777f78;
@@ -13511,6 +13541,78 @@
         .planner-toolbar,
         .my-recipe-step-progress {
             margin-bottom: var(--ux-block-gap);
+        }
+
+        .diary-meal-screen .diary-meal-product-list {
+            gap: 6px;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) {
+            min-height: 58px;
+            grid-template-columns: minmax(0, 1fr) 32px 38px;
+            gap: 6px;
+            padding: 7px 8px 7px 12px !important;
+            border-radius: 16px !important;
+            background: rgba(255,255,255,.58);
+            border: 1px solid rgba(104,91,70,.075);
+            box-shadow: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) + .diary-meal-product-card:not(.diary-meal-recipe-card) {
+            margin-top: 0;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) .diary-meal-product-main {
+            gap: 3px;
+            align-content: center;
+            min-height: 42px;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) .diary-meal-product-main b {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            color: #25242b;
+            font-size: 14.5px;
+            line-height: 1.12;
+            font-weight: 900;
+            overflow-wrap: anywhere;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) .diary-meal-product-main span {
+            display: block;
+            min-width: 0;
+            max-width: 100%;
+            color: #7f766b;
+            font-size: 11.5px;
+            line-height: 1.18;
+            font-weight: 760;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) .diary-meal-fav-btn {
+            width: 32px !important;
+            height: 32px !important;
+            min-width: 32px !important;
+            min-height: 32px !important;
+            flex-basis: 32px !important;
+            font-size: 17px !important;
+            background: rgba(255,255,255,.44) !important;
+            box-shadow: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) .diary-meal-product-add {
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            min-height: 38px !important;
+            flex-basis: 38px !important;
+            font-size: 24px;
+            box-shadow: 0 8px 16px rgba(95,143,122,.16), inset 0 1px 0 rgba(255,255,255,.22) !important;
         }
 
         .diary-meal-screen.is-footer-hidden .diary-meal-content {
@@ -13548,6 +13650,11 @@
                 right: 12px !important;
                 padding-top: 0 !important;
             }
+        }
+
+        .diary-meal-screen .diary-meal-footer,
+        .diary-meal-screen.is-create-tab .diary-meal-footer {
+            display: none !important;
         }
 
         /* Premium recipe grid component for the full recipes screen. */
@@ -13621,6 +13728,120 @@
             border: 1px solid rgba(82,73,58,.09);
             box-shadow: 0 8px 18px rgba(49,39,28,.12), inset 0 1px 0 rgba(255,255,255,.9);
             transition: transform .18s var(--ease-soft), color .18s ease, background .18s ease, box-shadow .18s ease;
+        }
+
+        .diary-meal-overlay {
+            background: linear-gradient(180deg, #fffaf0 0%, #f5efe3 100%) !important;
+        }
+
+        .diary-meal-overlay::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% -12%, rgba(151,190,163,.26), transparent 34%),
+                radial-gradient(circle at 88% 8%, rgba(255,255,255,.48), transparent 30%);
+            opacity: var(--diary-glow-opacity, 1);
+            transition: opacity .24s ease;
+        }
+
+        .diary-meal-screen {
+            position: relative !important;
+            grid-template-rows: auto auto auto minmax(0, 1fr) !important;
+            gap: 10px !important;
+            padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
+        }
+
+        .diary-meal-topbar {
+            display: flex !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+        }
+
+        .diary-meal-topbar::after,
+        .diary-meal-title {
+            display: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-content,
+        .diary-meal-screen.is-footer-hidden .diary-meal-content {
+            padding-bottom: max(156px, calc(142px + env(safe-area-inset-bottom))) !important;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-content {
+            padding-bottom: max(86px, calc(72px + env(safe-area-inset-bottom))) !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer,
+        .diary-meal-screen.is-create-tab .diary-meal-footer {
+            position: absolute !important;
+            left: 16px !important;
+            right: 16px !important;
+            bottom: max(18px, env(safe-area-inset-bottom)) !important;
+            z-index: 8 !important;
+            display: grid !important;
+            gap: 8px !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            border: 0 !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            opacity: var(--diary-footer-opacity, 1) !important;
+            transform: translateY(calc(var(--diary-footer-control-progress, 0) * 22px)) !important;
+            transition: opacity .24s ease, transform .24s ease !important;
+            max-height: none !important;
+            overflow: visible !important;
+            align-self: auto !important;
+            pointer-events: auto !important;
+        }
+
+        .diary-meal-screen.is-footer-hidden .diary-meal-footer {
+            pointer-events: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-search-row {
+            grid-template-columns: minmax(0, 1fr) 52px;
+            gap: 8px;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-search,
+        .diary-meal-screen .diary-meal-footer .diary-meal-scan-btn {
+            min-height: 52px;
+            height: 52px;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-scan-btn {
+            width: 52px;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-bottom-tabs {
+            min-height: 54px;
+            margin: 0 !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-bottom-tabs button {
+            min-height: 44px;
+        }
+
+        .diary-meal-screen.is-create-tab .diary-meal-footer .diary-meal-search-row[hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 360px) {
+            .diary-meal-screen .diary-meal-footer,
+            .diary-meal-screen.is-create-tab .diary-meal-footer {
+                left: 12px !important;
+                right: 12px !important;
+                bottom: max(16px, env(safe-area-inset-bottom)) !important;
+            }
+
+            .diary-meal-screen .diary-meal-content,
+            .diary-meal-screen.is-footer-hidden .diary-meal-content {
+                padding-bottom: max(148px, calc(134px + env(safe-area-inset-bottom))) !important;
+            }
         }
 
         .recipe-grid-favorite svg {
@@ -13720,4 +13941,241 @@
             .recipe-grid-kbju {
                 font-size: 16px;
             }
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-search {
+            background: #fffdf8 !important;
+            border: 1px solid #e6ddcf !important;
+            box-shadow: 0 10px 22px rgba(72,55,36,.10), inset 0 1px 0 #ffffff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-scan-btn {
+            color: #ffffff !important;
+            background: #739f7c !important;
+            border: 1px solid #739f7c !important;
+            box-shadow: 0 10px 22px rgba(95,143,122,.22), inset 0 1px 0 rgba(255,255,255,.28) !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-bottom-tabs {
+            background: #f6efe2 !important;
+            border: 1px solid #e6ddcf !important;
+            box-shadow: inset 0 1px 0 #ffffff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-bottom-tabs button {
+            color: #776d62 !important;
+            background: #fffdf8 !important;
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .diary-meal-screen .diary-meal-footer .diary-meal-bottom-tabs button.active {
+            color: #2f3a32 !important;
+            background: #ffffff !important;
+            box-shadow: 0 8px 16px rgba(72,55,36,.08), inset 0 1px 0 #ffffff !important;
+        }
+
+        .diary-meal-screen.has-diary-selection .diary-meal-content,
+        .diary-meal-screen.has-diary-selection.is-footer-hidden .diary-meal-content {
+            padding-bottom: max(214px, calc(200px + env(safe-area-inset-bottom))) !important;
+        }
+
+        .diary-meal-screen.has-diary-selection.is-create-tab .diary-meal-content {
+            padding-bottom: max(140px, calc(126px + env(safe-area-inset-bottom))) !important;
+        }
+
+        .diary-meal-screen .diary-meal-product-card:not(.diary-meal-recipe-card) {
+            grid-template-columns: 28px minmax(0, 1fr) 32px 38px !important;
+            padding-left: 8px !important;
+        }
+
+        .diary-meal-product-card.is-selected:not(.diary-meal-recipe-card) {
+            background: #f1f7ed !important;
+            border-color: #9fc3a6 !important;
+            box-shadow: inset 0 0 0 1px rgba(115,159,124,.14) !important;
+        }
+
+        .diary-meal-select-btn {
+            width: 28px;
+            height: 38px;
+            min-width: 28px;
+            display: grid;
+            place-items: center;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #739f7c;
+            cursor: pointer;
+            align-self: center;
+        }
+
+        .diary-meal-select-btn span {
+            width: 20px;
+            height: 20px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #fffdf8;
+            border: 2px solid #d8cfbf;
+            box-shadow: inset 0 1px 0 #ffffff;
+            transition: background .16s ease, border-color .16s ease, transform .16s var(--ease-soft);
+        }
+
+        .diary-meal-select-btn.is-selected span {
+            background: #739f7c;
+            border-color: #739f7c;
+            transform: scale(1.02);
+        }
+
+        .diary-meal-select-btn.is-selected span::after {
+            content: "";
+            width: 8px;
+            height: 5px;
+            border-left: 2px solid #ffffff;
+            border-bottom: 2px solid #ffffff;
+            transform: rotate(-45deg) translate(1px, -1px);
+        }
+
+        .diary-meal-selection-bar {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto auto;
+            align-items: center;
+            gap: 8px;
+            min-height: 48px;
+            padding: 6px 8px 6px 14px;
+            border-radius: 18px;
+            background: #fffdf8;
+            border: 1px solid #e2d8c8;
+            box-shadow: 0 10px 22px rgba(72,55,36,.12), inset 0 1px 0 #ffffff;
+        }
+
+        .diary-meal-selection-bar[hidden] {
+            display: none !important;
+        }
+
+        .diary-meal-selection-count {
+            min-width: 0;
+            color: #2f3a32;
+            font-size: 14px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .diary-meal-selection-clear,
+        .diary-meal-selection-add {
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 0;
+            font-size: 12.5px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .diary-meal-selection-clear {
+            color: #7b7165;
+            background: #f3ebdf;
+        }
+
+        .diary-meal-selection-add {
+            color: #ffffff;
+            background: #739f7c;
+            box-shadow: 0 8px 16px rgba(95,143,122,.2), inset 0 1px 0 rgba(255,255,255,.24);
+        }
+
+        .multi-product-meal-sheet {
+            max-height: min(86vh, 680px);
+            overflow: auto;
+        }
+
+        .multi-product-card {
+            display: grid;
+            gap: 12px;
+        }
+
+        .multi-product-meal-type {
+            color: #7b7165;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .multi-product-meal-type b {
+            color: #2b2a31;
+        }
+
+        .multi-product-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .multi-product-item {
+            display: grid;
+            gap: 8px;
+            padding: 10px;
+            border-radius: 16px;
+            background: #fffdf8;
+            border: 1px solid #e6ddcf;
+        }
+
+        .multi-product-item-head {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 82px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .multi-product-item-head b {
+            min-width: 0;
+            color: #25242b;
+            font-size: 14px;
+            line-height: 1.18;
+            font-weight: 900;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            overflow: hidden;
+        }
+
+        .multi-product-item-head label {
+            display: grid;
+            gap: 4px;
+            color: #7b7165;
+            font-size: 11px;
+            font-weight: 850;
+        }
+
+        .multi-product-item-head input {
+            width: 100%;
+            min-height: 36px;
+            padding: 0 8px;
+            border-radius: 12px;
+            border: 1px solid #e1d8c9;
+            background: #ffffff;
+            color: #25242b;
+            font-size: 14px;
+            font-weight: 900;
+            text-align: center;
+            outline: none;
+        }
+
+        .multi-product-item-kbju {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            color: #6f756b;
+            font-size: 12px;
+            font-weight: 850;
+        }
+
+        .multi-product-total {
+            margin-top: 2px;
+        }
+
+        .multi-product-add-btn {
+            margin-top: 0 !important;
         }
