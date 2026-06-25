@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "scripts": {
+    "recipe:new": "node scripts/recipe-new.js",
+    "recipe:validate": "node scripts/recipe-new.js --validate",
+    "recipe:import": "node scripts/recipe-new.js --import recipes-import.txt"
+  }
+}
