@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/@zxing/browser@latest"></script>
     
-    <link rel="stylesheet" href="./styles/app.css?v=20260618-diary-multiselect-1">
+    <link rel="stylesheet" href="./styles/app.css?v=20260705-recipes-v2-detail-compact">
 </head>
 <body>
 
@@ -60,6 +60,8 @@
 
     <div class="recipes-screen-overlay" id="recipes-screen-overlay">
         <div class="recipes-screen">
+            <div id="recipes-v2-root" class="recipes-v2-root" hidden></div>
+            <div class="recipes-legacy-ui" id="recipes-legacy-ui">
             <div class="recipes-screen-head">
                 <div class="recipes-screen-title-row">
                     <button class="recipe-library-back" type="button" aria-label="Назад" onclick="closeRecipesScreen()">‹</button>
@@ -188,6 +190,7 @@
                     <span class="recipe-results-meta" id="recipe-results-meta">0 рецептов</span>
                 </div>
                 <div class="recipes-results-grid" id="recipes-results-grid"></div>
+            </div>
             </div>
         </div>
     </div>
@@ -749,9 +752,10 @@
                 </div>
                 <div class="portion-total" id="portion-total"></div>
                 <label class="portion-eaten-field" id="portion-eaten-field">
-                    <span>Съеденная порция, г</span>
+                    <span>Вес, г</span>
                     <input id="portion-eaten-grams" type="number" inputmode="decimal" min="1" step="1" value="100" oninput="setPortionEatenGrams(this.value)">
                 </label>
+                <div class="portion-quick-grams" id="portion-quick-grams" hidden></div>
                 <div class="portion-meal-section" id="portion-meal-section">
                     <div class="portion-subtitle">Прием пищи</div>
                     <div class="portion-meal-options" id="portion-meal-options">
@@ -788,30 +792,62 @@
                 <img id="detail-img" class="detail-hero-img" alt="">
                 <div class="detail-topbar">
                     <button class="recipes-open-btn" type="button" onclick="closeRecipeDetails()">Назад</button>
-                    <button class="close-details-btn" type="button" aria-label="Закрыть рецепт" onclick="closeRecipeDetails()">×</button>
-                </div>
-                <div class="detail-hero-text">
-                    <h2 id="detail-title" class="detail-title">Название</h2>
-                    <div id="detail-badges" class="detail-badges"></div>
+                    <button class="detail-favorite-btn" id="detail-favorite-btn" type="button" aria-label="Добавить в избранное" aria-pressed="false" onclick="toggleRecipeDetailsFavorite(event)">♡</button>
                 </div>
             </div>
             <div class="detail-body">
+                <section class="detail-info">
+                    <h2 id="detail-title" class="detail-title">Название</h2>
+                    <p id="detail-description" class="detail-description"></p>
+                    <div id="detail-badges" class="detail-badges"></div>
+                </section>
                 <div id="detail-macros" class="detail-macro-grid"></div>
-                <div class="detail-section">
-                    <h3>Почему подходит тебе</h3>
-                    <div id="detail-fit-note" class="detail-note"></div>
-                </div>
-                <div class="detail-section">
-                    <h3>Ингредиенты</h3>
+                <details class="detail-section detail-accordion">
+                    <summary id="detail-ingredients-summary">Ингредиенты</summary>
                     <div id="detail-ingredients"></div>
-                </div>
-                <div class="detail-section">
-                    <h3>Приготовление</h3>
+                </details>
+                <details class="detail-section detail-accordion">
+                    <summary>Приготовление</summary>
                     <div id="detail-instructions" class="instructions-text"></div>
-                </div>
+                </details>
             </div>
             <div class="detail-sticky-cta">
                 <button class="detail-add-btn" id="detail-add-btn">Добавить в дневник</button>
+            </div>
+        </div>
+    </div>
+    <div id="recipe-view-page" class="recipe-view-page" hidden aria-hidden="true">
+        <div class="recipe-view-screen">
+            <section class="recipe-view-hero">
+                <div class="recipe-view-topbar">
+                    <button class="recipes-open-btn" type="button" onclick="closeRecipeDetails()">Назад</button>
+                    <button class="recipe-view-favorite-btn" id="recipe-view-favorite-btn" type="button" aria-label="Добавить в избранное" aria-pressed="false" onclick="toggleRecipeDetailsFavorite(event)">♡</button>
+                </div>
+                <div class="recipe-view-photo-wrap" id="recipe-view-photo-wrap">
+                    <img id="recipe-view-img" class="recipe-view-photo" alt="">
+                    <div class="recipe-view-photo-placeholder" id="recipe-view-photo-placeholder">Фото рецепта</div>
+                </div>
+            </section>
+            <div class="recipe-view-page-body">
+                <section class="recipe-view-info-block">
+                    <h1 id="recipe-view-title" class="recipe-view-page-title">Название</h1>
+                    <p id="recipe-view-description" class="recipe-view-page-description"></p>
+                    <div id="recipe-view-kbju" class="recipe-view-page-kbju"></div>
+                    <div id="recipe-view-facts" class="recipe-view-facts"></div>
+                </section>
+                <section class="recipe-view-content-block">
+                    <div class="recipe-view-section">
+                        <h2>Ингредиенты</h2>
+                        <div id="recipe-view-ingredients"></div>
+                    </div>
+                    <div class="recipe-view-section">
+                        <h2>Приготовление</h2>
+                        <div id="recipe-view-instructions" class="instructions-text"></div>
+                    </div>
+                </section>
+            </div>
+            <div class="recipe-view-page-actions">
+                <button class="detail-add-btn" id="recipe-view-add-btn" type="button">Добавить в дневник</button>
             </div>
         </div>
     </div>
@@ -1136,12 +1172,20 @@
         </div>
         <div id="history-list"></div>
     </div>
-    <script src="./scripts/starter-recipes.js?v=20260618-diary-clean-2"></script>
-    <script src="./scripts/ui-components.js?v=20260618-diary-clean-2"></script>
+    <script src="./src/data/catalogRecipes.js?v=20260625-catalog-recipes-auto-1"></script>
+    <script src="./scripts/starter-recipes.js?v=20260625-catalog-recipes-auto-1"></script>
+    <script src="./scripts/ui-components.js?v=20260702-ux-ai-stage5"></script>
+    <script src="./scripts/recipes-v2.js?v=20260705-recipes-v2-detail-compact"></script>
     <script src="./scripts/format-utils.js?v=20260618-diary-clean-2"></script>
     <script src="./scripts/nutrition-utils.js?v=20260618-diary-clean-2"></script>
     <script src="./scripts/recipe-utils.js?v=20260618-diary-clean-2"></script>
     <script src="./scripts/recommendation-utils.js?v=20260618-diary-clean-2"></script>
-    <script src="./scripts/app.js?v=20260618-diary-multiselect-1"></script>
+    <script src="./scripts/app.js?v=20260705-recipes-v2-router"></script>
 </body>
 </html>
+
+
+
+
+
+
