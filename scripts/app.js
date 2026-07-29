@@ -5798,6 +5798,112 @@
             screen?.setAttribute('aria-hidden', 'true');
         }
 
+        const DIARY_FOOD_PICKER_TABS = ['products', 'my-recipes', 'cooking'];
+        const diaryFoodPickerState = {
+            mealType: 'Завтрак',
+            activeTab: 'products'
+        };
+
+        function getDiaryFoodPickerTabIndex(tabName) {
+            const index = DIARY_FOOD_PICKER_TABS.indexOf(tabName);
+            return index >= 0 ? index : 0;
+        }
+
+        function getDiaryFoodPickerTabTitle(tabName) {
+            if (tabName === 'my-recipes') return 'Мои рецепты';
+            if (tabName === 'cooking') return 'Кулинария';
+            return 'Продукты';
+        }
+
+        function getDiaryFoodPickerDateLabel() {
+            try {
+                return currentDate.toLocaleDateString('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+            } catch (error) {
+                return 'Сегодня';
+            }
+        }
+
+        function renderDiaryFoodPickerPlaceholder(tabName) {
+            if (tabName === 'my-recipes') {
+                return '<div class="diary-food-picker-empty"><h3>Здесь будут твои рецепты</h3><p>На следующем этапе подключим список сохранённых рецептов.</p></div>';
+            }
+            if (tabName === 'cooking') {
+                return '<div class="diary-food-picker-empty"><h3>Здесь будет каталог рецептов</h3><p>Кулинарию подключим отдельно, без влияния на дневник.</p></div>';
+            }
+            return '<div class="diary-food-picker-empty"><h3>Здесь будут продукты</h3><p>Пока это безопасный каркас Food Picker без подключения базы.</p></div>';
+        }
+
+        function renderDiaryFoodPickerScreen() {
+            const screen = document.getElementById('diary-food-picker-screen');
+            if (!screen) return;
+            const activeTab = DIARY_FOOD_PICKER_TABS.includes(diaryFoodPickerState.activeTab) ? diaryFoodPickerState.activeTab : 'products';
+            const activeIndex = getDiaryFoodPickerTabIndex(activeTab);
+            const tabs = DIARY_FOOD_PICKER_TABS.map(tabName => {
+                const active = tabName === activeTab;
+                return '<button class="' + (active ? 'active' : '') + '" type="button" role="tab" aria-selected="' + (active ? 'true' : 'false') + '" onclick="setDiaryFoodPickerTab(\'' + escapeAttr(tabName) + '\')">' + escapeHTML(getDiaryFoodPickerTabTitle(tabName)) + '</button>';
+            }).join('');
+            const panels = DIARY_FOOD_PICKER_TABS.map(tabName => {
+                const active = tabName === activeTab;
+                return '<section class="diary-food-picker-panel' + (active ? ' active' : '') + '" role="tabpanel">' + renderDiaryFoodPickerPlaceholder(tabName) + '</section>';
+            }).join('');
+            screen.style.setProperty('--food-picker-tab-index', String(activeIndex));
+            screen.innerHTML =
+                '<div class="diary-food-picker-fixed">' +
+                    '<header class="diary-food-picker-head">' +
+                        '<div class="diary-food-picker-title-block">' +
+                            '<h1 class="diary-food-picker-title">' + escapeHTML(getValidMealType(diaryFoodPickerState.mealType, 'Завтрак')) + '</h1>' +
+                            '<div class="diary-food-picker-date">' + escapeHTML(getDiaryFoodPickerDateLabel()) + '</div>' +
+                        '</div>' +
+                        '<button class="diary-food-picker-cancel" type="button" onclick="closeDiaryFoodPickerScreen()">Отмена</button>' +
+                    '</header>' +
+                    '<nav class="diary-food-picker-tabs" role="tablist" aria-label="Разделы выбора еды">' +
+                        tabs +
+                        '<span class="diary-food-picker-tab-indicator" aria-hidden="true"></span>' +
+                    '</nav>' +
+                    '<main class="diary-food-picker-viewport">' + panels + '</main>' +
+                '</div>';
+        }
+
+        function setDiaryFoodPickerTab(tabName) {
+            diaryFoodPickerState.activeTab = DIARY_FOOD_PICKER_TABS.includes(tabName) ? tabName : 'products';
+            renderDiaryFoodPickerScreen();
+        }
+
+        function openDiaryFoodPickerScreen(mealType, event, options = {}) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            closeAddMealChoice();
+            closeDiaryMealScreen();
+            diaryFoodPickerState.mealType = getValidMealType(mealType || currentDiaryMealType || 'Завтрак', 'Завтрак');
+            currentDiaryMealType = diaryFoodPickerState.mealType;
+            diaryFoodPickerState.activeTab = DIARY_FOOD_PICKER_TABS.includes(options.activeTab) ? options.activeTab : 'products';
+            renderDiaryFoodPickerScreen();
+            const screen = document.getElementById('diary-food-picker-screen');
+            setDisplayedLayer('diary-food-picker', screen, true, 'flex');
+            screen?.classList.add('active');
+        }
+
+        function closeDiaryFoodPickerScreen() {
+            const screen = document.getElementById('diary-food-picker-screen');
+            screen?.classList.remove('active');
+            setDisplayedLayer('diary-food-picker', screen, false);
+        }
+
+        function loadDiaryFoodPickerProducts() {
+            renderDiaryFoodPickerScreen();
+            return Promise.resolve([]);
+        }
+
+        function loadDiaryFoodPickerRecipes() {
+            renderDiaryFoodPickerScreen();
+            return Promise.resolve([]);
+        }
+
+        function loadDiaryFoodPickerCookingRecipes() {
+            renderDiaryFoodPickerScreen();
+            return Promise.resolve([]);
+        }
+
         function setDiaryMealTab(tabName) {
             diaryMealActiveTab = ['products','recipes','estimate'].includes(tabName) ? tabName : 'products';
             if (USE_RECIPES_V2 && diaryMealActiveTab === 'recipes') {
@@ -6822,7 +6928,7 @@
                     '<span class="meal-name"><span class="chevron">' + (collapsed ? '▸' : '▾') + '</span>' + escapeHTML(type) + '</span>' +
                     '<span class="meal-stats">' + (hasMeals ? '<b class="meal-kcal">' + Math.round(typeKcal) + ' ккал • Б ' + Math.round(typeProtein) + ' • Ж ' + Math.round(typeFat) + ' • У ' + Math.round(typeCarbs) + '</b>' : '') + '</span>' +
                 '</button>' +
-                '<button class="meal-group-add-btn" type="button" aria-label="Добавить еду в ' + escapeAttr(type) + '" onclick="openDiaryMealScreen(' + typeArg + ', event, { activeTab: \'products\', focusSearch: true })">+</button>' +
+                '<button class="meal-group-add-btn" type="button" aria-label="Добавить еду в ' + escapeAttr(type) + '" onclick="openDiaryFoodPickerScreen(' + typeArg + ', event, { activeTab: \'products\' })">+</button>' +
                 (hasMeals ? '<div class="meal-group-content' + (collapsed ? ' collapsed' : '') + '">' +
                     '<div class="meal-progress"><div class="meal-progress-fill" style="--meal-pct:' + mealPct + '%"></div></div>' +
                     '<div class="meal-items-list">' + itemsHtml + '</div>' +

@@ -14987,6 +14987,190 @@
     overflow: hidden;
 }
 
+/* Food Picker fullscreen shell, restored from cf89093 without global body guards. */
+.diary-food-picker-screen {
+    --food-picker-tab-index: 0;
+    position: fixed;
+    inset: 0;
+    z-index: 13260;
+    display: none;
+    align-items: stretch;
+    justify-content: center;
+    width: 100vw;
+    max-width: 100vw;
+    height: var(--app-viewport-height, 100dvh);
+    min-height: var(--app-viewport-height, 100dvh);
+    overflow: hidden;
+    background: var(--bg-color);
+    color: var(--text-main);
+    touch-action: pan-y;
+}
+
+.diary-food-picker-screen[hidden] {
+    display: none !important;
+}
+
+.diary-food-picker-screen.active {
+    display: flex;
+}
+
+.diary-food-picker-fixed {
+    width: min(100%, 430px);
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    background: var(--bg-color);
+    overflow: hidden;
+    border-left: 1px solid rgba(68,80,73,.10);
+    border-right: 1px solid rgba(68,80,73,.10);
+}
+
+.diary-food-picker-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: max(18px, env(safe-area-inset-top)) 20px 12px;
+    background: var(--bg-color);
+}
+
+.diary-food-picker-title-block {
+    min-width: 0;
+}
+
+.diary-food-picker-title {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 24px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+.diary-food-picker-date {
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.diary-food-picker-cancel {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: #d99831;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 600;
+}
+
+.diary-food-picker-tabs {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: 0 20px;
+    border-bottom: 1px solid rgba(68,80,73,.10);
+    background: var(--bg-color);
+}
+
+.diary-food-picker-tabs button {
+    min-height: 42px;
+    border: 0;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 12px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.diary-food-picker-tabs button.active {
+    color: #d99831;
+}
+
+.diary-food-picker-tab-indicator {
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: calc(100% / 3);
+    height: 2px;
+    border-radius: 999px;
+    background: #e0a33f;
+    transform: translateX(calc(var(--food-picker-tab-index) * 100%));
+    transition: transform .28s cubic-bezier(.22,.61,.36,1);
+}
+
+.diary-food-picker-viewport {
+    min-height: 0;
+    overflow: hidden;
+    background: var(--bg-color);
+}
+
+.diary-food-picker-panel {
+    display: none;
+    height: 100%;
+    min-height: 0;
+    padding: 28px 20px max(28px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.diary-food-picker-panel::-webkit-scrollbar {
+    display: none;
+}
+
+.diary-food-picker-panel.active {
+    display: block;
+}
+
+.diary-food-picker-empty {
+    min-height: min(440px, 64vh);
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+}
+
+.diary-food-picker-empty h3 {
+    margin: 0 0 8px;
+    color: var(--text-main);
+    font-size: 19px;
+    line-height: 1.15;
+    font-weight: 900;
+}
+
+.diary-food-picker-empty p {
+    max-width: 260px;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+@media (max-width: 390px) {
+    .diary-food-picker-head {
+        padding-inline: 16px;
+    }
+
+    .diary-food-picker-tabs {
+        margin-inline: 16px;
+    }
+
+    .diary-food-picker-panel {
+        padding-inline: 16px;
+    }
+}
+
 .recipes-v2-root[hidden],
 .recipes-legacy-ui[hidden] {
     display: none !important;
