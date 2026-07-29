@@ -15068,6 +15068,10 @@
     font-weight: 600;
 }
 
+.diary-food-picker-cancel.is-save {
+    font-weight: 800;
+}
+
 .diary-food-picker-tabs {
     position: relative;
     display: grid;
@@ -15244,6 +15248,10 @@
     background: rgba(95,143,122,.045);
 }
 
+.diary-food-picker-product-row.is-selected {
+    background: rgba(95,143,122,.055);
+}
+
 .diary-food-picker-product-row:last-child {
     border-bottom: 0;
 }
@@ -15259,7 +15267,6 @@
 
 .diary-food-picker-product-line {
     min-width: 0;
-    cursor: pointer;
 }
 
 .diary-food-picker-product-copy {
@@ -15268,7 +15275,8 @@
     gap: 4px;
 }
 
-.diary-food-picker-product-copy b {
+.diary-food-picker-product-copy b,
+.diary-food-picker-product-name-btn {
     min-width: 0;
     color: var(--text-main);
     font-size: 14px;
@@ -15277,6 +15285,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.diary-food-picker-product-name-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    text-align: left;
 }
 
 .diary-food-picker-product-copy small {
@@ -15332,7 +15350,7 @@
     border-color: var(--success);
 }
 
-.diary-food-picker-product-row.is-active .diary-food-picker-product-check {
+.diary-food-picker-product-row.is-selected .diary-food-picker-product-check {
     color: #ffffff;
     background: var(--success);
     border-color: var(--success);
@@ -15444,6 +15462,147 @@
     line-height: 1.25;
     font-weight: 800;
     text-align: center;
+}
+
+.diary-food-picker-clear-selection {
+    width: 100%;
+    min-height: 40px;
+    margin: -2px 0 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(82,73,58,.10);
+    color: var(--text-muted);
+    background: #ffffff;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 850;
+}
+
+.diary-food-picker-product-form {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(82,73,58,.08);
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(82,73,58,.06), inset 0 1px 0 rgba(255,255,255,.76);
+}
+
+.diary-food-picker-form-head {
+    display: grid;
+    gap: 5px;
+}
+
+.diary-food-picker-form-head h3 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 20px;
+    line-height: 1.1;
+    font-weight: 950;
+}
+
+.diary-food-picker-form-head p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 700;
+}
+
+.diary-food-picker-form-error {
+    padding: 9px 11px;
+    border-radius: 14px;
+    border: 1px solid rgba(177,82,70,.18);
+    color: #9f3c31;
+    background: rgba(255,244,241,.92);
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 800;
+}
+
+.diary-food-picker-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.diary-food-picker-field {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.diary-food-picker-field-wide {
+    grid-column: 1 / -1;
+}
+
+.diary-food-picker-field span {
+    color: var(--text-muted);
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 950;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+
+.diary-food-picker-field input {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(82,73,58,.10);
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 800;
+    outline: 0;
+}
+
+.diary-food-picker-field input:focus {
+    border-color: rgba(95,143,122,.34);
+    box-shadow: 0 0 0 3px rgba(95,143,122,.10);
+}
+
+.diary-food-picker-form-summary {
+    min-height: 36px;
+    display: grid;
+    place-items: center;
+    padding: 8px 10px;
+    border-radius: 14px;
+    color: var(--text-main);
+    background: rgba(239,245,240,.86);
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 850;
+    text-align: center;
+}
+
+.diary-food-picker-form-actions {
+    display: grid;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    gap: 10px;
+}
+
+.diary-food-picker-form-cancel,
+.diary-food-picker-form-save {
+    min-height: 42px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.diary-food-picker-form-cancel {
+    border: 1px solid rgba(82,73,58,.10);
+    color: var(--text-muted);
+    background: #ffffff;
+}
+
+.diary-food-picker-form-save {
+    border: 1px solid rgba(217,152,49,.24);
+    color: #ffffff;
+    background: linear-gradient(180deg, #e8b252, #d99831);
+    box-shadow: 0 8px 16px rgba(217,152,49,.14), inset 0 1px 0 rgba(255,255,255,.24);
 }
 
 .diary-food-picker-create-product {

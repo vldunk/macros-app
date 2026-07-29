@@ -5804,7 +5804,13 @@
             activeTab: 'products',
             productQuery: '',
             productsFavoritesOnly: false,
-            activeProductId: null,
+            productCreateMode: false,
+            productEditMode: false,
+            productEditId: null,
+            productCreateDraft: { name: '', kcal: '', protein: '', fat: '', carbs: '' },
+            productCreateError: '',
+            selectedProducts: {},
+            expandedProductId: null,
             productDraftGrams: {},
             notice: ''
         };
@@ -5903,7 +5909,13 @@
         }
 
         function calculateDiaryFoodPickerPortion(product, grams = 100) {
-            const safeGrams = Math.max(1, Number(String(grams).replace(',', '.')) || 100);
+            if (grams === '' || grams === null || grams === undefined) {
+                return { grams: 0, kcal: 0, protein: 0, fat: 0, carbs: 0 };
+            }
+            const safeGrams = Number(String(grams).replace(',', '.'));
+            if (!Number.isFinite(safeGrams) || safeGrams <= 0) {
+                return { grams: 0, kcal: 0, protein: 0, fat: 0, carbs: 0 };
+            }
             const ratio = safeGrams / 100;
             return {
                 grams: safeGrams,
@@ -5912,6 +5924,25 @@
                 fat: (Number(product?.fat) || 0) * ratio,
                 carbs: (Number(product?.carbs) || 0) * ratio
             };
+        }
+
+        function getDiaryFoodPickerSelectedCount() {
+            return Object.keys(diaryFoodPickerState.selectedProducts || {}).length;
+        }
+
+        function getDiaryFoodPickerSelectedProducts() {
+            const selected = diaryFoodPickerState.selectedProducts || {};
+            return Object.keys(selected)
+                .map(key => {
+                    const product = getDiaryFoodPickerProducts().find(item => String(item.id) === key) || selected[key]?.product;
+                    if (!product) return null;
+                    const rawGrams = selected[key]?.grams;
+                    const grams = Number.isFinite(Number(String(rawGrams).replace(',', '.'))) && Number(String(rawGrams).replace(',', '.')) > 0
+                        ? Number(String(rawGrams).replace(',', '.'))
+                        : 100;
+                    return { key, product, grams };
+                })
+                .filter(Boolean);
         }
 
         function isDiaryFoodPickerProductFavorite(product) {
@@ -5929,33 +5960,37 @@
             const idArg = escapeAttr(JSON.stringify(String(product.id || '')));
             const favorite = isDiaryFoodPickerProductFavorite(product);
             const productKey = String(product.id || '');
-            const active = String(diaryFoodPickerState.activeProductId || '') === productKey;
-            const grams = Math.max(1, Number(diaryFoodPickerState.productDraftGrams?.[productKey]) || 100);
+            const selected = Boolean(diaryFoodPickerState.selectedProducts?.[productKey]);
+            const expanded = selected && String(diaryFoodPickerState.expandedProductId || '') === productKey;
+            const rawGrams = selected
+                ? diaryFoodPickerState.selectedProducts?.[productKey]?.grams
+                : 100;
+            const grams = rawGrams === '' ? '' : Math.max(1, Number(String(rawGrams ?? 100).replace(',', '.')) || 100);
             const portion = calculateDiaryFoodPickerPortion(product, grams);
-            return '<article class="diary-food-picker-product-row' + (active ? ' is-active' : '') + '">' +
+            const gramsLabel = grams === '' ? '0 г' : formatDiaryFoodPickerMacroValue(portion.grams) + ' г';
+            return '<article class="diary-food-picker-product-row' + (selected ? ' is-selected' : '') + (expanded ? ' is-active' : '') + '" data-food-picker-product-id="' + escapeAttr(productKey) + '">' +
                 '<div class="diary-food-picker-product-top">' +
-                    '<div class="diary-food-picker-product-line" role="button" tabindex="0" onclick="toggleDiaryFoodPickerProduct(' + idArg + ', event)" onkeydown="handleDiaryFoodPickerProductLineKeydown(' + idArg + ', event)">' +
+                    '<div class="diary-food-picker-product-line" role="button" tabindex="0" onclick="expandDiaryFoodPickerProduct(' + idArg + ', event)" onkeydown="handleDiaryFoodPickerProductLineKeydown(' + idArg + ', event)">' +
                         '<span class="diary-food-picker-product-copy">' +
-                            '<b>' + escapeHTML(product.name) + '</b>' +
-                            '<small><span>100 г</span><span class="diary-food-picker-product-macros">' + escapeHTML(formatDiaryFoodPickerProductMacros(product)) + '</span></small>' +
+                            '<button class="diary-food-picker-product-name-btn" type="button" onclick="openDiaryFoodPickerEditProduct(' + idArg + ', event)">' + escapeHTML(product.name) + '</button>' +
+                            '<small><span class="diary-food-picker-product-grams">' + escapeHTML(gramsLabel) + '</span><span class="diary-food-picker-product-macros">' + escapeHTML(formatDiaryFoodPickerPortionLine(portion)) + '</span></small>' +
                         '</span>' +
                     '</div>' +
                     '<button class="diary-food-picker-product-fav' + (favorite ? ' active' : '') + '" type="button" aria-label="' + (favorite ? 'Убрать из избранного' : 'Добавить в избранное') + '" aria-pressed="' + (favorite ? 'true' : 'false') + '" onclick="toggleDiaryFoodPickerProductFavorite(' + idArg + ', event)">' + (favorite ? '♥' : '♡') + '</button>' +
-                    '<button class="diary-food-picker-product-check" type="button" aria-label="' + (active ? 'Закрыть выбор продукта' : 'Выбрать продукт') + '" onclick="toggleDiaryFoodPickerProduct(' + idArg + ', event)">' + (active ? '−' : '+') + '</button>' +
+                    '<button class="diary-food-picker-product-check" type="button" aria-label="' + (selected ? 'Снять выбор продукта' : 'Выбрать продукт') + '" onclick="toggleDiaryFoodPickerProduct(' + idArg + ', event)">' + (selected ? '−' : '+') + '</button>' +
                 '</div>' +
-                (active ? '<div class="diary-food-picker-portion-card">' +
+                (expanded ? '<div class="diary-food-picker-portion-card">' +
                     '<div class="diary-food-picker-grams-stepper">' +
-                        '<button class="diary-food-picker-grams-minus" type="button" aria-label="Уменьшить вес" onclick="adjustDiaryFoodPickerProductGrams(-10)">−</button>' +
-                        '<label><input id="diary-food-picker-portion-grams" type="number" inputmode="decimal" min="1" step="1" value="' + escapeAttr(String(Math.round(grams))) + '" oninput="setDiaryFoodPickerProductGrams(this.value)"><span>г</span></label>' +
-                        '<button class="diary-food-picker-grams-plus" type="button" aria-label="Увеличить вес" onclick="adjustDiaryFoodPickerProductGrams(10)">+</button>' +
+                        '<button class="diary-food-picker-grams-minus" type="button" aria-label="Уменьшить вес" onclick="adjustDiaryFoodPickerProductGrams(' + idArg + ', -10)">−</button>' +
+                        '<label><input type="number" inputmode="decimal" min="1" step="1" value="' + escapeAttr(grams === '' ? '' : String(Math.round(grams))) + '" oninput="setDiaryFoodPickerProductGrams(' + idArg + ', this.value)"><span>г</span></label>' +
+                        '<button class="diary-food-picker-grams-plus" type="button" aria-label="Увеличить вес" onclick="adjustDiaryFoodPickerProductGrams(' + idArg + ', 10)">+</button>' +
                     '</div>' +
-                    '<div class="diary-food-picker-portion-total" id="diary-food-picker-product-total">' + escapeHTML(formatDiaryFoodPickerPortionLine(portion)) + '</div>' +
-                    '<button class="diary-food-picker-portion-submit" type="button" onclick="showDiaryFoodPickerProductAddPlaceholder(' + idArg + ', event)">Добавить</button>' +
                 '</div>' : '') +
             '</article>';
         }
 
         function renderDiaryFoodPickerProducts() {
+            if (diaryFoodPickerState.productCreateMode) return renderDiaryFoodPickerProductCreateForm();
             const query = diaryFoodPickerState.productQuery || '';
             const normalizedQuery = normalizeManualProductName(query);
             const allProducts = normalizedQuery
@@ -5966,6 +6001,9 @@
                 : allProducts;
             const title = diaryFoodPickerState.productsFavoritesOnly ? 'Избранные продукты' : 'Все продукты';
             const createButton = '<button class="diary-food-picker-create-product" type="button" onclick="openDiaryFoodPickerCreateProduct()">Добавить новый продукт</button>';
+            const clearButton = getDiaryFoodPickerSelectedCount() > 0
+                ? '<button class="diary-food-picker-clear-selection" type="button" onclick="clearDiaryFoodPickerProductSelection(event)">Снять выбор</button>'
+                : '';
             const notice = diaryFoodPickerState.notice
                 ? '<div class="diary-food-picker-notice" role="status">' + escapeHTML(diaryFoodPickerState.notice) + '</div>'
                 : '';
@@ -5974,12 +6012,35 @@
                 : '<div class="diary-food-picker-empty"><h3>Продукты не найдены</h3><p>' + (query ? 'Попробуй изменить запрос.' : 'Здесь пока нет доступных продуктов.') + '</p>' + createButton + '</div>';
             return '<div class="diary-food-picker-search-row"><label class="diary-food-picker-search"><input id="diary-food-picker-product-search" type="search" value="' + escapeAttr(query) + '" placeholder="Найти продукт" autocomplete="off" oninput="handleDiaryFoodPickerProductSearch(this.value)"></label>' +
                 '<button class="diary-food-picker-favorites-btn' + (diaryFoodPickerState.productsFavoritesOnly ? ' active' : '') + '" type="button" aria-label="Показать избранные продукты" aria-pressed="' + (diaryFoodPickerState.productsFavoritesOnly ? 'true' : 'false') + '" onclick="toggleDiaryFoodPickerFavoritesOnly(event)">' + (diaryFoodPickerState.productsFavoritesOnly ? '♥' : '♡') + '</button></div>' +
-                notice + body;
+                notice + clearButton + body;
+        }
+
+        function renderDiaryFoodPickerProductCreateForm() {
+            const draft = diaryFoodPickerState.productCreateDraft || {};
+            const isEdit = Boolean(diaryFoodPickerState.productEditMode);
+            const error = diaryFoodPickerState.productCreateError
+                ? '<div class="diary-food-picker-form-error" role="alert">' + escapeHTML(diaryFoodPickerState.productCreateError) + '</div>'
+                : '';
+            return '<section class="diary-food-picker-product-form">' +
+                '<div class="diary-food-picker-form-head"><h3>' + (isEdit ? 'Изменить продукт' : 'Добавить новый продукт') + '</h3><p>Укажи КБЖУ на 100 г. После сохранения продукт появится в списке.</p></div>' +
+                error +
+                '<label class="diary-food-picker-field diary-food-picker-field-wide"><span>Название продукта</span><input id="diary-food-picker-product-name" type="text" value="' + escapeAttr(draft.name || '') + '" placeholder="Например, куриная грудка" autocomplete="off" oninput="updateDiaryFoodPickerProductDraft(\'name\', this.value)"></label>' +
+                '<div class="diary-food-picker-form-grid">' +
+                    '<label class="diary-food-picker-field"><span>Калории / 100 г</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.kcal || '') + '" placeholder="0" oninput="updateDiaryFoodPickerProductDraft(\'kcal\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Белки / 100 г</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.protein || '') + '" placeholder="0" oninput="updateDiaryFoodPickerProductDraft(\'protein\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Жиры / 100 г</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.fat || '') + '" placeholder="0" oninput="updateDiaryFoodPickerProductDraft(\'fat\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Углеводы / 100 г</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.carbs || '') + '" placeholder="0" oninput="updateDiaryFoodPickerProductDraft(\'carbs\', this.value)"></label>' +
+                '</div>' +
+                '<div class="diary-food-picker-form-summary" id="diary-food-picker-product-create-summary">На 100 г: ' + escapeHTML(formatDiaryFoodPickerProductCreateSummary(draft)) + '</div>' +
+                '<div class="diary-food-picker-form-actions">' +
+                    '<button class="diary-food-picker-form-cancel" type="button" onclick="cancelDiaryFoodPickerCreateProduct(event)">Отмена</button>' +
+                    '<button class="diary-food-picker-form-save" type="button" onclick="saveDiaryFoodPickerCreateProduct(event)">' + (isEdit ? 'Сохранить изменения' : 'Сохранить') + '</button>' +
+                '</div>' +
+            '</section>';
         }
 
         function handleDiaryFoodPickerProductSearch(value) {
             diaryFoodPickerState.productQuery = String(value || '');
-            diaryFoodPickerState.activeProductId = null;
             diaryFoodPickerState.notice = '';
             renderDiaryFoodPickerScreen();
             setTimeout(() => document.getElementById('diary-food-picker-product-search')?.focus?.(), 0);
@@ -6010,55 +6071,283 @@
             const product = getDiaryFoodPickerProducts().find(item => String(item.id) === key);
             if (!product) return showToast('Продукт не найден');
             diaryFoodPickerState.notice = '';
-            if (String(diaryFoodPickerState.activeProductId || '') === key) {
-                diaryFoodPickerState.activeProductId = null;
+            if (!diaryFoodPickerState.selectedProducts) diaryFoodPickerState.selectedProducts = {};
+            if (diaryFoodPickerState.selectedProducts[key]) {
+                delete diaryFoodPickerState.selectedProducts[key];
+                if (diaryFoodPickerState.productDraftGrams) delete diaryFoodPickerState.productDraftGrams[key];
+                if (String(diaryFoodPickerState.expandedProductId || '') === key) diaryFoodPickerState.expandedProductId = null;
             } else {
-                diaryFoodPickerState.activeProductId = key;
                 if (!diaryFoodPickerState.productDraftGrams) diaryFoodPickerState.productDraftGrams = {};
-                if (!diaryFoodPickerState.productDraftGrams[key]) diaryFoodPickerState.productDraftGrams[key] = 100;
+                const grams = diaryFoodPickerState.productDraftGrams[key] || 100;
+                diaryFoodPickerState.selectedProducts[key] = { product, grams };
+                diaryFoodPickerState.productDraftGrams[key] = grams;
+                diaryFoodPickerState.expandedProductId = key;
             }
             renderDiaryFoodPickerScreen();
-            if (diaryFoodPickerState.activeProductId) {
-                setTimeout(() => document.getElementById('diary-food-picker-portion-grams')?.focus?.(), 40);
-            }
+        }
+
+        function expandDiaryFoodPickerProduct(productId, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const key = String(productId || '');
+            if (!diaryFoodPickerState.selectedProducts?.[key]) return;
+            diaryFoodPickerState.expandedProductId = key;
+            renderDiaryFoodPickerScreen();
         }
 
         function handleDiaryFoodPickerProductLineKeydown(productId, event) {
             if (!['Enter', ' '].includes(event?.key)) return;
-            toggleDiaryFoodPickerProduct(productId, event);
+            expandDiaryFoodPickerProduct(productId, event);
         }
 
-        function setDiaryFoodPickerProductGrams(value) {
-            const key = String(diaryFoodPickerState.activeProductId || '');
-            if (!key) return;
-            const grams = Math.max(1, Number(String(value).replace(',', '.')) || 1);
-            if (!diaryFoodPickerState.productDraftGrams) diaryFoodPickerState.productDraftGrams = {};
-            diaryFoodPickerState.productDraftGrams[key] = grams;
-            const product = getDiaryFoodPickerProducts().find(item => String(item.id) === key);
-            const input = document.getElementById('diary-food-picker-portion-grams');
-            if (input && document.activeElement !== input) input.value = String(Math.round(grams));
-            const total = document.getElementById('diary-food-picker-product-total');
-            if (total && product) total.textContent = formatDiaryFoodPickerPortionLine(calculateDiaryFoodPickerPortion(product, grams));
-        }
-
-        function adjustDiaryFoodPickerProductGrams(delta) {
-            const key = String(diaryFoodPickerState.activeProductId || '');
-            const current = Number(diaryFoodPickerState.productDraftGrams?.[key]) || 100;
-            setDiaryFoodPickerProductGrams(current + Number(delta || 0));
-        }
-
-        function showDiaryFoodPickerProductAddPlaceholder(productId, event) {
+        function clearDiaryFoodPickerProductSelection(event) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
-            const product = getDiaryFoodPickerProducts().find(item => String(item.id) === String(productId));
-            diaryFoodPickerState.notice = product
-                ? 'Добавление в дневник будет подключено следующим этапом'
-                : 'Продукт не найден';
+            diaryFoodPickerState.selectedProducts = {};
+            diaryFoodPickerState.expandedProductId = null;
+            diaryFoodPickerState.productDraftGrams = {};
+            diaryFoodPickerState.notice = '';
             renderDiaryFoodPickerScreen();
         }
 
+        function setDiaryFoodPickerProductGrams(productId, value) {
+            const key = String(productId || '');
+            if (!key) return;
+            const grams = String(value || '') === '' ? '' : Math.max(1, Number(String(value).replace(',', '.')) || 1);
+            if (!diaryFoodPickerState.productDraftGrams) diaryFoodPickerState.productDraftGrams = {};
+            diaryFoodPickerState.productDraftGrams[key] = grams;
+            if (diaryFoodPickerState.selectedProducts?.[key]) diaryFoodPickerState.selectedProducts[key].grams = grams;
+            const product = diaryFoodPickerState.selectedProducts?.[key]?.product || getDiaryFoodPickerProducts().find(item => String(item.id) === key);
+            if (!product) return;
+            const portion = calculateDiaryFoodPickerPortion(product, grams);
+            const row = Array.from(document.querySelectorAll('.diary-food-picker-product-row')).find(item => String(item.dataset.foodPickerProductId || '') === key);
+            const gramsEl = row?.querySelector('.diary-food-picker-product-grams');
+            if (gramsEl) gramsEl.textContent = (grams === '' ? '0' : formatDiaryFoodPickerMacroValue(portion.grams)) + ' г';
+            const macrosEl = row?.querySelector('.diary-food-picker-product-macros');
+            if (macrosEl) macrosEl.textContent = formatDiaryFoodPickerPortionLine(portion);
+        }
+
+        function adjustDiaryFoodPickerProductGrams(productId, delta) {
+            const key = String(productId || '');
+            const current = Number(String(diaryFoodPickerState.selectedProducts?.[key]?.grams ?? diaryFoodPickerState.productDraftGrams?.[key] ?? 100).replace(',', '.')) || 0;
+            const next = Math.max(1, current + Number(delta || 0));
+            const row = Array.from(document.querySelectorAll('.diary-food-picker-product-row')).find(item => String(item.dataset.foodPickerProductId || '') === key);
+            const input = row?.querySelector('.diary-food-picker-grams-stepper input');
+            if (input) input.value = String(Math.round(next));
+            setDiaryFoodPickerProductGrams(key, next);
+        }
+
+        async function saveDiaryFoodPickerSelectedProducts(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            if (isAddingMeal) return;
+            const selectedItems = getDiaryFoodPickerSelectedProducts();
+            if (!selectedItems.length) return closeDiaryFoodPickerScreen();
+            const mealType = getValidMealType(diaryFoodPickerState.mealType, currentDiaryMealType || 'Завтрак');
+
+            isAddingMeal = true;
+            diaryFoodPickerState.notice = 'Добавляю выбранное в ' + mealType + '...';
+            renderDiaryFoodPickerScreen();
+            const optimisticIds = [];
+            try {
+                for (const item of selectedItems) {
+                    const product = item.product;
+                    const portion = calculateDiaryFoodPickerPortion(product, item.grams);
+                    const payload = buildDiaryManualProductPayload({
+                        id: product.id || null,
+                        name: product.name || 'Продукт',
+                        grams: portion.grams || 100,
+                        caloriesPer100: product.kcal,
+                        proteinPer100: product.protein,
+                        fatPer100: product.fat,
+                        carbsPer100: product.carbs
+                    }, mealType);
+                    payload.productId = product.id || payload.productId || null;
+                    optimisticIds.push(addOptimisticDiaryRow({
+                        name: product.name,
+                        k: payload.kcal,
+                        p: payload.protein,
+                        f: payload.fat,
+                        c: payload.carbs
+                    }, mealType));
+                    try {
+                        await callServer('addMeal', payload);
+                    } catch (error) {
+                        if (!isTelegramMiniApp) throw error;
+                        addManualLocalMeal(payload);
+                    }
+                    upsertManualProduct(product.name, {
+                        kcal100: product.kcal,
+                        protein100: product.protein,
+                        fat100: product.fat,
+                        carbs100: product.carbs
+                    });
+                    recordProductSmartAction(product.id || product.name, mealType);
+                }
+                diaryFoodPickerState.selectedProducts = {};
+                diaryFoodPickerState.expandedProductId = null;
+                diaryFoodPickerState.notice = '';
+                closeDiaryFoodPickerScreen();
+                await refreshAllData();
+                if (isDiaryMealScreenOpen()) renderDiaryMealContent();
+                document.getElementById('history-list')?.classList.add('success-flash');
+                setTimeout(() => document.getElementById('history-list')?.classList.remove('success-flash'), 700);
+                showToast('Добавлено продуктов: ' + selectedItems.length);
+            } catch (error) {
+                optimisticIds.forEach(removeOptimisticDiaryRow);
+                console.error('Ошибка добавления продукта из Food Picker:', error);
+                diaryFoodPickerState.notice = 'Не удалось добавить продукт: ' + (error.message || error);
+                renderDiaryFoodPickerScreen();
+            } finally {
+                isAddingMeal = false;
+            }
+        }
+
         function openDiaryFoodPickerCreateProduct() {
-            showToast('Создание продукта подключим на следующем этапе');
+            diaryFoodPickerState.productCreateMode = true;
+            diaryFoodPickerState.productEditMode = false;
+            diaryFoodPickerState.productEditId = null;
+            diaryFoodPickerState.productCreateDraft = { name: '', kcal: '', protein: '', fat: '', carbs: '' };
+            diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.notice = '';
+            renderDiaryFoodPickerScreen();
+            setTimeout(() => document.getElementById('diary-food-picker-product-name')?.focus?.(), 40);
+        }
+
+        function openDiaryFoodPickerEditProduct(productId, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const key = String(productId || '');
+            const product = getDiaryFoodPickerProducts().find(item => String(item.id) === key);
+            if (!product) return showToast('Продукт не найден');
+            diaryFoodPickerState.productCreateMode = true;
+            diaryFoodPickerState.productEditMode = true;
+            diaryFoodPickerState.productEditId = product.source === 'manual' ? key : null;
+            diaryFoodPickerState.productCreateDraft = {
+                name: product.name || '',
+                kcal: String(formatDiaryFoodPickerMacroValue(product.kcal)),
+                protein: String(formatDiaryFoodPickerMacroValue(product.protein)),
+                fat: String(formatDiaryFoodPickerMacroValue(product.fat)),
+                carbs: String(formatDiaryFoodPickerMacroValue(product.carbs))
+            };
+            diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.notice = product.source === 'manual'
+                ? ''
+                : 'Это базовый продукт. После сохранения он появится в твоих продуктах.';
+            renderDiaryFoodPickerScreen();
+            setTimeout(() => document.getElementById('diary-food-picker-product-name')?.focus?.(), 40);
+        }
+
+        function cancelDiaryFoodPickerCreateProduct(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            diaryFoodPickerState.productCreateMode = false;
+            diaryFoodPickerState.productEditMode = false;
+            diaryFoodPickerState.productEditId = null;
+            diaryFoodPickerState.productCreateError = '';
+            renderDiaryFoodPickerScreen();
+        }
+
+        function updateDiaryFoodPickerProductDraft(field, value) {
+            if (!diaryFoodPickerState.productCreateDraft) diaryFoodPickerState.productCreateDraft = {};
+            diaryFoodPickerState.productCreateDraft[field] = String(value || '');
+            diaryFoodPickerState.productCreateError = '';
+            const summary = document.getElementById('diary-food-picker-product-create-summary');
+            if (summary) summary.textContent = 'На 100 г: ' + formatDiaryFoodPickerProductCreateSummary(diaryFoodPickerState.productCreateDraft);
+            const error = document.querySelector('.diary-food-picker-form-error');
+            if (error) error.remove();
+        }
+
+        function parseDiaryFoodPickerProductNumber(value) {
+            if (value === '' || value === null || value === undefined) return 0;
+            const number = Number(String(value).replace(',', '.'));
+            return Number.isFinite(number) ? number : 0;
+        }
+
+        function hasNegativeDiaryFoodPickerProductNumber(value) {
+            if (value === '' || value === null || value === undefined) return false;
+            const number = Number(String(value).replace(',', '.'));
+            return Number.isFinite(number) && number < 0;
+        }
+
+        function formatDiaryFoodPickerProductCreateSummary(draft = {}) {
+            const kcal = parseDiaryFoodPickerProductNumber(draft.kcal);
+            const protein = parseDiaryFoodPickerProductNumber(draft.protein);
+            const fat = parseDiaryFoodPickerProductNumber(draft.fat);
+            const carbs = parseDiaryFoodPickerProductNumber(draft.carbs);
+            return Math.round(kcal) + ' ккал • Б ' + formatDiaryFoodPickerMacroValue(protein) +
+                ' • Ж ' + formatDiaryFoodPickerMacroValue(fat) +
+                ' • У ' + formatDiaryFoodPickerMacroValue(carbs);
+        }
+
+        function saveDiaryFoodPickerCreateProduct(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const draft = diaryFoodPickerState.productCreateDraft || {};
+            const name = String(draft.name || '').trim().replace(/\s+/g, ' ');
+            if (!name) {
+                diaryFoodPickerState.productCreateError = 'Введите название продукта.';
+                renderDiaryFoodPickerScreen();
+                setTimeout(() => document.getElementById('diary-food-picker-product-name')?.focus?.(), 40);
+                return;
+            }
+            const fields = ['kcal', 'protein', 'fat', 'carbs'];
+            if (fields.some(field => hasNegativeDiaryFoodPickerProductNumber(draft[field]))) {
+                diaryFoodPickerState.productCreateError = 'КБЖУ не должны быть отрицательными.';
+                renderDiaryFoodPickerScreen();
+                return;
+            }
+            const totals = {
+                kcal100: parseDiaryFoodPickerProductNumber(draft.kcal),
+                protein100: parseDiaryFoodPickerProductNumber(draft.protein),
+                fat100: parseDiaryFoodPickerProductNumber(draft.fat),
+                carbs100: parseDiaryFoodPickerProductNumber(draft.carbs)
+            };
+            let saved = null;
+            if (diaryFoodPickerState.productEditMode && diaryFoodPickerState.productEditId) {
+                const now = new Date().toISOString();
+                const editId = String(diaryFoodPickerState.productEditId);
+                const products = loadManualProducts().filter(isValidManualProduct);
+                const index = products.findIndex(product => String(product.id) === editId);
+                if (index >= 0) {
+                    products[index] = {
+                        ...products[index],
+                        name,
+                        caloriesPer100: normalizeManualProductNumber(totals.kcal100),
+                        proteinPer100: normalizeManualProductNumber(totals.protein100),
+                        fatPer100: normalizeManualProductNumber(totals.fat100),
+                        carbsPer100: normalizeManualProductNumber(totals.carbs100),
+                        updatedAt: now
+                    };
+                    saveManualProducts(products);
+                    saved = products[index];
+                }
+            }
+            if (!saved) saved = upsertManualProduct(name, totals);
+            if (!saved) {
+                diaryFoodPickerState.productCreateError = 'Не удалось сохранить продукт. Проверьте значения КБЖУ.';
+                renderDiaryFoodPickerScreen();
+                return;
+            }
+            diaryFoodPickerState.productCreateMode = false;
+            diaryFoodPickerState.productEditMode = false;
+            diaryFoodPickerState.productEditId = null;
+            diaryFoodPickerState.productCreateDraft = { name: '', kcal: '', protein: '', fat: '', carbs: '' };
+            diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.productQuery = '';
+            diaryFoodPickerState.productsFavoritesOnly = false;
+            if (!diaryFoodPickerState.selectedProducts) diaryFoodPickerState.selectedProducts = {};
+            if (!diaryFoodPickerState.productDraftGrams) diaryFoodPickerState.productDraftGrams = {};
+            if (saved.id) {
+                const key = String(saved.id);
+                const product = mapManualProductToDiaryFoodPickerProduct(saved);
+                const grams = diaryFoodPickerState.selectedProducts[key]?.grams ?? diaryFoodPickerState.productDraftGrams[key] ?? 100;
+                diaryFoodPickerState.productDraftGrams[key] = grams;
+                diaryFoodPickerState.selectedProducts[key] = { product, grams };
+                diaryFoodPickerState.expandedProductId = key;
+            }
+            diaryFoodPickerState.notice = 'Продукт сохранён. Можно указать граммы и добавить в дневник.';
+            renderDiaryFoodPickerScreen();
         }
 
         function renderDiaryFoodPickerScreen() {
@@ -6075,6 +6364,10 @@
                 const content = tabName === 'products' ? renderDiaryFoodPickerProducts() : renderDiaryFoodPickerPlaceholder(tabName);
                 return '<section class="diary-food-picker-panel' + (active ? ' active' : '') + '" role="tabpanel">' + content + '</section>';
             }).join('');
+            const selectedCount = getDiaryFoodPickerSelectedCount();
+            const actionButton = selectedCount > 0
+                ? '<button class="diary-food-picker-cancel is-save" type="button" onclick="saveDiaryFoodPickerSelectedProducts(event)">Сохранить (' + selectedCount + ')</button>'
+                : '<button class="diary-food-picker-cancel" type="button" onclick="closeDiaryFoodPickerScreen()">Отмена</button>';
             screen.style.setProperty('--food-picker-tab-index', String(activeIndex));
             screen.innerHTML =
                 '<div class="diary-food-picker-fixed">' +
@@ -6083,7 +6376,7 @@
                             '<h1 class="diary-food-picker-title">' + escapeHTML(getValidMealType(diaryFoodPickerState.mealType, 'Завтрак')) + '</h1>' +
                             '<div class="diary-food-picker-date">' + escapeHTML(getDiaryFoodPickerDateLabel()) + '</div>' +
                         '</div>' +
-                        '<button class="diary-food-picker-cancel" type="button" onclick="closeDiaryFoodPickerScreen()">Отмена</button>' +
+                        actionButton +
                     '</header>' +
                     '<nav class="diary-food-picker-tabs" role="tablist" aria-label="Разделы выбора еды">' +
                         tabs +
@@ -6095,7 +6388,10 @@
 
         function setDiaryFoodPickerTab(tabName) {
             diaryFoodPickerState.activeTab = DIARY_FOOD_PICKER_TABS.includes(tabName) ? tabName : 'products';
-            diaryFoodPickerState.activeProductId = null;
+            diaryFoodPickerState.productCreateMode = false;
+            diaryFoodPickerState.productEditMode = false;
+            diaryFoodPickerState.productEditId = null;
+            diaryFoodPickerState.productCreateError = '';
             diaryFoodPickerState.notice = '';
             renderDiaryFoodPickerScreen();
         }
@@ -6108,7 +6404,12 @@
             diaryFoodPickerState.mealType = getValidMealType(mealType || currentDiaryMealType || 'Завтрак', 'Завтрак');
             currentDiaryMealType = diaryFoodPickerState.mealType;
             diaryFoodPickerState.activeTab = DIARY_FOOD_PICKER_TABS.includes(options.activeTab) ? options.activeTab : 'products';
-            diaryFoodPickerState.activeProductId = null;
+            diaryFoodPickerState.productCreateMode = false;
+            diaryFoodPickerState.productEditMode = false;
+            diaryFoodPickerState.productEditId = null;
+            diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.selectedProducts = {};
+            diaryFoodPickerState.expandedProductId = null;
             diaryFoodPickerState.notice = '';
             renderDiaryFoodPickerScreen();
             const screen = document.getElementById('diary-food-picker-screen');
@@ -6118,6 +6419,13 @@
 
         function closeDiaryFoodPickerScreen() {
             const screen = document.getElementById('diary-food-picker-screen');
+            diaryFoodPickerState.selectedProducts = {};
+            diaryFoodPickerState.expandedProductId = null;
+            diaryFoodPickerState.productCreateMode = false;
+            diaryFoodPickerState.productEditMode = false;
+            diaryFoodPickerState.productEditId = null;
+            diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.notice = '';
             screen?.classList.remove('active');
             setDisplayedLayer('diary-food-picker', screen, false);
         }
