@@ -1061,10 +1061,14 @@
 
         function updateTopDate() {
             let realTodayStr = toISOLocal(new Date()); let selectedStr = toISOLocal(currentDate);
-            if (selectedStr === realTodayStr) document.getElementById('cal-date-label').innerText = 'Сегодня';
-            else if (selectedStr === toISOLocal(new Date(new Date().setDate(new Date().getDate()-1)))) document.getElementById('cal-date-label').innerText = 'Вчера';
-            else document.getElementById('cal-date-label').innerText = new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short' }).format(currentDate);
-            document.getElementById('diary-header-text').innerText = 'Дневник: ' + document.getElementById('cal-date-label').innerText;
+            const dateLabel = selectedStr === realTodayStr
+                ? 'Сегодня'
+                : selectedStr === toISOLocal(new Date(new Date().setDate(new Date().getDate()-1)))
+                    ? 'Вчера'
+                    : new Intl.DateTimeFormat('ru', { day: 'numeric', month: 'short' }).format(currentDate);
+            const topDateLabel = document.getElementById('cal-date-label');
+            if (topDateLabel) topDateLabel.innerText = dateLabel;
+            document.getElementById('diary-header-text').innerText = dateLabel;
         }
 
         async function changeDate(dateStr) { currentDate = parseLocalDate(dateStr); await refreshAllData(); }
@@ -7431,26 +7435,25 @@
         }
 
         function renderDiaryMealItem(meal) {
-            const idArg = escapeAttr(JSON.stringify(String(meal.id || '')));
-            const mealType = getValidMealType(meal.meal_type || meal.mealType || 'Перекус', 'Перекус');
-            const mealTypeArg = escapeAttr(JSON.stringify(mealType));
             const title = getDiaryMealTitle(meal);
             const meta = getDiaryMealMetaLabel(meal);
-            const editDisabled = mealSupportsWeightEdit(meal) ? '' : ' disabled';
-            return '<div class="history-item diary-food-row" data-meal-id="' + escapeAttr(String(meal.id || '')) + '">' +
+            const idArg = escapeAttr(JSON.stringify(String(meal.id || '')));
+            const canEditWeight = mealSupportsWeightEdit(meal);
+            const editAttrs = canEditWeight
+                ? ' role="button" tabindex="0" onclick="editDiaryMealWeight(' + idArg + ')" onkeydown="handleDiaryFoodRowKeydown(event, ' + idArg + ')"'
+                : '';
+            return '<div class="history-item diary-food-row' + (canEditWeight ? ' is-editable' : '') + '" data-meal-id="' + escapeAttr(String(meal.id || '')) + '"' + editAttrs + '>' +
                 '<div class="diary-food-row-main">' +
                     '<div class="diary-food-row-title">' + escapeHTML(title) + '</div>' +
                     '<div class="diary-food-row-meta">' + escapeHTML(meta) + '</div>' +
                 '</div>' +
-                '<details class="diary-food-menu">' +
-                    '<summary aria-label="Действия с продуктом">⋮</summary>' +
-                    '<div class="diary-food-menu-list">' +
-                        '<button type="button"' + editDisabled + ' onclick="editDiaryMealWeight(' + idArg + ')">Изменить вес</button>' +
-                        '<button type="button" onclick="replaceDiaryMealItem(' + mealTypeArg + ')">Заменить</button>' +
-                        '<button type="button" class="danger" onclick="deleteOneMeal(' + idArg + ')">Удалить</button>' +
-                    '</div>' +
-                '</details>' +
             '</div>';
+        }
+
+        function handleDiaryFoodRowKeydown(event, mealId) {
+            if (!event || (event.key !== 'Enter' && event.key !== ' ')) return;
+            event.preventDefault();
+            editDiaryMealWeight(mealId);
         }
 
         function renderDiaryMealGroup(type, typeMeals) {
@@ -7465,8 +7468,7 @@
             const itemsHtml = hasMeals ? typeMeals.map(renderDiaryMealItem).join('') : '';
             return '<section class="meal-group' + (hasMeals ? ' has-meals' : ' is-empty') + (collapsed ? ' is-collapsed' : '') + '">' +
                 '<button class="meal-group-header" type="button" onclick="toggleMealGroup(this, ' + typeArg + ')">' +
-                    '<span class="meal-group-icon" aria-hidden="true">' + escapeHTML(getDiaryMealIcon(type)) + '</span>' +
-                    '<span class="meal-name"><span class="chevron">' + (collapsed ? '▸' : '▾') + '</span>' + escapeHTML(type) + '</span>' +
+                    '<span class="meal-name">' + escapeHTML(type) + '</span>' +
                     '<span class="meal-stats">' + (hasMeals ? '<b class="meal-kcal">' + Math.round(typeKcal) + ' ккал • Б ' + Math.round(typeProtein) + ' • Ж ' + Math.round(typeFat) + ' • У ' + Math.round(typeCarbs) + '</b>' : '') + '</span>' +
                 '</button>' +
                 '<button class="meal-group-add-btn" type="button" aria-label="Добавить еду в ' + escapeAttr(type) + '" onclick="openDiaryFoodPickerScreen(' + typeArg + ', event, { activeTab: \'products\' })">+</button>' +
