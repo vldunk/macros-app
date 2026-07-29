@@ -15240,6 +15240,10 @@
     border-bottom: 1px solid rgba(82,73,58,.075);
 }
 
+.diary-food-picker-product-row.is-active {
+    background: rgba(95,143,122,.045);
+}
+
 .diary-food-picker-product-row:last-child {
     border-bottom: 0;
 }
@@ -15326,6 +15330,120 @@
     color: #ffffff;
     background: var(--success);
     border-color: var(--success);
+}
+
+.diary-food-picker-product-row.is-active .diary-food-picker-product-check {
+    color: #ffffff;
+    background: var(--success);
+    border-color: var(--success);
+}
+
+.diary-food-picker-portion-card {
+    display: grid;
+    gap: 8px;
+    padding: 0 12px 12px;
+}
+
+.diary-food-picker-grams-stepper {
+    min-height: 42px;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+    align-items: center;
+    gap: 8px;
+}
+
+.diary-food-picker-grams-stepper button {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(95,143,122,.18);
+    background: #ffffff;
+    color: var(--success);
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.diary-food-picker-grams-stepper .diary-food-picker-grams-plus {
+    color: #ffffff;
+    background: linear-gradient(180deg, #e8b252, #d99831);
+    border-color: rgba(217,152,49,.24);
+}
+
+.diary-food-picker-grams-stepper label {
+    min-width: 0;
+    min-height: 38px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px;
+    align-items: center;
+    border-radius: 16px;
+    border: 1px solid rgba(82,73,58,.10);
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.diary-food-picker-grams-stepper input {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    border: 0;
+    background: transparent;
+    color: var(--text-main);
+    text-align: center;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 900;
+    outline: 0;
+}
+
+.diary-food-picker-grams-stepper label span {
+    color: var(--text-main);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 850;
+    text-align: center;
+}
+
+.diary-food-picker-portion-total {
+    min-height: 34px;
+    display: grid;
+    place-items: center;
+    padding: 7px 10px;
+    border-radius: 14px;
+    color: var(--text-main);
+    background: rgba(239,245,240,.86);
+    font-size: 12px;
+    line-height: 1.15;
+    font-weight: 850;
+    text-align: center;
+}
+
+.diary-food-picker-portion-submit {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 14px;
+    border: 1px solid rgba(217,152,49,.24);
+    color: #ffffff;
+    background: linear-gradient(180deg, #e8b252, #d99831);
+    box-shadow: 0 8px 16px rgba(217,152,49,.14), inset 0 1px 0 rgba(255,255,255,.24);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.diary-food-picker-notice {
+    margin: -4px 0 12px;
+    padding: 9px 12px;
+    border-radius: 14px;
+    color: var(--text-main);
+    background: rgba(239,245,240,.92);
+    border: 1px solid rgba(95,143,122,.13);
+    font-size: 12px;
+    line-height: 1.25;
+    font-weight: 800;
+    text-align: center;
 }
 
 .diary-food-picker-create-product {
