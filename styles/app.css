@@ -15157,6 +15157,191 @@
     font-weight: 700;
 }
 
+.diary-food-picker-search-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.diary-food-picker-search {
+    min-width: 0;
+    display: block;
+}
+
+.diary-food-picker-search input {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 14px;
+    border-radius: 15px;
+    border: 1px solid rgba(82,73,58,.10);
+    background: #ffffff;
+    color: var(--text-main);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 750;
+    outline: 0;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.76);
+}
+
+.diary-food-picker-search input::placeholder {
+    color: var(--text-muted);
+}
+
+.diary-food-picker-favorites-btn {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(82,73,58,.10);
+    background: #ffffff;
+    color: #d99831;
+    box-shadow: 0 8px 16px rgba(82,73,58,.06);
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.diary-food-picker-favorites-btn.active {
+    color: #ffffff;
+    background: linear-gradient(180deg, #e8b252, #d99831);
+    border-color: rgba(217,152,49,.26);
+}
+
+.diary-food-picker-products-section {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 14px;
+}
+
+.diary-food-picker-products-section h3 {
+    margin: 0;
+    padding: 0 2px;
+    color: var(--text-main);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 950;
+    text-transform: uppercase;
+    letter-spacing: .055em;
+}
+
+.diary-food-picker-products-list {
+    overflow: hidden;
+    border-radius: 18px;
+    background: var(--mypie-color-surface-strong);
+    border: 1px solid rgba(82,73,58,.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.76);
+}
+
+.diary-food-picker-product-row {
+    display: grid;
+    border-bottom: 1px solid rgba(82,73,58,.075);
+}
+
+.diary-food-picker-product-row:last-child {
+    border-bottom: 0;
+}
+
+.diary-food-picker-product-top {
+    min-height: 58px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px 28px;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+}
+
+.diary-food-picker-product-line {
+    min-width: 0;
+    cursor: pointer;
+}
+
+.diary-food-picker-product-copy {
+    min-width: 0;
+    display: grid;
+    gap: 4px;
+}
+
+.diary-food-picker-product-copy b {
+    min-width: 0;
+    color: var(--text-main);
+    font-size: 14px;
+    line-height: 1.15;
+    font-weight: 850;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.diary-food-picker-product-copy small {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.1;
+    font-weight: 650;
+    overflow: hidden;
+}
+
+.diary-food-picker-product-copy small span {
+    flex: 0 0 auto;
+}
+
+.diary-food-picker-product-copy .diary-food-picker-product-macros {
+    min-width: 0;
+    flex: 1 1 auto;
+    color: var(--text-main);
+    font-weight: 760;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.diary-food-picker-product-fav,
+.diary-food-picker-product-check {
+    width: 26px;
+    height: 26px;
+    display: grid;
+    place-items: center;
+    justify-self: end;
+    border-radius: 50%;
+    border: 1.5px solid rgba(82,73,58,.14);
+    background: #ffffff;
+    color: var(--success);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 900;
+}
+
+.diary-food-picker-product-fav {
+    color: #d99831;
+}
+
+.diary-food-picker-product-fav.active,
+.diary-food-picker-product-check:active {
+    color: #ffffff;
+    background: var(--success);
+    border-color: var(--success);
+}
+
+.diary-food-picker-create-product {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 14px;
+    border-radius: 15px;
+    border: 1px solid rgba(217,152,49,.24);
+    color: #ffffff;
+    background: linear-gradient(180deg, #e8b252, #d99831);
+    box-shadow: 0 8px 16px rgba(217,152,49,.14), inset 0 1px 0 rgba(255,255,255,.24);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 900;
+}
+
 @media (max-width: 390px) {
     .diary-food-picker-head {
         padding-inline: 16px;
