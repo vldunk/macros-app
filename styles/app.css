@@ -19693,6 +19693,37 @@ body {
     column-gap: 10px !important;
 }
 
+#history-list .meal-name {
+    display: grid !important;
+    gap: 3px !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+}
+
+#history-list .meal-name-title {
+    display: block !important;
+    min-width: 0 !important;
+    color: #25242b !important;
+    font-size: 15px !important;
+    line-height: 1.12 !important;
+    font-weight: 920 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+#history-list .meal-summary-line {
+    display: block !important;
+    min-width: 0 !important;
+    color: #80766a !important;
+    font-size: 11.5px !important;
+    line-height: 1.18 !important;
+    font-weight: 650 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
 #history-list .meal-stats,
 #history-list .meal-kcal {
     display: block !important;
@@ -19743,6 +19774,10 @@ body {
     border-radius: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 28px !important;
+    column-gap: 8px !important;
+    align-items: center !important;
 }
 
 #history-list .history-item.diary-food-row:first-child {
@@ -19755,6 +19790,27 @@ body {
 
 #history-list .history-item.diary-food-row.is-editable:active {
     opacity: .76 !important;
+}
+
+#history-list .diary-food-delete-btn {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    padding: 0 !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid rgba(191,79,71,.20) !important;
+    border-radius: 50% !important;
+    color: #b65b50 !important;
+    background: rgba(255,247,244,.76) !important;
+    box-shadow: none !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+}
+
+#history-list .diary-food-delete-btn:active {
+    transform: scale(.94) !important;
 }
 
 #history-list .diary-food-row-title {

@@ -7286,13 +7286,17 @@
             const fat = (Number(product.fatPer100) || 0) * ratio;
             const carbs = (Number(product.carbsPer100) || 0) * ratio;
             const createdAt = selectedDateTimeISO();
+            const productName = product.name || product.product_name || product.title || 'Продукт';
             return {
                 id: 'manual_product_entry_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
                 type: 'manual-product',
                 manual: true,
                 productId: product.id || null,
-                name: product.name || 'Продукт',
-                recipe_title: product.name || 'Продукт',
+                name: productName,
+                title: productName,
+                product_name: productName,
+                display_name: productName,
+                recipe_title: productName,
                 mealType,
                 meal_type: mealType,
                 grams,
@@ -7403,7 +7407,24 @@
         }
 
         function getDiaryMealTitle(meal) {
-            return meal?.recipes?.title || meal?.name || meal?.recipe_title || meal?.title || 'Прием пищи';
+            const isGenericTitle = value => {
+                const normalized = String(value || '').trim().toLowerCase();
+                return !normalized || normalized === 'прием пищи' || normalized === 'приём пищи';
+            };
+            const candidates = [
+                meal?.product_name,
+                meal?.products?.name,
+                meal?.product?.name,
+                meal?.food_name,
+                meal?.display_name,
+                meal?.name,
+                meal?.recipe_title,
+                meal?.title,
+                meal?.recipes?.title,
+                meal?.recipe?.title
+            ];
+            const title = candidates.find(value => !isGenericTitle(value));
+            return title || 'Прием пищи';
         }
 
         function getDiaryMealWeightLabel(meal) {
@@ -7447,6 +7468,7 @@
                     '<div class="diary-food-row-title">' + escapeHTML(title) + '</div>' +
                     '<div class="diary-food-row-meta">' + escapeHTML(meta) + '</div>' +
                 '</div>' +
+                '<button class="diary-food-delete-btn" type="button" aria-label="Удалить ' + escapeAttr(title) + '" onclick="event.stopPropagation(); deleteOneMeal(' + idArg + ')">×</button>' +
             '</div>';
         }
 
@@ -7463,13 +7485,14 @@
             const typeProtein = typeMeals.reduce((s, m) => s + (Number(m.protein) || 0), 0);
             const typeFat = typeMeals.reduce((s, m) => s + (Number(m.fat) || 0), 0);
             const typeCarbs = typeMeals.reduce((s, m) => s + (Number(m.carbs) || 0), 0);
+            const typeGrams = typeMeals.reduce((s, m) => s + (Number(m.grams) || 0), 0);
+            const mealSummary = Math.round(typeGrams) + ' г • ' + Math.round(typeKcal) + ' ккал • Б ' + Math.round(typeProtein) + ' • Ж ' + Math.round(typeFat) + ' • У ' + Math.round(typeCarbs);
             const mealPct = Math.min(100, Math.round((typeKcal / (Number(userProfile.target_kcal) || 1)) * 100));
             const typeArg = escapeAttr(JSON.stringify(type));
             const itemsHtml = hasMeals ? typeMeals.map(renderDiaryMealItem).join('') : '';
             return '<section class="meal-group' + (hasMeals ? ' has-meals' : ' is-empty') + (collapsed ? ' is-collapsed' : '') + '">' +
                 '<button class="meal-group-header" type="button" onclick="toggleMealGroup(this, ' + typeArg + ')">' +
-                    '<span class="meal-name">' + escapeHTML(type) + '</span>' +
-                    '<span class="meal-stats">' + (hasMeals ? '<b class="meal-kcal">' + Math.round(typeKcal) + ' ккал • Б ' + Math.round(typeProtein) + ' • Ж ' + Math.round(typeFat) + ' • У ' + Math.round(typeCarbs) + '</b>' : '') + '</span>' +
+                    '<span class="meal-name"><span class="meal-name-title">' + escapeHTML(type) + '</span>' + (hasMeals ? '<span class="meal-summary-line">' + escapeHTML(mealSummary) + '</span>' : '') + '</span>' +
                 '</button>' +
                 '<button class="meal-group-add-btn" type="button" aria-label="Добавить еду в ' + escapeAttr(type) + '" onclick="openDiaryFoodPickerScreen(' + typeArg + ', event, { activeTab: \'products\' })">+</button>' +
                 (hasMeals ? '<div class="meal-group-content' + (collapsed ? ' collapsed' : '') + '">' +
