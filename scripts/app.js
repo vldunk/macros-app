@@ -2676,6 +2676,7 @@
 
         let myRecipeIngredientSeq = 0;
         let myRecipeIngredientIds = [];
+        let myRecipeOpenIngredientId = null;
         let selectedMyRecipeForDiary = null;
         let selectedMyRecipeDetailsId = null;
         let myRecipeDetailsPortionDraft = null;
@@ -3545,17 +3546,18 @@
             list.innerHTML = ingredientValues.map((ingredient, index) => {
                 const id = ingredient.id;
                 const removeButton = canRemove
-                    ? '<button class="my-recipe-remove-ingredient-btn" type="button" onclick="event.stopPropagation(); removeMyRecipeIngredient(' + id + ')">Удалить</button>'
+                    ? '<button class="my-recipe-remove-ingredient-btn" type="button" onclick="event.preventDefault(); event.stopPropagation(); removeMyRecipeIngredient(' + id + ')">Удалить</button>'
                     : '';
                 const sourceBadge = myRecipeIngredientProductSources.get(Number(id)) === 'manual-product' && String(ingredient.name || '').trim()
                     ? '<span class="my-recipe-ingredient-source" id="my-recipe-ingredient-' + id + '-source">Из моих продуктов</span>'
                     : '<span class="my-recipe-ingredient-source" id="my-recipe-ingredient-' + id + '-source" hidden></span>';
-                const title = String(ingredient.name || '').trim() || 'Ингредиент ' + (index + 1);
-                const openAttr = index === 0 ? ' open' : '';
-                return '<details class="my-recipe-ingredient-card my-recipe-ingredient-accordion"' + openAttr + '>' +
+                const openAttr = String(myRecipeOpenIngredientId || '') === String(id) ? ' open' : '';
+                const grams = parseMyRecipeNumber(ingredient.grams);
+                const gramsLabel = grams > 0 ? '<span class="my-recipe-ingredient-weight">' + Math.round(grams) + ' г</span>' : '';
+                return '<details class="my-recipe-ingredient-card my-recipe-ingredient-accordion" data-my-recipe-ingredient-id="' + escapeAttr(String(id)) + '" ontoggle="handleMyRecipeIngredientToggle(this)"' + openAttr + '>' +
                     '<summary class="my-recipe-ingredient-card-head">' +
-                        '<span class="my-recipe-ingredient-title-wrap"><b>Ингредиент ' + (index + 1) + '</b><small>' + escapeHTML(title) + '</small></span>' +
-                        '<span class="my-recipe-ingredient-card-meta">' + sourceBadge + removeButton + '<span class="my-recipe-ingredient-chevron" aria-hidden="true">⌄</span></span>' +
+                        '<span class="my-recipe-ingredient-title-wrap"><b>Ингредиент ' + (index + 1) + '</b></span>' +
+                        '<span class="my-recipe-ingredient-card-meta">' + gramsLabel + sourceBadge + removeButton + '</span>' +
                     '</summary>' +
                     '<div class="my-recipe-ingredient-accordion-body">' +
                     '<div class="my-recipe-ingredient-top-row">' +
@@ -3575,9 +3577,23 @@
             updateMyRecipeCalculation();
         }
 
+        function handleMyRecipeIngredientToggle(details) {
+            if (!details) return;
+            const id = String(details.dataset.myRecipeIngredientId || '');
+            if (details.open) {
+                myRecipeOpenIngredientId = id;
+                document.querySelectorAll('.my-recipe-ingredient-accordion[open]').forEach(item => {
+                    if (item !== details) item.open = false;
+                });
+            } else if (String(myRecipeOpenIngredientId || '') === id) {
+                myRecipeOpenIngredientId = null;
+            }
+        }
+
         function resetMyRecipeIngredients() {
             myRecipeIngredientSeq += 1;
             myRecipeIngredientIds = [myRecipeIngredientSeq];
+            myRecipeOpenIngredientId = null;
             myRecipeIngredientProductSources.clear();
             renderMyRecipeIngredients();
         }
@@ -3587,6 +3603,7 @@
             myRecipeIngredientSeq += 1;
             values.push({ id: myRecipeIngredientSeq });
             myRecipeIngredientIds = values.map(item => item.id);
+            myRecipeOpenIngredientId = String(myRecipeIngredientSeq);
             renderMyRecipeIngredients(values);
             updateMyRecipeCalculation();
         }
@@ -3596,6 +3613,7 @@
             const values = collectMyRecipeIngredientValues().filter(item => Number(item.id) !== Number(id));
             myRecipeIngredientProductSources.delete(Number(id));
             myRecipeIngredientIds = values.map(item => item.id);
+            if (String(myRecipeOpenIngredientId || '') === String(id)) myRecipeOpenIngredientId = null;
             renderMyRecipeIngredients(values);
             updateMyRecipeCalculation();
         }
@@ -3642,6 +3660,7 @@
             setMyRecipeFormInputValue('my-recipe-servings-input', Number(recipe.servings) > 0 ? formatMyRecipeEditableNumber(recipe.servings) : '');
             setMyRecipeFormInputValue('my-recipe-description-input', recipe.description || '');
             setMyRecipePhotoPreview(recipe.image_url || recipe.image || '');
+            myRecipeOpenIngredientId = null;
             const ingredients = (Array.isArray(recipe.ingredients) && recipe.ingredients.length ? recipe.ingredients : [{}]).map(ingredient => {
                 myRecipeIngredientSeq += 1;
                 return {
