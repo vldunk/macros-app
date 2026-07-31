@@ -103,7 +103,7 @@
         let userProfile = { id: null, user_id: appUserId, full_name: telegramUser?.first_name || 'Пользователь', weight: 0, age: 30, height: 180, activity_level: 'moderate', workouts_per_week: 3, goal_type: 'maintain', food_preferences: '', food_exclusions: '', target_kcal: 2500, target_protein: 180, target_fat: 80, target_carbs: 250, target_water: 2000 };
         let latestKbjuRecommendation = null;
         const USE_RECIPES_V2 = true;
-        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], diaryMealsCache = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', recipesV2ActiveTab = 'catalog', screenMealFilter = 'Все', screenDietFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', diaryMealRecipeFilter = 'Каталог', pendingMeal = null, barcodeProductDraft = null, productSearchMealDraft = null, multiProductMealDraft = null, diaryMealSelectedProducts = new Map(), barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, recipeDetailsCurrentId = null, myRecipeReturnToDiaryAfterSave = false, myRecipeCreateStep = 1, myRecipeCookedWeightTouched = false, isAddingMeal = false;
+        let stats = { kcal: 0, protein: 0, fat: 0, carbs: 0 }, dailyWater = 0, recipesData = [], diaryMealsCache = [], currentTab = 'Все', currentMealFilter = 'Завтрак', currentDietFilter = 'Все', recipeSearchQuery = '', recipeSortMode = 'recommended', recipeViewMode = 'grid', recipesV2ActiveTab = 'catalog', screenMealFilter = 'Все', currentDiaryMealType = 'Завтрак', diaryMealSourceTab = 'library', diaryMealActiveTab = 'products', diaryMealActiveFilter = 'Недавние', diaryMealRecipeFilter = 'Каталог', pendingMeal = null, barcodeProductDraft = null, productSearchMealDraft = null, multiProductMealDraft = null, diaryMealSelectedProducts = new Map(), barcodeCameraStream = null, barcodeScanFrameId = 0, barcodeZxingReader = null, barcodeZxingControls = null, isBarcodeScanning = false, isBarcodeProcessing = false, recipePortionDraft = null, recipeDetailPortionDraft = null, recipeDetailsCurrentId = null, myRecipeReturnToDiaryAfterSave = false, myRecipeReturnToFoodPicker = false, myRecipeCreateStep = 1, myRecipeCookedWeightTouched = false, isAddingMeal = false;
         const FOOD_SEARCH_MIN_QUERY_LENGTH = 2;
         const FOOD_SEARCH_DEBOUNCE_MS = 0;
         const LOCAL_FOOD_SEARCH_PRODUCTS = [
@@ -2501,6 +2501,7 @@
             closeMyRecipeProductPicker();
             setLockedLayer('my-recipes', document.getElementById('my-recipes-modal'), false);
             myRecipeReturnToDiaryAfterSave = false;
+            myRecipeReturnToFoodPicker = false;
             showMyRecipesEmptyView();
         }
 
@@ -2978,6 +2979,7 @@
                 myRecipeIngredientProductSources.delete(Number(ingredientId));
                 renderMyRecipeIngredientSourceBadge(ingredientId);
             }
+            updateMyRecipeIngredientHeaderTitle(ingredientId);
             renderMyRecipeIngredientSuggestions(ingredientId);
             updateMyRecipeCalculation();
         }
@@ -3042,6 +3044,27 @@
             badge.textContent = isVisible ? 'Из моих продуктов' : '';
         }
 
+        function updateMyRecipeIngredientHeaderTitle(ingredientId) {
+            const title = document.getElementById('my-recipe-ingredient-' + ingredientId + '-summary-title');
+            const input = document.getElementById('my-recipe-ingredient-' + ingredientId + '-name');
+            if (!title || !input) return;
+            const index = myRecipeIngredientIds.findIndex(id => Number(id) === Number(ingredientId));
+            title.textContent = String(input.value || '').trim() || 'Ингредиент ' + (index + 1);
+        }
+
+        function updateMyRecipeIngredientHeaderMeta(ingredientId) {
+            const meta = document.getElementById('my-recipe-ingredient-' + ingredientId + '-summary-meta');
+            if (!meta) return;
+            const text = formatMyRecipeIngredientSummaryMeta({
+                grams: getMyRecipeIngredientValue(ingredientId, 'grams'),
+                protein100: getMyRecipeIngredientValue(ingredientId, 'protein100'),
+                fat100: getMyRecipeIngredientValue(ingredientId, 'fat100'),
+                carbs100: getMyRecipeIngredientValue(ingredientId, 'carbs100')
+            });
+            meta.textContent = text;
+            meta.hidden = !text;
+        }
+
         function applyManualProductToMyRecipeIngredient(ingredientId, product) {
             if (!ingredientId || !product || !isValidManualProduct(product)) return;
             setMyRecipeIngredientInputValue(ingredientId, 'name', product.name);
@@ -3050,6 +3073,8 @@
             setMyRecipeIngredientInputValue(ingredientId, 'fat100', product.fatPer100);
             setMyRecipeIngredientInputValue(ingredientId, 'carbs100', product.carbsPer100);
             myRecipeIngredientProductSources.set(Number(ingredientId), 'manual-product');
+            updateMyRecipeIngredientHeaderTitle(ingredientId);
+            updateMyRecipeIngredientHeaderMeta(ingredientId);
             renderMyRecipeIngredientSourceBadge(ingredientId);
             updateMyRecipeCalculation();
         }
@@ -3310,6 +3335,23 @@
             return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
         }
 
+        function formatMyRecipeIngredientSummaryMeta(ingredient) {
+            const grams = Math.max(0, parseMyRecipeNumber(ingredient?.grams));
+            if (!(grams > 0)) return '';
+            const ratio = grams / 100;
+            const kcal = calculateMyRecipeKcalFromMacros(ingredient?.protein100, ingredient?.fat100, ingredient?.carbs100) * ratio;
+            const protein = Math.max(0, parseMyRecipeNumber(ingredient?.protein100)) * ratio;
+            const fat = Math.max(0, parseMyRecipeNumber(ingredient?.fat100)) * ratio;
+            const carbs = Math.max(0, parseMyRecipeNumber(ingredient?.carbs100)) * ratio;
+            const hasMacros = kcal > 0 || protein > 0 || fat > 0 || carbs > 0;
+            const gramsText = Math.round(grams) + ' г';
+            if (!hasMacros) return gramsText;
+            return gramsText + ' • ' + Math.round(kcal) + ' ккал • Б ' +
+                formatDiaryFoodPickerMacroValue(protein) + ' • Ж ' +
+                formatDiaryFoodPickerMacroValue(fat) + ' • У ' +
+                formatDiaryFoodPickerMacroValue(carbs);
+        }
+
         function getMyRecipeAutoKcal100(id) {
             return calculateMyRecipeKcalFromMacros(
                 getMyRecipeIngredientValue(id, 'protein100'),
@@ -3518,6 +3560,7 @@
             setMyRecipeCalcText('my-recipe-final-total-protein', calc.totals.protein);
             setMyRecipeCalcText('my-recipe-final-total-fat', calc.totals.fat);
             setMyRecipeCalcText('my-recipe-final-total-carbs', calc.totals.carbs);
+            myRecipeIngredientIds.forEach(updateMyRecipeIngredientHeaderMeta);
             setMyRecipeCalcText('my-recipe-active-kcal', active.kcal, 0);
             setMyRecipeCalcText('my-recipe-active-protein', active.protein);
             setMyRecipeCalcText('my-recipe-active-fat', active.fat);
@@ -3546,18 +3589,18 @@
             list.innerHTML = ingredientValues.map((ingredient, index) => {
                 const id = ingredient.id;
                 const removeButton = canRemove
-                    ? '<button class="my-recipe-remove-ingredient-btn" type="button" onclick="event.preventDefault(); event.stopPropagation(); removeMyRecipeIngredient(' + id + ')">Удалить</button>'
+                    ? '<button class="my-recipe-remove-ingredient-btn" type="button" aria-label="Удалить ингредиент" onclick="event.preventDefault(); event.stopPropagation(); removeMyRecipeIngredient(' + id + ')">×</button>'
                     : '';
                 const sourceBadge = myRecipeIngredientProductSources.get(Number(id)) === 'manual-product' && String(ingredient.name || '').trim()
                     ? '<span class="my-recipe-ingredient-source" id="my-recipe-ingredient-' + id + '-source">Из моих продуктов</span>'
                     : '<span class="my-recipe-ingredient-source" id="my-recipe-ingredient-' + id + '-source" hidden></span>';
                 const openAttr = String(myRecipeOpenIngredientId || '') === String(id) ? ' open' : '';
-                const grams = parseMyRecipeNumber(ingredient.grams);
-                const gramsLabel = grams > 0 ? '<span class="my-recipe-ingredient-weight">' + Math.round(grams) + ' г</span>' : '';
+                const title = String(ingredient.name || '').trim() || 'Ингредиент ' + (index + 1);
+                const summaryMeta = formatMyRecipeIngredientSummaryMeta(ingredient);
                 return '<details class="my-recipe-ingredient-card my-recipe-ingredient-accordion" data-my-recipe-ingredient-id="' + escapeAttr(String(id)) + '" ontoggle="handleMyRecipeIngredientToggle(this)"' + openAttr + '>' +
                     '<summary class="my-recipe-ingredient-card-head">' +
-                        '<span class="my-recipe-ingredient-title-wrap"><b>Ингредиент ' + (index + 1) + '</b></span>' +
-                        '<span class="my-recipe-ingredient-card-meta">' + gramsLabel + sourceBadge + removeButton + '</span>' +
+                        '<span class="my-recipe-ingredient-title-wrap"><b id="my-recipe-ingredient-' + id + '-summary-title">' + escapeHTML(title) + '</b><small class="my-recipe-ingredient-summary-meta" id="my-recipe-ingredient-' + id + '-summary-meta"' + (summaryMeta ? '' : ' hidden') + '>' + escapeHTML(summaryMeta) + '</small></span>' +
+                        '<span class="my-recipe-ingredient-card-meta">' + sourceBadge + removeButton + '</span>' +
                     '</summary>' +
                     '<div class="my-recipe-ingredient-accordion-body">' +
                     '<div class="my-recipe-ingredient-top-row">' +
@@ -3684,6 +3727,7 @@
         function showMyRecipesEmptyView() {
             editingMyRecipeId = null;
             myRecipeReturnToDiaryAfterSave = false;
+            myRecipeReturnToFoodPicker = false;
             setMyRecipeFormScreen(false);
             setText('my-recipes-title', 'Мои рецепты');
             const submit = document.querySelector('.my-recipe-next-btn');
@@ -3693,9 +3737,23 @@
             setMyRecipeFormError('');
         }
 
-        function handleMyRecipeFormBack() {
+        function handleMyRecipeFormBack(options = {}) {
+            if (options.fromTop && myRecipeReturnToFoodPicker) {
+                const mealType = diaryFoodPickerState.mealType || currentDiaryMealType;
+                myRecipeReturnToFoodPicker = false;
+                closeMyRecipesModal();
+                openDiaryFoodPickerScreen(mealType, null, { activeTab: 'my-recipes' });
+                return;
+            }
             if (myRecipeCreateStep > 1) {
                 setMyRecipeCreateStep(myRecipeCreateStep - 1);
+                return;
+            }
+            if (myRecipeReturnToFoodPicker) {
+                const mealType = diaryFoodPickerState.mealType || currentDiaryMealType;
+                myRecipeReturnToFoodPicker = false;
+                closeMyRecipesModal();
+                openDiaryFoodPickerScreen(mealType, null, { activeTab: 'my-recipes' });
                 return;
             }
             if (myRecipeReturnToDiaryAfterSave && isDiaryMealScreenOpen()) {
@@ -3708,6 +3766,7 @@
         function openMyRecipeCreateForm(options = {}) {
             resetMyRecipeCreateForm();
             myRecipeReturnToDiaryAfterSave = Boolean(options.returnToDiary);
+            myRecipeReturnToFoodPicker = Boolean(options.returnToFoodPicker);
             const category = document.getElementById('my-recipe-category-input');
             if (category && options?.mealType) category.value = getValidMealType(options.mealType, category.value || 'Обед');
             document.getElementById('my-recipes-empty-view')?.setAttribute('hidden', '');
@@ -5912,7 +5971,7 @@
         function openDiaryFoodPickerCreateRecipe() {
             closeDiaryFoodPickerScreen();
             openMyRecipesModal();
-            openMyRecipeCreateForm({ mealType: diaryFoodPickerState.mealType || currentDiaryMealType, returnToDiary: true });
+            openMyRecipeCreateForm({ mealType: diaryFoodPickerState.mealType || currentDiaryMealType, returnToDiary: true, returnToFoodPicker: true });
         }
 
         function renderDiaryFoodPickerMyRecipes() {
@@ -6101,6 +6160,7 @@
                 ? '<section class="diary-food-picker-products-section"><h3>' + escapeHTML(title) + '</h3><div class="diary-food-picker-products-list">' + products.map(renderDiaryFoodPickerProductRow).join('') + '</div></section>' + createButton
                 : '<div class="diary-food-picker-empty"><h3>Продукты не найдены</h3><p>' + (query ? 'Попробуй изменить запрос.' : 'Здесь пока нет доступных продуктов.') + '</p>' + createButton + '</div>';
             return '<div class="diary-food-picker-search-row"><label class="diary-food-picker-search"><input id="diary-food-picker-product-search" type="search" value="' + escapeAttr(query) + '" placeholder="Найти продукт" autocomplete="off" oninput="handleDiaryFoodPickerProductSearch(this.value)"></label>' +
+                '<button class="diary-food-picker-barcode-btn" type="button" aria-label="Найти продукт по штрихкоду" onclick="openDiaryFoodPickerBarcode(event)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5a1 1 0 0 0-1 1v2"></path><path d="M17 4h2a1 1 0 0 1 1 1v2"></path><path d="M7 20H5a1 1 0 0 1-1-1v-2"></path><path d="M17 20h2a1 1 0 0 0 1-1v-2"></path><path d="M8 8v8M11 8v8M14 8v8M17 8v8"></path></svg></button>' +
                 '<button class="diary-food-picker-favorites-btn' + (diaryFoodPickerState.productsFavoritesOnly ? ' active' : '') + '" type="button" aria-label="Показать избранные продукты" aria-pressed="' + (diaryFoodPickerState.productsFavoritesOnly ? 'true' : 'false') + '" onclick="toggleDiaryFoodPickerFavoritesOnly(event)">' + (diaryFoodPickerState.productsFavoritesOnly ? '♥' : '♡') + '</button></div>' +
                 notice + clearButton + body;
         }
@@ -7470,6 +7530,15 @@
         function openDiaryMealBarcode() {
             currentMealFilter = currentDiaryMealType;
             openBarcodeMealModal({ mealType: currentDiaryMealType });
+        }
+
+        function openDiaryFoodPickerBarcode(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const mealType = getValidMealType(diaryFoodPickerState.mealType || currentDiaryMealType || currentMealFilter, currentDiaryMealType || 'Завтрак');
+            currentMealFilter = mealType;
+            currentDiaryMealType = mealType;
+            openBarcodeMealModal({ mealType });
         }
 
         function diaryMealCollapsedStorageKey() {
