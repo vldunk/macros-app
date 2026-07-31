@@ -1461,6 +1461,20 @@
         .my-recipe-ingredient-card { display: grid; gap: 8px; min-width: 0; padding: 11px; border-radius: 18px; background: rgba(255,255,255,.70); border: 1px solid rgba(82,73,58,.075); box-shadow: inset 0 1px 0 rgba(255,255,255,.74); }
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-card { gap: 7px; padding: 10px; border-radius: 16px; }
         .my-recipe-ingredient-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .my-recipe-ingredient-accordion { overflow: hidden; }
+        .my-recipe-ingredient-accordion summary { list-style: none; cursor: pointer; }
+        .my-recipe-ingredient-accordion summary::-webkit-details-marker { display: none; }
+        .my-recipe-ingredient-title-wrap { min-width: 0; display: grid; gap: 2px; }
+        .my-recipe-ingredient-title-wrap small { min-width: 0; color: var(--text-muted); font-size: 10.5px; line-height: 1.12; font-weight: 780; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .my-recipe-ingredient-chevron { flex: 0 0 auto; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; color: #557d6c; background: rgba(245,251,247,.86); border: 1px solid rgba(95,143,122,.16); font-size: 14px; line-height: 1; font-weight: 900; transition: transform .18s ease; }
+        .my-recipe-ingredient-accordion[open] .my-recipe-ingredient-chevron { transform: rotate(180deg); }
+        .my-recipe-ingredient-accordion-body { display: grid; gap: 8px; padding-top: 8px; }
+        .my-recipe-ingredient-top-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(86px, .36fr); gap: 6px; align-items: end; }
+        .my-recipe-kbju-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; align-items: end; }
+        .my-recipe-kbju-row .my-recipe-field { gap: 3px; }
+        .my-recipe-kbju-row .my-recipe-field span { font-size: 9.5px; text-align: center; letter-spacing: 0; }
+        .my-recipe-kbju-row .my-recipe-field input { min-height: 38px; padding: 0 6px; border-radius: 13px; text-align: center; font-size: 12px; }
+        .my-recipe-kcal-auto-field input { color: #557d6c; background: rgba(245,251,247,.82); border-color: rgba(95,143,122,.16); }
         .my-recipe-ingredient-card-head b { min-width: 0; color: var(--text-main); font-size: 13px; line-height: 1.15; font-weight: 900; }
         .my-recipe-ingredient-card-meta { flex: 0 0 auto; display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 0; }
         .my-recipe-ingredient-source { flex: 0 1 auto; max-width: 132px; padding: 5px 8px; border-radius: 999px; color: #557d6c; background: rgba(245,251,247,.86); border: 1px solid rgba(95,143,122,.16); font-size: 10.5px; line-height: 1; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1471,6 +1485,10 @@
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-products-stub-btn,
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-add-ingredient-btn { min-height: 36px; }
         .my-recipe-add-ingredient-btn { background: rgba(245,251,247,.82); }
+        @media (max-width: 420px) {
+            .my-recipe-kbju-row { gap: 4px; }
+            .my-recipe-kbju-row .my-recipe-field input { min-height: 36px; padding: 0 4px; font-size: 11.5px; }
+        }
         .my-recipe-calculation { display: grid; gap: 7px; margin-bottom: 3px; padding: 10px; border-radius: 17px; background: linear-gradient(180deg, rgba(250,248,242,.78), rgba(245,251,247,.64)); border: 1px solid rgba(82,73,58,.075); box-shadow: inset 0 1px 0 rgba(255,255,255,.78); }
         .my-recipes-overlay.is-recipe-form-screen .my-recipe-calculation { gap: 5px; margin-bottom: 0; padding: 8px; border-radius: 15px; }
         .my-recipe-calculation-head { display: grid; gap: 2px; }
@@ -19838,4 +19856,73 @@ body {
 /* Home cleanup: top date/profile actions were intentionally removed from the main screen. */
 .top-nav.top-nav-hidden {
     display: none !important;
+}
+
+/* Compact recipe ingredient accordion for mobile recipe creation. */
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-accordion {
+    padding: 8px !important;
+}
+
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-accordion-body {
+    gap: 7px !important;
+    padding-top: 7px !important;
+}
+
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-kbju-row {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 4px !important;
+}
+
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-ingredient-top-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(82px, .36fr) !important;
+    gap: 5px !important;
+    align-items: end !important;
+}
+
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-kbju-row .my-recipe-field {
+    gap: 3px !important;
+}
+
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-kbju-row .my-recipe-field span {
+    font-size: 9px !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-align: center !important;
+}
+
+.my-recipes-overlay.is-recipe-form-screen .my-recipe-kbju-row .my-recipe-field input {
+    min-height: 34px !important;
+    padding-inline: 4px !important;
+    border-radius: 12px !important;
+    font-size: 11.5px !important;
+    text-align: center !important;
+}
+
+.recipe-grid-edit {
+    position: absolute !important;
+    right: 10px !important;
+    bottom: 10px !important;
+    z-index: 3 !important;
+    width: 34px !important;
+    height: 34px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 50% !important;
+    border: 1px solid rgba(95,143,122,.18) !important;
+    color: #557d6c !important;
+    background: rgba(255,255,255,.92) !important;
+    box-shadow: 0 8px 18px rgba(72,55,36,.10), inset 0 1px 0 rgba(255,255,255,.84) !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    font-weight: 900 !important;
+}
+
+.recipe-grid-edit:active {
+    transform: scale(.94) !important;
+}
+
+.diary-meal-recipe-section > .diary-food-picker-create-product {
+    margin: 8px 0 12px !important;
 }

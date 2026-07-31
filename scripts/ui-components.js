@@ -72,7 +72,8 @@ function renderRecipeGridCard({
             carbs,
             isFavorite = false,
             onClick = 'openRecipeDetails',
-            onToggleFavorite = 'toggleFavorite'
+            onToggleFavorite = 'toggleFavorite',
+            onEdit = ''
         } = {}) {
             const recipeId = String(id || '');
             const idArg = JSON.stringify(recipeId);
@@ -88,12 +89,16 @@ function renderRecipeGridCard({
             const imageClass = 'recipe-grid-card-img' + (safeImg ? '' : ' is-placeholder');
             const fallbackSrc = escapeAttr(RECIPE_GRID_FALLBACK_IMAGE);
             const imageHtml = '<img class="' + imageClass + '" src="' + escapeAttr(imageSrc) + '" alt="' + escapeAttr(safeImg ? (title || 'Рецепт') : '') + '" loading="lazy" onerror="this.onerror=null;this.classList.add(\'is-placeholder\');this.src=\'' + fallbackSrc + '\'">';
+            const editButton = onEdit
+                ? '<button class="recipe-grid-edit" type="button" aria-label="Редактировать рецепт" onclick="event.stopPropagation();' + onEdit + '(' + escapeAttr(idArg) + ')">✎</button>'
+                : '';
             return '<article class="recipe-grid-card" role="button" tabindex="0" onclick="' + onClick + '(' + escapeAttr(idArg) + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();' + onClick + '(' + escapeAttr(idArg) + ')}">' +
                 '<div class="recipe-grid-card-media">' +
                     imageHtml +
                     '<button class="recipe-grid-favorite' + favoriteClass + '" type="button" aria-label="' + favoriteLabel + '" aria-pressed="' + (isFavorite ? 'true' : 'false') + '" onclick="event.stopPropagation();' + onToggleFavorite + '(event, ' + escapeAttr(idArg) + ')">' +
                         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-9.2-9.2C1.6 7.8 3.5 5 6.7 5c1.9 0 3.3 1 4.1 2.2C11.6 6 13 5 14.9 5c3.2 0 5.1 2.8 3.9 6.3C17.5 16.1 12 20.5 12 20.5Z"></path></svg>' +
                     '</button>' +
+                    editButton +
                     (tag ? '<span class="recipe-grid-badge">' + escapeHTML(tag) + '</span>' : '') +
                 '</div>' +
                 '<div class="recipe-grid-card-body">' +
@@ -114,6 +119,7 @@ function renderRecipeGrid(items = [], favs = [], options = {}) {
             const favoriteIds = new Set((favs || []).map(String));
             const onClick = options.onClick || 'openRecipeDetails';
             const onToggleFavorite = options.onToggleFavorite || 'toggleFavorite';
+            const onEdit = options.onEdit || '';
             return (items || []).map(item => {
                 const recipe = item.recipe || {};
                 const nutrition = item.nutrition || {};
@@ -128,7 +134,8 @@ function renderRecipeGrid(items = [], favs = [], options = {}) {
                     carbs: nutrition.carbs,
                     isFavorite: favoriteIds.has(String(recipe.id || '')),
                     onClick,
-                    onToggleFavorite
+                    onToggleFavorite,
+                    onEdit
                 });
             }).join('');
         }
