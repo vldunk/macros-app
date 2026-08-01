@@ -466,6 +466,18 @@
             localStorage.setItem(manualProductsStorageKey(), JSON.stringify(Array.isArray(products) ? products : []));
         }
 
+        function quickEntriesStorageKey() {
+            return 'quickEntries_' + appUserId;
+        }
+
+        function loadQuickEntries() {
+            try { return JSON.parse(localStorage.getItem(quickEntriesStorageKey())) || []; } catch (e) { return []; }
+        }
+
+        function saveQuickEntries(entries) {
+            localStorage.setItem(quickEntriesStorageKey(), JSON.stringify(Array.isArray(entries) ? entries : []));
+        }
+
         function normalizeManualProductName(name) {
             return String(name || '').trim().replace(/\s+/g, ' ').toLowerCase();
         }
@@ -1719,11 +1731,18 @@
             }
         }
 
-        async function openBarcodeCameraPlaceholder() {
+        async function openBarcodeCameraPlaceholder(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
             const panel = document.getElementById('barcode-camera-placeholder');
             panel?.removeAttribute('hidden');
             setBarcodeCameraStatus('Наведите камеру на штрихкод.');
             const video = document.getElementById('barcode-camera-video');
+            if (!window.isSecureContext && location.protocol !== 'file:') {
+                setBarcodeCameraStatus('Камера доступна только в безопасном соединении. Откройте Mini App через Telegram/HTTPS или используйте ввод штрихкода вручную.');
+                console.warn('[barcode camera] getUserMedia requires a secure context');
+                return;
+            }
             if (!('BarcodeDetector' in window)) {
                 console.warn('[barcode camera] BarcodeDetector is not supported, using ZXing fallback');
                 await startZxingScanner(video);
@@ -1774,7 +1793,7 @@
         }
 
         function normalizeBarcode(value) {
-            return String(value || '').trim().replace(/\s+/g, '');
+            return String(value || '').trim().replace(/[^\d]/g, '');
         }
 
         function validateBarcodeValue(barcode) {
@@ -1800,7 +1819,11 @@
             if (options?.mealType) currentDiaryMealType = getValidMealType(options.mealType, currentDiaryMealType);
             resetBarcodeMealForm();
             setLockedLayer('barcode-meal', document.getElementById('barcode-meal-modal'), true);
-            setTimeout(() => document.getElementById('barcode-meal-input')?.focus?.(), 120);
+            if (options?.startCamera) {
+                setTimeout(() => openBarcodeCameraPlaceholder(), 120);
+            } else {
+                setTimeout(() => document.getElementById('barcode-meal-input')?.focus?.(), 120);
+            }
         }
 
         function closeBarcodeMealModal() {
@@ -5932,7 +5955,7 @@
             screen?.setAttribute('aria-hidden', 'true');
         }
 
-        const DIARY_FOOD_PICKER_TABS = ['products', 'my-recipes', 'cooking'];
+        const DIARY_FOOD_PICKER_TABS = ['quick', 'products', 'my-recipes', 'cooking'];
         const diaryFoodPickerState = {
             mealType: 'Завтрак',
             activeTab: 'products',
@@ -5943,6 +5966,10 @@
             productEditId: null,
             productCreateDraft: { name: '', kcal: '', protein: '', fat: '', carbs: '' },
             productCreateError: '',
+            quickCreateMode: false,
+            quickEditId: null,
+            quickCreateDraft: { name: '', grams: '', kcal: '', protein: '', fat: '', carbs: '' },
+            quickCreateError: '',
             selectedProducts: {},
             expandedProductId: null,
             productDraftGrams: {},
@@ -5951,10 +5978,11 @@
 
         function getDiaryFoodPickerTabIndex(tabName) {
             const index = DIARY_FOOD_PICKER_TABS.indexOf(tabName);
-            return index >= 0 ? index : 0;
+            return index >= 0 ? index : DIARY_FOOD_PICKER_TABS.indexOf('products');
         }
 
         function getDiaryFoodPickerTabTitle(tabName) {
+            if (tabName === 'quick') return 'Быстрый ввод';
             if (tabName === 'my-recipes') return 'Мои рецепты';
             if (tabName === 'cooking') return 'Кулинария';
             return 'Продукты';
@@ -5972,6 +6000,115 @@
             closeDiaryFoodPickerScreen();
             openMyRecipesModal();
             openMyRecipeCreateForm({ mealType: diaryFoodPickerState.mealType || currentDiaryMealType, returnToDiary: true, returnToFoodPicker: true });
+        }
+
+        function openDiaryFoodPickerQuickEntry(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            diaryFoodPickerState.quickCreateMode = true;
+            diaryFoodPickerState.quickEditId = null;
+            diaryFoodPickerState.quickCreateDraft = { name: '', grams: '', kcal: '', protein: '', fat: '', carbs: '' };
+            diaryFoodPickerState.quickCreateError = '';
+            diaryFoodPickerState.notice = '';
+            renderDiaryFoodPickerScreen();
+            setTimeout(() => document.getElementById('diary-food-picker-quick-name')?.focus?.(), 40);
+        }
+
+        function openDiaryFoodPickerQuickEdit(entryId, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const entry = loadQuickEntries().find(item => String(item.id) === String(entryId));
+            if (!entry) return showToast('Блюдо не найдено');
+            diaryFoodPickerState.quickCreateMode = true;
+            diaryFoodPickerState.quickEditId = String(entry.id);
+            diaryFoodPickerState.quickCreateDraft = {
+                name: entry.name || '',
+                grams: entry.grams ? String(formatDiaryFoodPickerMacroValue(entry.grams)) : '',
+                kcal: String(formatDiaryFoodPickerMacroValue(entry.kcal)),
+                protein: String(formatDiaryFoodPickerMacroValue(entry.protein)),
+                fat: String(formatDiaryFoodPickerMacroValue(entry.fat)),
+                carbs: String(formatDiaryFoodPickerMacroValue(entry.carbs))
+            };
+            diaryFoodPickerState.quickCreateError = '';
+            diaryFoodPickerState.notice = '';
+            renderDiaryFoodPickerScreen();
+            setTimeout(() => document.getElementById('diary-food-picker-quick-name')?.focus?.(), 40);
+        }
+
+        function renderDiaryFoodPickerQuickEntry() {
+            if (diaryFoodPickerState.quickCreateMode) return renderDiaryFoodPickerQuickCreateForm();
+            const entries = loadQuickEntries()
+                .filter(entry => entry && entry.id && entry.name)
+                .sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+            const addButton = '<button class="diary-food-picker-create-product diary-food-picker-quick-add" type="button" onclick="openDiaryFoodPickerQuickEntry(event)">Добавить блюдо</button>';
+            if (!entries.length) {
+                return '<section class="diary-food-picker-quick-section">' + addButton +
+                    '<div class="diary-food-picker-empty diary-food-picker-quick-empty"><h3>Быстрых блюд пока нет</h3><p>Добавь блюдо, и оно появится здесь с датой создания.</p></div>' +
+                '</section>';
+            }
+            return '<section class="diary-food-picker-quick-section">' + addButton +
+                '<div class="diary-food-picker-quick-list">' + entries.map(renderDiaryFoodPickerQuickRow).join('') + '</div>' +
+            '</section>';
+        }
+
+        function formatDiaryFoodPickerQuickDate(value) {
+            try {
+                const date = new Date(value);
+                if (Number.isNaN(date.getTime())) return 'Дата не указана';
+                return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+            } catch (error) {
+                return 'Дата не указана';
+            }
+        }
+
+        function formatDiaryFoodPickerQuickLine(entry) {
+            const grams = Number(entry?.grams) || 0;
+            const kcal = Math.round(Number(entry?.kcal) || 0);
+            const protein = formatDiaryFoodPickerMacroValue(Number(entry?.protein) || 0);
+            const fat = formatDiaryFoodPickerMacroValue(Number(entry?.fat) || 0);
+            const carbs = formatDiaryFoodPickerMacroValue(Number(entry?.carbs) || 0);
+            return (grams > 0 ? Math.round(grams) + ' г • ' : '') + kcal + ' ккал • Б ' + protein + ' • Ж ' + fat + ' • У ' + carbs;
+        }
+
+        function renderDiaryFoodPickerQuickRow(entry) {
+            const idArg = escapeAttr(JSON.stringify(String(entry.id || '')));
+            return '<article class="diary-food-picker-product-row diary-food-picker-quick-row">' +
+                '<div class="diary-food-picker-product-top">' +
+                    '<div class="diary-food-picker-product-line">' +
+                        '<div class="diary-food-picker-product-copy">' +
+                            '<button class="diary-food-picker-product-name-btn" type="button" onclick="openDiaryFoodPickerQuickEdit(' + idArg + ', event)">' + escapeHTML(entry.name || 'Быстрое блюдо') + '</button>' +
+                            '<small><span class="diary-food-picker-product-grams">' + escapeHTML(formatDiaryFoodPickerQuickDate(entry.createdAt || entry.created_at)) + '</span><span class="diary-food-picker-product-macros">' + escapeHTML(formatDiaryFoodPickerQuickLine(entry)) + '</span></small>' +
+                        '</div>' +
+                    '</div>' +
+                    '<span aria-hidden="true"></span>' +
+                    '<button class="diary-food-picker-product-check" type="button" aria-label="Добавить блюдо" onclick="addDiaryFoodPickerQuickEntry(' + idArg + ', event)">+</button>' +
+                '</div>' +
+            '</article>';
+        }
+
+        function renderDiaryFoodPickerQuickCreateForm() {
+            const draft = diaryFoodPickerState.quickCreateDraft || {};
+            const isEdit = Boolean(diaryFoodPickerState.quickEditId);
+            const error = diaryFoodPickerState.quickCreateError
+                ? '<div class="diary-food-picker-form-error" role="alert">' + escapeHTML(diaryFoodPickerState.quickCreateError) + '</div>'
+                : '';
+            return '<section class="diary-food-picker-product-form">' +
+                '<div class="diary-food-picker-form-head"><h3>' + (isEdit ? 'Изменить блюдо' : 'Добавить блюдо') + '</h3><p>Укажи вес и КБЖУ для быстрого добавления в дневник.</p></div>' +
+                error +
+                '<label class="diary-food-picker-field diary-food-picker-field-wide"><span>Название блюда</span><input id="diary-food-picker-quick-name" type="text" value="' + escapeAttr(draft.name || '') + '" placeholder="Например, обед в кафе" autocomplete="off" oninput="updateDiaryFoodPickerQuickDraft(\'name\', this.value)"></label>' +
+                '<div class="diary-food-picker-form-grid">' +
+                    '<label class="diary-food-picker-field"><span>Вес, г</span><input type="number" inputmode="decimal" min="1" step="1" value="' + escapeAttr(draft.grams || '') + '" placeholder="100" oninput="updateDiaryFoodPickerQuickDraft(\'grams\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Калории</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.kcal || '') + '" placeholder="0" oninput="updateDiaryFoodPickerQuickDraft(\'kcal\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Белки</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.protein || '') + '" placeholder="0" oninput="updateDiaryFoodPickerQuickDraft(\'protein\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Жиры</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.fat || '') + '" placeholder="0" oninput="updateDiaryFoodPickerQuickDraft(\'fat\', this.value)"></label>' +
+                    '<label class="diary-food-picker-field"><span>Углеводы</span><input type="number" inputmode="decimal" min="0" step="0.1" value="' + escapeAttr(draft.carbs || '') + '" placeholder="0" oninput="updateDiaryFoodPickerQuickDraft(\'carbs\', this.value)"></label>' +
+                '</div>' +
+                '<div class="diary-food-picker-form-summary" id="diary-food-picker-quick-create-summary">' + escapeHTML(formatDiaryFoodPickerQuickDraftSummary(draft)) + '</div>' +
+                '<div class="diary-food-picker-form-actions">' +
+                    '<button class="diary-food-picker-form-cancel" type="button" onclick="cancelDiaryFoodPickerQuickCreate(event)">Отмена</button>' +
+                    '<button class="diary-food-picker-form-save" type="button" onclick="saveDiaryFoodPickerQuickCreate(event)">' + (isEdit ? 'Сохранить изменения' : 'Сохранить') + '</button>' +
+                '</div>' +
+            '</section>';
         }
 
         function renderDiaryFoodPickerMyRecipes() {
@@ -6430,6 +6567,129 @@
                 ' • У ' + formatDiaryFoodPickerMacroValue(carbs);
         }
 
+        function formatDiaryFoodPickerQuickDraftSummary(draft = {}) {
+            const grams = parseDiaryFoodPickerProductNumber(draft.grams);
+            const kcal = parseDiaryFoodPickerProductNumber(draft.kcal);
+            const protein = parseDiaryFoodPickerProductNumber(draft.protein);
+            const fat = parseDiaryFoodPickerProductNumber(draft.fat);
+            const carbs = parseDiaryFoodPickerProductNumber(draft.carbs);
+            return (grams > 0 ? Math.round(grams) + ' г • ' : '') + Math.round(kcal) + ' ккал • Б ' + formatDiaryFoodPickerMacroValue(protein) +
+                ' • Ж ' + formatDiaryFoodPickerMacroValue(fat) +
+                ' • У ' + formatDiaryFoodPickerMacroValue(carbs);
+        }
+
+        function updateDiaryFoodPickerQuickDraft(field, value) {
+            if (!diaryFoodPickerState.quickCreateDraft) diaryFoodPickerState.quickCreateDraft = {};
+            diaryFoodPickerState.quickCreateDraft[field] = String(value || '');
+            diaryFoodPickerState.quickCreateError = '';
+            const summary = document.getElementById('diary-food-picker-quick-create-summary');
+            if (summary) summary.textContent = formatDiaryFoodPickerQuickDraftSummary(diaryFoodPickerState.quickCreateDraft);
+            const error = document.querySelector('.diary-food-picker-form-error');
+            if (error) error.remove();
+        }
+
+        function cancelDiaryFoodPickerQuickCreate(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            diaryFoodPickerState.quickCreateMode = false;
+            diaryFoodPickerState.quickEditId = null;
+            diaryFoodPickerState.quickCreateError = '';
+            renderDiaryFoodPickerScreen();
+        }
+
+        function saveDiaryFoodPickerQuickCreate(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const draft = diaryFoodPickerState.quickCreateDraft || {};
+            const name = String(draft.name || '').trim().replace(/\s+/g, ' ');
+            if (!name) {
+                diaryFoodPickerState.quickCreateError = 'Введите название блюда.';
+                renderDiaryFoodPickerScreen();
+                setTimeout(() => document.getElementById('diary-food-picker-quick-name')?.focus?.(), 40);
+                return;
+            }
+            const fields = ['grams', 'kcal', 'protein', 'fat', 'carbs'];
+            if (fields.some(field => hasNegativeDiaryFoodPickerProductNumber(draft[field]))) {
+                diaryFoodPickerState.quickCreateError = 'Вес и КБЖУ не должны быть отрицательными.';
+                renderDiaryFoodPickerScreen();
+                return;
+            }
+            const grams = parseDiaryFoodPickerProductNumber(draft.grams);
+            const existingEntries = loadQuickEntries();
+            const editId = String(diaryFoodPickerState.quickEditId || '');
+            const entry = {
+                id: editId || ('quick_entry_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8)),
+                type: 'quick-entry-template',
+                name,
+                grams: grams > 0 ? grams : 0,
+                kcal: parseDiaryFoodPickerProductNumber(draft.kcal),
+                protein: parseDiaryFoodPickerProductNumber(draft.protein),
+                fat: parseDiaryFoodPickerProductNumber(draft.fat),
+                carbs: parseDiaryFoodPickerProductNumber(draft.carbs),
+                createdAt: existingEntries.find(item => String(item.id) === editId)?.createdAt || new Date().toISOString(),
+                updatedAt: editId ? new Date().toISOString() : undefined
+            };
+            const nextEntries = editId
+                ? existingEntries.map(item => String(item.id) === editId ? { ...item, ...entry } : item)
+                : [entry].concat(existingEntries).slice(0, 80);
+            saveQuickEntries(nextEntries);
+            diaryFoodPickerState.quickCreateMode = false;
+            diaryFoodPickerState.quickEditId = null;
+            diaryFoodPickerState.quickCreateDraft = { name: '', grams: '', kcal: '', protein: '', fat: '', carbs: '' };
+            diaryFoodPickerState.quickCreateError = '';
+            diaryFoodPickerState.notice = editId ? 'Блюдо обновлено.' : 'Блюдо сохранено в быстром вводе.';
+            renderDiaryFoodPickerScreen();
+        }
+
+        async function addDiaryFoodPickerQuickEntry(entryId, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            if (isAddingMeal) return;
+            const entry = loadQuickEntries().find(item => String(item.id) === String(entryId));
+            if (!entry) return showToast('Блюдо не найдено');
+            const mealType = getValidMealType(diaryFoodPickerState.mealType, currentDiaryMealType || 'Завтрак');
+            const createdAt = selectedDateTimeISO();
+            const payload = {
+                id: 'quick_entry_meal_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+                type: 'quick-entry',
+                name: entry.name || 'Быстрое блюдо',
+                recipe_title: entry.name || 'Быстрое блюдо',
+                mealType,
+                meal_type: mealType,
+                grams: Number(entry.grams) || 0,
+                calories: Number(entry.kcal) || 0,
+                kcal: Number(entry.kcal) || 0,
+                protein: Number(entry.protein) || 0,
+                fat: Number(entry.fat) || 0,
+                carbs: Number(entry.carbs) || 0,
+                recipe_id: null,
+                createdAt,
+                created_at: createdAt,
+                ingredients: []
+            };
+            isAddingMeal = true;
+            const optimisticId = addOptimisticDiaryRow({ name: payload.name, k: payload.kcal, p: payload.protein, f: payload.fat, c: payload.carbs }, mealType);
+            try {
+                try {
+                    await callServer('addMeal', payload);
+                } catch (error) {
+                    if (!isTelegramMiniApp) throw error;
+                    addManualLocalMeal(payload);
+                }
+                closeDiaryFoodPickerScreen();
+                await refreshAllData();
+                if (isDiaryMealScreenOpen()) renderDiaryMealContent();
+                showToast('Добавлено в ' + mealType);
+            } catch (error) {
+                removeOptimisticDiaryRow(optimisticId);
+                console.error('Ошибка добавления быстрого блюда:', error);
+                diaryFoodPickerState.notice = 'Не удалось добавить блюдо: ' + (error.message || error);
+                renderDiaryFoodPickerScreen();
+            } finally {
+                isAddingMeal = false;
+            }
+        }
+
         function saveDiaryFoodPickerCreateProduct(event) {
             event?.preventDefault?.();
             event?.stopPropagation?.();
@@ -6511,7 +6771,11 @@
             }).join('');
             const panels = DIARY_FOOD_PICKER_TABS.map(tabName => {
                 const active = tabName === activeTab;
-                const content = tabName === 'products' ? renderDiaryFoodPickerProducts() : renderDiaryFoodPickerPlaceholder(tabName);
+                const content = tabName === 'quick'
+                    ? renderDiaryFoodPickerQuickEntry()
+                    : tabName === 'products'
+                        ? renderDiaryFoodPickerProducts()
+                        : renderDiaryFoodPickerPlaceholder(tabName);
                 return '<section class="diary-food-picker-panel' + (active ? ' active' : '') + '" role="tabpanel">' + content + '</section>';
             }).join('');
             const selectedCount = getDiaryFoodPickerSelectedCount();
@@ -6542,6 +6806,9 @@
             diaryFoodPickerState.productEditMode = false;
             diaryFoodPickerState.productEditId = null;
             diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.quickCreateMode = false;
+            diaryFoodPickerState.quickEditId = null;
+            diaryFoodPickerState.quickCreateError = '';
             diaryFoodPickerState.notice = '';
             renderDiaryFoodPickerScreen();
         }
@@ -6558,6 +6825,10 @@
             diaryFoodPickerState.productEditMode = false;
             diaryFoodPickerState.productEditId = null;
             diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.quickCreateMode = false;
+            diaryFoodPickerState.quickEditId = null;
+            diaryFoodPickerState.quickCreateError = '';
+            diaryFoodPickerState.quickCreateDraft = { name: '', grams: '', kcal: '', protein: '', fat: '', carbs: '' };
             diaryFoodPickerState.selectedProducts = {};
             diaryFoodPickerState.expandedProductId = null;
             diaryFoodPickerState.notice = '';
@@ -6575,6 +6846,10 @@
             diaryFoodPickerState.productEditMode = false;
             diaryFoodPickerState.productEditId = null;
             diaryFoodPickerState.productCreateError = '';
+            diaryFoodPickerState.quickCreateMode = false;
+            diaryFoodPickerState.quickEditId = null;
+            diaryFoodPickerState.quickCreateError = '';
+            diaryFoodPickerState.quickCreateDraft = { name: '', grams: '', kcal: '', protein: '', fat: '', carbs: '' };
             diaryFoodPickerState.notice = '';
             screen?.classList.remove('active');
             setDisplayedLayer('diary-food-picker', screen, false);
@@ -7529,7 +7804,7 @@
 
         function openDiaryMealBarcode() {
             currentMealFilter = currentDiaryMealType;
-            openBarcodeMealModal({ mealType: currentDiaryMealType });
+            openBarcodeMealModal({ mealType: currentDiaryMealType, startCamera: true });
         }
 
         function openDiaryFoodPickerBarcode(event) {
@@ -7538,7 +7813,7 @@
             const mealType = getValidMealType(diaryFoodPickerState.mealType || currentDiaryMealType || currentMealFilter, currentDiaryMealType || 'Завтрак');
             currentMealFilter = mealType;
             currentDiaryMealType = mealType;
-            openBarcodeMealModal({ mealType });
+            openBarcodeMealModal({ mealType, startCamera: true });
         }
 
         function diaryMealCollapsedStorageKey() {
