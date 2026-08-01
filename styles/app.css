@@ -2218,9 +2218,16 @@
             border: 1px solid rgba(95,143,122,.14);
             box-shadow: 0 16px 34px rgba(77,68,54,.09), inset 0 1px 0 rgba(255,255,255,.76);
         }
-        .kbju-recommend-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+        .kbju-recommend-card:not([open]) { padding-bottom: 16px; }
+        .kbju-recommend-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 14px; cursor: pointer; list-style: none; }
+        .kbju-recommend-head::-webkit-details-marker { display: none; }
+        .kbju-recommend-card:not([open]) .kbju-recommend-head { margin-bottom: 0; }
         .kbju-recommend-title { color: var(--text-main); font-size: 18px; font-weight: 900; letter-spacing: -.01em; }
         .kbju-recommend-subtitle { margin-top: 4px; color: var(--text-muted); font-size: 13px; line-height: 1.4; }
+        .kbju-head-actions { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; }
+        .kbju-accordion-arrow { color: #557d6c; font-size: 12px; line-height: 1; font-weight: 950; transition: transform .18s ease; }
+        .kbju-recommend-card:not([open]) .kbju-accordion-arrow { transform: rotate(-90deg); }
+        .kbju-recommend-body { display: block; }
         .kbju-pill { flex: 0 0 auto; padding: 7px 10px; border-radius: 999px; background: rgba(95,143,122,.11); color: #557d6c; font-size: 12px; font-weight: 900; }
         .kbju-stat-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
         .kbju-stat { padding: 12px; border-radius: 18px; background: rgba(255,255,255,.70); border: 1px solid rgba(82,73,58,.07); }
@@ -15050,15 +15057,37 @@
 
 .diary-food-picker-title-block {
     min-width: 0;
+    position: relative;
+}
+
+.diary-food-picker-title-btn {
+    max-width: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    text-align: left;
 }
 
 .diary-food-picker-title {
-    margin: 0;
+    min-width: 0;
     color: var(--text-main);
     font-size: 24px;
     line-height: 1.05;
     font-weight: 900;
     letter-spacing: 0;
+}
+
+.diary-food-picker-title-arrow {
+    flex: 0 0 auto;
+    color: #d99831;
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 900;
+    transform: translateY(1px);
 }
 
 .diary-food-picker-date {
@@ -15067,6 +15096,39 @@
     font-size: 11px;
     line-height: 1.2;
     font-weight: 600;
+}
+
+.diary-food-picker-meal-menu {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 154px;
+    padding: 6px;
+    display: grid;
+    gap: 2px;
+    border: 1px solid rgba(82,73,58,.10);
+    border-radius: 16px;
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 16px 34px rgba(42,34,24,.14);
+}
+
+.diary-food-picker-meal-menu button {
+    min-height: 34px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--text-main);
+    font-size: 13px;
+    line-height: 1;
+    font-weight: 850;
+    text-align: left;
+}
+
+.diary-food-picker-meal-menu button.active {
+    color: #ffffff;
+    background: var(--success);
 }
 
 .diary-food-picker-cancel {
@@ -20760,4 +20822,68 @@ body {
 /* Quick entry must open above Food Picker. */
 .quick-entry-overlay {
     z-index: 13330 !important;
+}
+
+/* Profile page: fullscreen editor opened from bottom navigation. */
+#edit-form.active {
+    position: fixed;
+    inset: 0;
+    z-index: 13200;
+    display: block !important;
+    width: 100%;
+    height: var(--app-viewport-height, 100dvh);
+    padding: 0 20px calc(22px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--bg-color);
+}
+
+#edit-form.active .profile-page-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    min-height: calc(72px + env(safe-area-inset-top));
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 -20px 12px;
+    padding: max(18px, env(safe-area-inset-top)) 20px 12px;
+    background: var(--bg-color);
+    border-bottom: 1px solid rgba(82,73,58,.08);
+}
+
+#edit-form.active .profile-page-head h1 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: 24px;
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
+#edit-form.active .profile-page-back {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 6px;
+    border: 0;
+    background: transparent;
+    color: #d99831;
+    font-size: 14px;
+    line-height: 1;
+    font-weight: 700;
+}
+
+#edit-form.active .settings-card {
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 0 0 24px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+#edit-form.active .settings-title {
+    margin-bottom: 16px;
 }

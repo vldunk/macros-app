@@ -4643,7 +4643,7 @@
         }
 
         function bindKbjuAutoCalculation() {
-            ['inp-age','inp-height','inp-weight','inp-activity','inp-workouts','inp-goal','inp-food-preferences','inp-food-exclusions'].forEach(id => {
+            ['inp-age','inp-height','inp-weight','inp-activity','inp-workouts','inp-goal'].forEach(id => {
                 const el = document.getElementById(id);
                 if (!el || el.dataset.kbjuBound === '1') return;
                 el.dataset.kbjuBound = '1';
@@ -5984,6 +5984,7 @@
             bulkSelected: { quick: {}, products: {}, recipes: {} },
             expandedProductId: null,
             productDraftGrams: {},
+            mealTypeMenuOpen: false,
             notice: ''
         };
 
@@ -6136,6 +6137,36 @@
             } catch (error) {
                 return 'Сегодня';
             }
+        }
+
+        function toggleDiaryFoodPickerMealTypeMenu(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            diaryFoodPickerState.mealTypeMenuOpen = !diaryFoodPickerState.mealTypeMenuOpen;
+            renderDiaryFoodPickerScreen();
+        }
+
+        function setDiaryFoodPickerMealType(mealType, event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            const safeMealType = getValidMealType(mealType, diaryFoodPickerState.mealType || currentDiaryMealType || 'Завтрак');
+            diaryFoodPickerState.mealType = safeMealType;
+            currentDiaryMealType = safeMealType;
+            currentMealFilter = safeMealType;
+            diaryFoodPickerState.mealTypeMenuOpen = false;
+            diaryFoodPickerState.notice = '';
+            renderDiaryFoodPickerScreen();
+        }
+
+        function renderDiaryFoodPickerMealTypeMenu() {
+            if (!diaryFoodPickerState.mealTypeMenuOpen) return '';
+            const current = getValidMealType(diaryFoodPickerState.mealType, 'Завтрак');
+            return '<div class="diary-food-picker-meal-menu" role="menu" aria-label="Выбор приема пищи">' +
+                ['Завтрак','Обед','Ужин','Перекус'].map(type => {
+                    const active = type === current;
+                    return '<button class="' + (active ? 'active' : '') + '" type="button" role="menuitemradio" aria-checked="' + (active ? 'true' : 'false') + '" onclick="setDiaryFoodPickerMealType(\'' + escapeAttr(type) + '\', event)">' + escapeHTML(type) + '</button>';
+                }).join('') +
+            '</div>';
         }
 
         function openDiaryFoodPickerCreateRecipe() {
@@ -7000,8 +7031,12 @@
                 '<div class="diary-food-picker-fixed">' +
                     '<header class="diary-food-picker-head">' +
                         '<div class="diary-food-picker-title-block">' +
-                            '<h1 class="diary-food-picker-title">' + escapeHTML(getValidMealType(diaryFoodPickerState.mealType, 'Завтрак')) + '</h1>' +
+                            '<button class="diary-food-picker-title-btn" type="button" aria-haspopup="menu" aria-expanded="' + (diaryFoodPickerState.mealTypeMenuOpen ? 'true' : 'false') + '" onclick="toggleDiaryFoodPickerMealTypeMenu(event)">' +
+                                '<span class="diary-food-picker-title">' + escapeHTML(getValidMealType(diaryFoodPickerState.mealType, 'Завтрак')) + '</span>' +
+                                '<span class="diary-food-picker-title-arrow" aria-hidden="true">▾</span>' +
+                            '</button>' +
                             '<div class="diary-food-picker-date">' + escapeHTML(getDiaryFoodPickerDateLabel()) + '</div>' +
+                            renderDiaryFoodPickerMealTypeMenu() +
                         '</div>' +
                         actionButton +
                     '</header>' +
@@ -7016,6 +7051,7 @@
         function setDiaryFoodPickerTab(tabName) {
             diaryFoodPickerState.activeTab = DIARY_FOOD_PICKER_TABS.includes(tabName) ? tabName : 'products';
             resetDiaryFoodPickerBulkSelection();
+            diaryFoodPickerState.mealTypeMenuOpen = false;
             diaryFoodPickerState.productCreateMode = false;
             diaryFoodPickerState.productEditMode = false;
             diaryFoodPickerState.productEditId = null;
@@ -7045,6 +7081,7 @@
             diaryFoodPickerState.quickCreateDraft = { name: '', grams: '', kcal: '', protein: '', fat: '', carbs: '' };
             diaryFoodPickerState.selectedProducts = {};
             resetDiaryFoodPickerBulkSelection();
+            diaryFoodPickerState.mealTypeMenuOpen = false;
             diaryFoodPickerState.expandedProductId = null;
             diaryFoodPickerState.notice = '';
             renderDiaryFoodPickerScreen();
@@ -7057,6 +7094,7 @@
             const screen = document.getElementById('diary-food-picker-screen');
             diaryFoodPickerState.selectedProducts = {};
             resetDiaryFoodPickerBulkSelection();
+            diaryFoodPickerState.mealTypeMenuOpen = false;
             diaryFoodPickerState.expandedProductId = null;
             diaryFoodPickerState.productCreateMode = false;
             diaryFoodPickerState.productEditMode = false;
@@ -8493,11 +8531,23 @@
             await refreshAllData();
         }
 
+        function openProfilePage(event) {
+            event?.preventDefault?.();
+            event?.stopPropagation?.();
+            toggleEdit(true);
+        }
+
         function toggleEdit(show) {
-            document.getElementById('edit-form').style.display = show ? 'block' : 'none';
-            document.querySelectorAll('.coach-hero, .coach-feedback-grid, .home-smart-card, .nutrition-coach-card, .intake-card, .home-primary-cta, .home-bottom-nav, .nutritions-card, .recipes-open-row, .recipe-section-control, #recipe-list, .meal-prep-preview, .history-header, #history-list, .top-nav').forEach(el => { el.style.display = show ? 'none' : ''; });
-            if(!show) document.querySelector('.top-nav').style.display = 'flex';
+            const form = document.getElementById('edit-form');
+            if (!form) return;
+            form.style.display = show ? 'block' : 'none';
+            form.classList.toggle('active', Boolean(show));
+            form.toggleAttribute('hidden', !show);
+            form.setAttribute('aria-hidden', show ? 'false' : 'true');
             if (show) {
+                closeAddMealChoice();
+                closeDiaryFoodPickerScreen();
+                closeDiaryMealScreen();
                 setGender(currentGender);
                 document.getElementById('inp-name').value = userProfile.full_name || '';
                 document.getElementById('inp-age').value = userProfile.age || 30;
@@ -8506,8 +8556,6 @@
                 document.getElementById('inp-activity').value = userProfile.activity_level || 'moderate';
                 document.getElementById('inp-workouts').value = userProfile.workouts_per_week ?? 3;
                 document.getElementById('inp-goal').value = userProfile.goal_type || 'maintain';
-                document.getElementById('inp-food-preferences').value = userProfile.food_preferences || '';
-                document.getElementById('inp-food-exclusions').value = userProfile.food_exclusions || '';
                 document.getElementById('inp-water').value = userProfile.target_water || 2000;
                 document.getElementById('inp-kcal').value = userProfile.target_kcal || 0;
                 document.getElementById('inp-protein').value = userProfile.target_protein || 0;
@@ -8515,6 +8563,7 @@
                 document.getElementById('inp-carbs').value = userProfile.target_carbs || 0;
                 bindKbjuAutoCalculation();
                 renderKbjuRecommendation();
+                setTimeout(() => form.scrollTo({ top: 0, behavior: 'auto' }), 0);
             }
         }
         function setGender(g) { currentGender = g; localStorage.setItem('user_gender', g); document.getElementById('gender-m').classList.toggle('active', g === 'M'); document.getElementById('gender-f').classList.toggle('active', g === 'F'); updateCoachAvatar(); if (document.getElementById('edit-form')?.style.display === 'block') renderKbjuRecommendation(); }

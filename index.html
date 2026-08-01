@@ -1044,7 +1044,7 @@
             <button class="home-bottom-nav-item" type="button" onclick="document.getElementById('history-list')?.scrollIntoView({ behavior: 'smooth', block: 'start' })"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v14l-3-2-2 2-2-2-2 2-2-2-3 2V6a2 2 0 0 1 2-2Z"></path><path d="M8 9h8M8 13h6"></path></svg></span><b>Дневник</b></button>
             <button class="home-bottom-nav-add" type="button" aria-label="Добавить приём пищи" onclick="openAddMealAction(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></span><b>Добавить</b></button>
             <button class="home-bottom-nav-item" type="button" onclick="openChartModal()"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V9"></path><path d="M12 19V5"></path><path d="M19 19v-7"></path></svg></span><b>Аналитика</b></button>
-            <button class="home-bottom-nav-item" type="button" onclick="toggleEdit(true)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><b>Профиль</b></button>
+            <button class="home-bottom-nav-item" type="button" onclick="openProfilePage(event)"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path><path d="M5 21a7 7 0 0 1 14 0"></path></svg></span><b>Профиль</b></button>
         </nav>
 
         <div class="nutritions-card" id="nutritions-display" hidden aria-hidden="true">
@@ -1088,6 +1088,10 @@
         </div>
 
         <div id="edit-form">
+            <header class="profile-page-head">
+                <h1>Профиль</h1>
+                <button class="profile-page-back" type="button" onclick="toggleEdit(false)">Назад</button>
+            </header>
             <div class="settings-card">
                 <div class="settings-title">Настройки профиля</div>
                 <div class="gender-switch"><div class="gender-btn active" id="gender-m" onclick="setGender('M')">Мужчина</div><div class="gender-btn" id="gender-f" onclick="setGender('F')">Женщина</div></div>
@@ -1105,31 +1109,33 @@
                     <div class="input-group"><label>Цель</label><select id="inp-goal"><option value="cut">Сушка</option><option value="maintain">Поддержание</option><option value="bulk">Набор массы</option><option value="muscle">Рост мышц</option></select></div>
                     <div class="input-group"><label>Вода (мл)</label><input type="number" id="inp-water" placeholder="2000"></div>
                 </div>
-                <div class="input-group"><label>Предпочтения в питании</label><textarea id="inp-food-preferences" placeholder="Например: люблю курицу, творог, рис, простые блюда"></textarea></div>
-                <div class="input-group"><label>Ограничения и исключения</label><textarea id="inp-food-exclusions" placeholder="Например: без свинины, без лактозы, не люблю рыбу"></textarea></div>
-
-                <div class="kbju-recommend-card" id="kbju-recommend-card">
-                    <div class="kbju-recommend-head">
+                <details class="kbju-recommend-card" id="kbju-recommend-card" open>
+                    <summary class="kbju-recommend-head">
                         <div>
                             <div class="kbju-recommend-title">Рекомендация КБЖУ</div>
                             <div class="kbju-recommend-subtitle" id="kbju-recommend-subtitle">Заполни возраст, рост и вес — расчет появится автоматически.</div>
                         </div>
-                        <div class="kbju-pill" id="kbju-goal-pill">Расчет</div>
+                        <div class="kbju-head-actions">
+                            <div class="kbju-pill" id="kbju-goal-pill">Расчет</div>
+                            <span class="kbju-accordion-arrow" aria-hidden="true">▾</span>
+                        </div>
+                    </summary>
+                    <div class="kbju-recommend-body">
+                        <div class="kbju-stat-grid">
+                            <div class="kbju-stat"><div class="kbju-stat-label">Поддержание</div><div class="kbju-stat-value" id="rec-maintenance">—</div></div>
+                            <div class="kbju-stat"><div class="kbju-stat-label">Рекомендация</div><div class="kbju-stat-value" id="rec-target">—</div></div>
+                        </div>
+                        <div class="kbju-macro-row">
+                            <div class="kbju-macro"><b id="rec-protein">—</b><span>Белки</span></div>
+                            <div class="kbju-macro"><b id="rec-fat">—</b><span>Жиры</span></div>
+                            <div class="kbju-macro"><b id="rec-carbs">—</b><span>Углеводы</span></div>
+                        </div>
+                        <p class="kbju-explain" id="rec-explain">AI объяснит расчет простым языком после заполнения параметров. Базовую математику считает приложение.</p>
+                        <div class="kbju-menu" id="rec-menu">Меню-ориентир появится после расчета.</div>
+                        <div class="kbju-warning" id="rec-warning"></div>
+                        <button class="btn-apply-kbju" type="button" onclick="applyRecommendedKbju()">Применить в профиль</button>
                     </div>
-                    <div class="kbju-stat-grid">
-                        <div class="kbju-stat"><div class="kbju-stat-label">Поддержание</div><div class="kbju-stat-value" id="rec-maintenance">—</div></div>
-                        <div class="kbju-stat"><div class="kbju-stat-label">Рекомендация</div><div class="kbju-stat-value" id="rec-target">—</div></div>
-                    </div>
-                    <div class="kbju-macro-row">
-                        <div class="kbju-macro"><b id="rec-protein">—</b><span>Белки</span></div>
-                        <div class="kbju-macro"><b id="rec-fat">—</b><span>Жиры</span></div>
-                        <div class="kbju-macro"><b id="rec-carbs">—</b><span>Углеводы</span></div>
-                    </div>
-                    <p class="kbju-explain" id="rec-explain">AI объяснит расчет простым языком после заполнения параметров. Базовую математику считает приложение.</p>
-                    <div class="kbju-menu" id="rec-menu">Меню-ориентир появится после расчета.</div>
-                    <div class="kbju-warning" id="rec-warning"></div>
-                    <button class="btn-apply-kbju" type="button" onclick="applyRecommendedKbju()">Применить в профиль</button>
-                </div>
+                </details>
 
                 <div class="input-group"><label>Ежедневная норма калорий</label><input type="number" id="inp-kcal" placeholder="2000"></div>
                 <div class="settings-grid-3"><div class="input-group"><label>Белки (г)</label><input type="number" id="inp-protein"></div><div class="input-group"><label>Жиры (г)</label><input type="number" id="inp-fat"></div><div class="input-group"><label>Углеводы</label><input type="number" id="inp-carbs"></div></div>
