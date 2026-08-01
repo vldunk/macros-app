@@ -7567,8 +7567,12 @@
                 return !normalized || normalized === 'прием пищи' || normalized === 'приём пищи';
             };
             const candidates = [
-                meal?.product_name,
+                meal?.name,
                 meal?.productName,
+                meal?.title,
+                meal?.foodName,
+                meal?.recipeName,
+                meal?.product_name,
                 meal?.product_title,
                 meal?.productTitle,
                 meal?.products?.name,
@@ -7576,17 +7580,12 @@
                 meal?.product?.name,
                 meal?.product?.title,
                 meal?.food_name,
-                meal?.foodName,
-                meal?.meal_name,
-                meal?.mealName,
                 meal?.entry_name,
                 meal?.entryName,
                 meal?.display_name,
                 meal?.displayName,
-                meal?.name,
                 meal?.recipe_title,
                 meal?.recipeTitle,
-                meal?.title,
                 meal?.recipes?.title,
                 meal?.recipe?.title,
                 meal?.ingredients?.[0]?.name,
@@ -7594,10 +7593,15 @@
                 meal?.diary_entry_ingredients?.[0]?.ingredients?.name
             ];
             const title = candidates.find(value => !isGenericTitle(value));
-            return title || 'Прием пищи';
+            return title || 'Продукт';
         }
 
         function getDiaryMealGrams(meal) {
+            const toPositiveGrams = value => {
+                if (value === null || value === undefined || value === '') return 0;
+                const number = Number(String(value).replace(',', '.').replace(/[^\d.-]/g, ''));
+                return Number.isFinite(number) && number > 0 ? number : 0;
+            };
             const directCandidates = [
                 meal?.grams,
                 meal?.gram,
@@ -7614,19 +7618,31 @@
                 meal?.totalWeight,
                 meal?.amount_grams,
                 meal?.amountGrams,
+                meal?.amount,
+                meal?.quantity,
+                meal?.serving_amount,
+                meal?.servingAmount,
                 meal?.consumed_grams,
-                meal?.consumedGrams
+                meal?.consumedGrams,
+                meal?.product?.grams,
+                meal?.product?.weight,
+                meal?.product?.amount,
+                meal?.product?.quantity,
+                meal?.products?.grams,
+                meal?.products?.weight,
+                meal?.products?.amount,
+                meal?.products?.quantity
             ];
             for (const value of directCandidates) {
-                const grams = Number(value);
-                if (Number.isFinite(grams) && grams > 0) return grams;
+                const grams = toPositiveGrams(value);
+                if (grams > 0) return grams;
             }
             const ingredientSources = [meal?.ingredients, meal?.diary_entry_ingredients, meal?.items];
             for (const source of ingredientSources) {
                 if (!Array.isArray(source) || !source.length) continue;
                 const total = source.reduce((sum, item) => {
-                    const grams = Number(item?.grams ?? item?.weight ?? item?.weight_g ?? item?.weightG ?? item?.amount_grams ?? item?.amountGrams) || 0;
-                    return sum + Math.max(0, grams);
+                    const grams = toPositiveGrams(item?.grams ?? item?.weight ?? item?.weight_g ?? item?.weightG ?? item?.amount_grams ?? item?.amountGrams ?? item?.amount ?? item?.quantity ?? item?.serving_grams ?? item?.servingGrams);
+                    return sum + grams;
                 }, 0);
                 if (total > 0) return total;
             }
