@@ -73,10 +73,14 @@ function renderRecipeGridCard({
             isFavorite = false,
             onClick = 'openRecipeDetails',
             onToggleFavorite = 'toggleFavorite',
-            onEdit = ''
+            onEdit = '',
+            bulkType = '',
+            bulkMode = false,
+            bulkSelected = false
         } = {}) {
             const recipeId = String(id || '');
             const idArg = JSON.stringify(recipeId);
+            const safeBulkType = String(bulkType || '');
             const safeImg = safeImageUrl(String(image || '').trim());
             const favoriteClass = isFavorite ? ' is-favorite' : '';
             const favoriteLabel = isFavorite ? 'Убрать из избранного' : 'Добавить в избранное';
@@ -89,15 +93,25 @@ function renderRecipeGridCard({
             const imageClass = 'recipe-grid-card-img' + (safeImg ? '' : ' is-placeholder');
             const fallbackSrc = escapeAttr(RECIPE_GRID_FALLBACK_IMAGE);
             const imageHtml = '<img class="' + imageClass + '" src="' + escapeAttr(imageSrc) + '" alt="' + escapeAttr(safeImg ? (title || 'Рецепт') : '') + '" loading="lazy" onerror="this.onerror=null;this.classList.add(\'is-placeholder\');this.src=\'' + fallbackSrc + '\'">';
-            const editButton = onEdit
-                ? '<button class="recipe-grid-edit" type="button" aria-label="Редактировать рецепт" onclick="event.stopPropagation();' + onEdit + '(' + escapeAttr(idArg) + ')">✎</button>'
+            const bulkClick = safeBulkType
+                ? 'if(typeof consumeDiaryFoodPickerBulkPress===\'function\'&&consumeDiaryFoodPickerBulkPress())return;if(typeof isDiaryFoodPickerBulkMode===\'function\'&&isDiaryFoodPickerBulkMode(\'' + escapeAttr(safeBulkType) + '\')){toggleDiaryFoodPickerBulkSelection(\'' + escapeAttr(safeBulkType) + '\',' + escapeAttr(idArg) + ',event);return;}'
                 : '';
-            return '<article class="recipe-grid-card" role="button" tabindex="0" onclick="' + onClick + '(' + escapeAttr(idArg) + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();' + onClick + '(' + escapeAttr(idArg) + ')}">' +
+            const pointerHandlers = safeBulkType
+                ? ' onpointerdown="startDiaryFoodPickerBulkPress(\'' + escapeAttr(safeBulkType) + '\',' + escapeAttr(idArg) + ',event)" onpointerup="cancelDiaryFoodPickerBulkPress()" onpointercancel="cancelDiaryFoodPickerBulkPress()" onpointerleave="cancelDiaryFoodPickerBulkPress()"'
+                : '';
+            const editButton = onEdit
+                ? '<button class="recipe-grid-edit" type="button" aria-label="Редактировать рецепт" onclick="event.stopPropagation();' + bulkClick + onEdit + '(' + escapeAttr(idArg) + ')">✎</button>'
+                : '';
+            const bulkCheck = safeBulkType
+                ? '<button class="recipe-grid-bulk-check" type="button" aria-label="' + (bulkSelected ? 'Снять выделение' : 'Выделить рецепт') + '" onclick="event.stopPropagation();toggleDiaryFoodPickerBulkSelection(\'' + escapeAttr(safeBulkType) + '\',' + escapeAttr(idArg) + ',event)">' + (bulkSelected ? '✓' : '') + '</button>'
+                : '';
+            return '<article class="recipe-grid-card' + (safeBulkType ? ' is-bulk-selectable' : '') + (bulkMode ? ' is-bulk-mode' : '') + (bulkSelected ? ' is-bulk-selected' : '') + '" role="button" tabindex="0"' + pointerHandlers + ' onclick="' + bulkClick + onClick + '(' + escapeAttr(idArg) + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();' + (safeBulkType ? 'if(typeof isDiaryFoodPickerBulkMode===\'function\'&&isDiaryFoodPickerBulkMode(\'' + escapeAttr(safeBulkType) + '\')){toggleDiaryFoodPickerBulkSelection(\'' + escapeAttr(safeBulkType) + '\',' + escapeAttr(idArg) + ',event);return;}' : '') + onClick + '(' + escapeAttr(idArg) + ')}">' +
                 '<div class="recipe-grid-card-media">' +
                     imageHtml +
-                    '<button class="recipe-grid-favorite' + favoriteClass + '" type="button" aria-label="' + favoriteLabel + '" aria-pressed="' + (isFavorite ? 'true' : 'false') + '" onclick="event.stopPropagation();' + onToggleFavorite + '(event, ' + escapeAttr(idArg) + ')">' +
+                    '<button class="recipe-grid-favorite' + favoriteClass + '" type="button" aria-label="' + favoriteLabel + '" aria-pressed="' + (isFavorite ? 'true' : 'false') + '" onclick="event.stopPropagation();' + bulkClick + onToggleFavorite + '(event, ' + escapeAttr(idArg) + ')">' +
                         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.4-9.2-9.2C1.6 7.8 3.5 5 6.7 5c1.9 0 3.3 1 4.1 2.2C11.6 6 13 5 14.9 5c3.2 0 5.1 2.8 3.9 6.3C17.5 16.1 12 20.5 12 20.5Z"></path></svg>' +
                     '</button>' +
+                    bulkCheck +
                     editButton +
                     (tag ? '<span class="recipe-grid-badge">' + escapeHTML(tag) + '</span>' : '') +
                 '</div>' +
@@ -120,6 +134,7 @@ function renderRecipeGrid(items = [], favs = [], options = {}) {
             const onClick = options.onClick || 'openRecipeDetails';
             const onToggleFavorite = options.onToggleFavorite || 'toggleFavorite';
             const onEdit = options.onEdit || '';
+            const bulkSelectedIds = new Set((options.bulkSelectedIds || []).map(String));
             return (items || []).map(item => {
                 const recipe = item.recipe || {};
                 const nutrition = item.nutrition || {};
@@ -135,7 +150,10 @@ function renderRecipeGrid(items = [], favs = [], options = {}) {
                     isFavorite: favoriteIds.has(String(recipe.id || '')),
                     onClick,
                     onToggleFavorite,
-                    onEdit
+                    onEdit,
+                    bulkType: options.bulkType || '',
+                    bulkMode: Boolean(options.bulkMode),
+                    bulkSelected: bulkSelectedIds.has(String(recipe.id || ''))
                 });
             }).join('');
         }
